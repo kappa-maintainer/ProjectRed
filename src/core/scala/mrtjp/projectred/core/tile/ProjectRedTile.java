@@ -43,6 +43,14 @@ public abstract class ProjectRedTile extends TileEntity implements IBlockEventTi
         readDesc(in);
     }
 
+    protected void pushBlockState() {
+        if (!getBlockLevel().isClientSide) {
+            BlockState currentState = getBlockLevel().getBlockState(getBlockPosition());
+            BlockState newState = storeBlockState(currentState);
+            getBlockLevel().setBlockAndUpdate(getBlockPosition(), newState);
+        }
+    }
+
     // Obfuscation bug: cant use getLevel name
     @Override
     public World getBlockLevel() {
