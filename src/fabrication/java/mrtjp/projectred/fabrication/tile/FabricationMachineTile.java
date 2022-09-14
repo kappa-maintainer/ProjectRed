@@ -1,0 +1,122 @@
+package mrtjp.projectred.fabrication.tile;
+
+import mrtjp.projectred.api.IConnectable;
+import mrtjp.projectred.core.ILowLoadMachine;
+import mrtjp.projectred.core.ILowLoadPowerLine;
+import mrtjp.projectred.core.JDrawPointPowerConductor;
+import mrtjp.projectred.core.PowerConductor;
+import mrtjp.projectred.core.tile.BasePoweredTile;
+import mrtjp.projectred.fabrication.block.FabricationMachineBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.TileEntityType;
+
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+public abstract class FabricationMachineTile extends BasePoweredTile implements ILowLoadMachine {
+
+    protected final JDrawPointPowerConductor conductor = new JDrawPointPowerConductor(this,
+            IntStream.rangeClosed(0, 29)
+                    .boxed()
+                    .collect(Collectors.toList()));
+
+    private boolean isWorking = false;
+    private boolean isCharged = false;
+    private int remainingWork = 0;
+    private int totalWork = 0;
+
+    public FabricationMachineTile(TileEntityType<?> type) {
+        super(type);
+    }
+
+    @Override
+    public void saveToNBT(CompoundNBT tag) {
+        super.saveToNBT(tag);
+        conductor.save(tag);
+        tag.putBoolean("isWorking", isWorking);
+        tag.putBoolean("isCharged", isCharged);
+    }
+
+    @Override
+    public void loadFromNBT(CompoundNBT tag) {
+        super.loadFromNBT(tag);
+        conductor.load(tag);
+        isWorking = tag.getBoolean("isWorking");
+        isCharged = tag.getBoolean("isCharged");
+    }
+
+    @Override
+    public BlockState storeBlockState(BlockState defaultState) {
+        return super.storeBlockState(defaultState)
+                .setValue(FabricationMachineBlock.CHARGED, isCharged)
+                .setValue(FabricationMachineBlock.WORKING, isWorking);
+    }
+
+    @Override
+    public void tick() {
+        if (getLevel().isClientSide) return;
+
+        boolean wasCharged = isCharged;
+        boolean wasWorking = isWorking;
+
+        conductor.update();
+        isCharged = conductor.canWork();
+
+        if (!isWorking) {
+            if (canStartWork()) {
+                isWorking = true;
+                remainingWork = totalWork = startWork();
+            }
+
+        } else {
+            int workDone = tickWork(remainingWork);
+            remainingWork -= workDone;
+            if (remainingWork <= 0) {
+                isWorking = false;
+                remainingWork = 0;
+                totalWork = 0;
+                finishWork();
+            }
+        }
+
+        if (isCharged != wasCharged || isWorking != wasWorking) {
+            pushBlockState();
+        }
+    }
+
+    @Override
+    public boolean canConnectPart(IConnectable part, int s, int edgeRot) {
+        if (part instanceof ILowLoadMachine) return true;
+        if (part instanceof ILowLoadPowerLine) return true;
+
+        return false;
+    }
+
+    @Override
+    public PowerConductor conductor(int dir) {
+        return conductor;
+    }
+
+    protected void cancelWorkIfNeeded() {
+        if (isWorking && !canStartWork()) {
+            isWorking = false;
+            remainingWork = 0;
+            totalWork = 0;
+            pushBlockState();
+        }
+    }
+
+    public int getRemainingWork() {
+        return remainingWork;
+    }
+
+    public int getTotalWork() {
+        return totalWork;
+    }
+
+    protected abstract boolean canStartWork();
+    protected abstract int startWork();
+    protected abstract int tickWork(int remainingWork);
+    protected abstract void finishWork();
+}

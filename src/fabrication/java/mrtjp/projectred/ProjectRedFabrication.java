@@ -44,6 +44,7 @@ public class ProjectRedFabrication {
 
     static {
         FabricationBlocks.register();
+        FabricationContainers.register();
         FabricationItems.register();
         FabricationParts.register();
     }
