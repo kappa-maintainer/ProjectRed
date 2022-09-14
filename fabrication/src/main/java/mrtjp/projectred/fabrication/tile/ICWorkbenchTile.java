@@ -7,7 +7,7 @@ import codechicken.lib.vec.Vector3;
 import mrtjp.projectred.core.CoreNetwork;
 import mrtjp.projectred.core.tile.IPacketReceiverTile;
 import mrtjp.projectred.core.tile.ProjectRedTile;
-import mrtjp.projectred.fabrication.block.FabricationBaseBlock;
+import mrtjp.projectred.fabrication.block.ICWorkbenchBlock;
 import mrtjp.projectred.fabrication.editor.ICWorkbenchEditor;
 import mrtjp.projectred.fabrication.editor.IICWorkbenchEditorNetwork;
 import mrtjp.projectred.fabrication.gui.screen.ICWorkbenchScreen;
@@ -90,7 +90,7 @@ public class ICWorkbenchTile extends ProjectRedTile implements IPacketReceiverTi
 
             ItemStack stackInHand = player.getItemInHand(hand);
 
-            boolean blueprintOnTable = getBlockState().getValue(FabricationBaseBlock.HAS_BLUEPRINT_PROPERTY);
+            boolean blueprintOnTable = getBlockState().getValue(ICWorkbenchBlock.BLUEPRINT_PROPERTY);
             boolean blueprintInHand = !stackInHand.isEmpty() && stackInHand.getItem() == FabricationReferences.IC_BLUEPRINT_ITEM;
 
             if (!blueprintOnTable && blueprintInHand) {
@@ -118,7 +118,7 @@ public class ICWorkbenchTile extends ProjectRedTile implements IPacketReceiverTi
 
     @Override
     public void onBlockRemoved() {
-        boolean blueprintOnTable = getBlockState().getValue(FabricationBaseBlock.HAS_BLUEPRINT_PROPERTY);
+        boolean blueprintOnTable = getBlockState().getValue(ICWorkbenchBlock.BLUEPRINT_PROPERTY);
         if (blueprintOnTable) {
             ItemStack blueprintToDrop = createBlueprintStack();
             ProjectRedTile.dropItem(blueprintToDrop, getLevel(), Vector3.fromBlockPos(getBlockPos()));
@@ -140,7 +140,7 @@ public class ICWorkbenchTile extends ProjectRedTile implements IPacketReceiverTi
     }
 
     private void setBlueprintBlockState(boolean blueprintOnTable) {
-        BlockState newState = getBlockState().setValue(FabricationBaseBlock.HAS_BLUEPRINT_PROPERTY, blueprintOnTable);
+        BlockState newState = getBlockState().setValue(ICWorkbenchBlock.BLUEPRINT_PROPERTY, blueprintOnTable);
         getLevel().setBlockAndUpdate(getBlockPos(), newState);
     }
 

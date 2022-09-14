@@ -4,15 +4,10 @@ import mrtjp.projectred.core.tile.IBlockEventTile;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.state.IntegerProperty;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
@@ -23,19 +18,17 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 
-public class FabricationBaseBlock extends Block {
+public abstract class FabricationBaseBlock extends Block {
 
-    public static final DirectionProperty ROTATION_PROPERTY = BlockStateProperties.HORIZONTAL_FACING;
-    public static final BooleanProperty HAS_BLUEPRINT_PROPERTY = BooleanProperty.create("blueprint");
+    public static final IntegerProperty SIDE_PROPERTY = IntegerProperty.create("side", 0, 5);
+    public static final IntegerProperty ROTATION_PROPERTY = IntegerProperty.create("rotation", 0, 3);
 
-    private final Supplier<TileEntity> tileEntitySupplier;
-
-    public FabricationBaseBlock(Supplier<TileEntity> tileEntitySupplier) {
-        super(AbstractBlock.Properties.of(Material.STONE));
-        this.tileEntitySupplier = tileEntitySupplier;
+    public FabricationBaseBlock(AbstractBlock.Properties properties) {
+        super(properties);
     }
+
+    protected abstract TileEntity createTileEntityInstance(BlockState state, IBlockReader world);
 
     @Override
     public boolean hasTileEntity(BlockState state) {
@@ -45,17 +38,9 @@ public class FabricationBaseBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        TileEntity tile = tileEntitySupplier.get();
+        TileEntity tile = createTileEntityInstance(state, world);
         if (tile instanceof IBlockEventTile) ((IBlockEventTile) tile).loadBlockState(state);
         return tile;
-    }
-
-    @Nullable
-    @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return defaultBlockState()
-                .setValue(ROTATION_PROPERTY, context.getHorizontalDirection().getOpposite())
-                .setValue(HAS_BLUEPRINT_PROPERTY, false);
     }
 
     @Override
@@ -94,11 +79,5 @@ public class FabricationBaseBlock extends Block {
     public void setPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity player, ItemStack stack) {
         TileEntity tile = world.getBlockEntity(pos);
         if (tile instanceof IBlockEventTile) ((IBlockEventTile) tile).onBlockPlaced(player, stack);
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(ROTATION_PROPERTY);
-        builder.add(HAS_BLUEPRINT_PROPERTY);
     }
 }

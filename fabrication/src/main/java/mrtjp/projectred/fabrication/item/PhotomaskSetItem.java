@@ -1,9 +1,7 @@
 package mrtjp.projectred.fabrication.item;
 
 import mrtjp.projectred.fabrication.ProjectRedFabrication;
-import mrtjp.projectred.fabrication.init.FabricationReferences;
 import mrtjp.projectred.integration.GateType;
-import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,12 +15,11 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ICBlueprintItem extends Item {
+public class PhotomaskSetItem extends Item {
 
-    public ICBlueprintItem() {
+    public PhotomaskSetItem() {
         super(new Item.Properties()
-                .tab(ProjectRedFabrication.FABRICATION_GROUP)
-                .stacksTo(1));
+                .tab(ProjectRedFabrication.FABRICATION_GROUP));
     }
 
     @Override
@@ -42,21 +39,18 @@ public class ICBlueprintItem extends Item {
     @Override
     public ActionResultType onItemUseFirst(ItemStack stack, ItemUseContext context) {
 
-        if (!context.getPlayer().isCreative()) return ActionResultType.PASS;
+        if (stack.getTag() != null) {
+            ItemStack gate = GateType.FABRICATED_GATE.makeStack();
+            gate.setTag(stack.getTag());
 
-        // Creative mode bypass: Convert blueprint directly to gate block
-        BlockState blockState = context.getLevel().getBlockState(context.getClickedPos());
-        if (blockState.getBlock() == FabricationReferences.IC_WORKBENCH_BLOCK)
-            return ActionResultType.PASS;
-
-        if (!stack.hasTag() || !stack.getTag().contains("tilecount")) {
-            return ActionResultType.PASS;
+            context.getPlayer().addItem(gate);
+            return ActionResultType.SUCCESS;
         }
 
-        ItemStack gate = GateType.FABRICATED_GATE.makeStack();
-        gate.setTag(stack.getTag());
+        return ActionResultType.PASS;
+    }
 
-        context.getPlayer().addItem(gate);
-        return ActionResultType.SUCCESS;
+    public static void transferNBTToDieItem(ItemStack photomask, ItemStack die) {
+        die.setTag(photomask.getTag().copy());
     }
 }
