@@ -23,16 +23,17 @@ import java.util.List;
 
 public class ICRenderNode extends ViewportRenderNode {
 
+    private static final int ZOOM_ANIMATION_TIME_MS = 100;
+    private static final int LAYER_ANIMATION_TIME_MS = 200;
+    private static final int CAMERA_ANIMATION_TIME_MS = 100;
+
     private final ICWorkbenchEditor editor;
     private final IICRenderNodeEventReceiver eventReceiver;
 
     private final Vector3 cameraPosition = new Vector3();
 
-    private final Vector3 cameraLayerDelta = new Vector3();
-    private final Vector3 cameraZoomDelta = new Vector3(0, 1, 0);
-
-    private final Vector3 cameraLayerComponent = new Vector3();
-    private final Vector3 cameraZoomComponent = new Vector3(0, 3, 0);
+    private final LinearVectorAnimation cameraLayerAnimator = new LinearVectorAnimation();
+    private final LinearVectorAnimation cameraZoomAnimator = new LinearVectorAnimation(0, 3, 0);
 
     private int currentLayer = 0;
 
@@ -46,52 +47,34 @@ public class ICRenderNode extends ViewportRenderNode {
     public void setLayer(int layer) {
         int previousLayer = currentLayer;
         this.currentLayer = layer;
-        cameraLayerDelta.add(0, layer-previousLayer, 0);
+        cameraLayerAnimator.addDeltaWithNewDuration(new Vector3(0, layer-previousLayer, 0), LAYER_ANIMATION_TIME_MS);
         eventReceiver.layerChanged(this, previousLayer, currentLayer);
-    }
-
-    public void moveCamera(Vector3 delta) {
-        cameraPosition.add(delta);
     }
 
     public void moveZoomAt(Vector3 zoomPos, double zoomDelta) {
 
         Vector3 zoomVec = zoomPos.copy().subtract(cameraPosition).normalize();
         zoomVec.multiply(zoomDelta);
-        cameraZoomDelta.add(zoomVec);
+        cameraZoomAnimator.addDeltaWithNewDuration(zoomVec, ZOOM_ANIMATION_TIME_MS);
     }
 
     public void applyCameraDelta(Vector3 delta) {
-        cameraZoomDelta.add(delta);
+        cameraZoomAnimator.addDeltaWithNewDuration(delta, CAMERA_ANIMATION_TIME_MS);
     }
 
     @Override
     public void frameUpdate(Point mouse, float partialFrame) {
-        eventReceiver.update(this);
+        long t = System.currentTimeMillis();
+        cameraZoomAnimator.tick(t);
+        cameraLayerAnimator.tick(t);
 
         // Store mouse position for mouse drag calculations
         lastMousePos = mouse;
 
-        // Apply pending camera movements
-        Vector3 cameraPositionStep = cameraZoomDelta.copy().multiply(0.25D);
-        cameraZoomComponent.add(cameraPositionStep);
-        cameraZoomDelta.subtract(cameraPositionStep);
-        if (cameraZoomDelta.equalsT(Vector3.ZERO)) {
-            cameraZoomDelta.set(0);
-        }
-
-        // Apply layer camera movements
-        Vector3 cameraLayerStep = cameraLayerDelta.copy().multiply(0.1D);
-        cameraLayerComponent.add(cameraLayerStep);
-        cameraLayerDelta.subtract(cameraLayerStep);
-        if (cameraLayerDelta.equalsT(Vector3.ZERO)) {
-            cameraLayerDelta.set(0);
-        }
-
         // Combine components to calculate final position
         cameraPosition.set(0);
-        cameraPosition.add(cameraZoomComponent);
-        cameraPosition.add(cameraLayerComponent);
+        cameraZoomAnimator.apply(cameraPosition);
+        cameraLayerAnimator.apply(cameraPosition);
     }
 
     @Override
@@ -127,7 +110,8 @@ public class ICRenderNode extends ViewportRenderNode {
         for (int y = currentLayer-1; y <= currentLayer+1; y++) {
 
             ccrs.reset();
-            ccrs.alphaOverride = 255 - (int) (255 * Math.min(Math.abs(y - cameraLayerComponent.y), 1));
+            // Linearly ramp down alpha as we move away from the current layer
+            ccrs.alphaOverride = 255 - (int) (255 * Math.min(Math.abs(y - cameraLayerAnimator.vector.y), 1));
 
             // Render grid
             renderStack.pushPose();
@@ -158,6 +142,12 @@ public class ICRenderNode extends ViewportRenderNode {
 
         // Force-end the batch to make sure it happens before the custom viewport is altered
         getter.endBatch();
+    }
+
+    @Override
+    public void update() {
+        super.update();
+        eventReceiver.update(this);
     }
 
     @Override

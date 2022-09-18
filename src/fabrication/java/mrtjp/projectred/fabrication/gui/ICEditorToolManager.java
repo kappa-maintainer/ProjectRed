@@ -84,10 +84,10 @@ public class ICEditorToolManager implements ICRenderNode.IICRenderNodeEventRecei
 
     public void update(ICRenderNode renderNode) {
         Vector3 cameraDelta = new Vector3();
-        double deltaPerFrame =  0.1D;
+        double deltaPerTick =  0.5D;
 
-        cameraDelta.z = (upPressed ? -deltaPerFrame : 0) + (downPressed ? deltaPerFrame : 0);
-        cameraDelta.x = (leftPressed ? -deltaPerFrame : 0) + (rightPressed ? deltaPerFrame : 0);
+        cameraDelta.z = (upPressed ? -deltaPerTick : 0) + (downPressed ? deltaPerTick : 0);
+        cameraDelta.x = (leftPressed ? -deltaPerTick : 0) + (rightPressed ? deltaPerTick : 0);
 
         renderNode.applyCameraDelta(cameraDelta);
     }
@@ -129,7 +129,7 @@ public class ICEditorToolManager implements ICRenderNode.IICRenderNodeEventRecei
     @Override
     public void mouseButtonDragged(ICRenderNode renderNode, Vector3 mousePosition, Vector3 delta, int glfwMouseButton) {
         if (!selectedTool.toolDragged(mousePosition, delta, glfwMouseButton)) {
-            if (leftMouseDown) renderNode.moveCamera(delta.copy().negate());
+            // No default handling of mouse drag events
         }
     }
 
