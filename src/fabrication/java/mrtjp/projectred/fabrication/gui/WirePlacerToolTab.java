@@ -17,6 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
 
@@ -44,6 +45,8 @@ public class WirePlacerToolTab extends ICEditorToolTab {
                 CCRenderState ccrs = CCRenderState.instance();
                 ccrs.reset();
                 ccrs.bind(RenderType.cutout(), getter, stack);
+                ccrs.overlay = OverlayTexture.NO_OVERLAY;
+                ccrs.brightness = 0xF000F0;
 
                 double scale = 10/16D;
                 TransformationList t = new TransformationList(
