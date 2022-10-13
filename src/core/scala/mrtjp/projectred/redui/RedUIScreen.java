@@ -53,7 +53,7 @@ public class RedUIScreen extends Screen implements RedUIRootNode {
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialFrame) {
         super.render(matrixStack, mouseX, mouseY, partialFrame);
 
-        RenderSystem.disableDepthTest(); // UI nodes are drawn in order, so depth test is not needed
+        RenderSystem.enableDepthTest(); // Nodes render out of order, so depth test is needed
 
         // Render semi-transparent grey background
         fillGradient(matrixStack, getScreenFrame().x(), getScreenFrame().y(), getScreenFrame().width(), getScreenFrame().height(), -1072689136, -804253680);
@@ -68,8 +68,6 @@ public class RedUIScreen extends Screen implements RedUIRootNode {
         // Draw the UI
         drawBackForSubtree(matrixStack, mousePoint, partialFrame);
         drawFrontForSubtree(matrixStack, mousePoint, partialFrame);
-
-        RenderSystem.enableDepthTest();
     }
 
     @Override

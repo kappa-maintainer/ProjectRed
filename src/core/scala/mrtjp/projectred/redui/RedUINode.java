@@ -9,11 +9,9 @@ import net.minecraftforge.fml.client.gui.GuiUtils;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * A Node object that is organized into a tree structure. Each node receives user input events and can contain
@@ -168,6 +166,21 @@ public interface RedUINode {
         List<RedUINode> subTree = getSubTree(filter, !reversed);
         subTree.sort(Comparator.comparingDouble(n -> n.getZPosition() * (reversed ? 1 : -1)));
         return subTree;
+    }
+
+    /**
+     * Returns a filtered children list sorted by Z position
+     * <p>
+     * Nodes with equal Z positions will be ordered based on their original order
+     *
+     * @param filter   Used to exclude certian children
+     * @param reversed If true, sort in ascending z order
+     * @return Children list
+     */
+    default List<RedUINode> getZOrderedChildren(Predicate<RedUINode> filter, boolean reversed) {
+        return getOurChildren().stream().filter(filter)
+                .sorted(Comparator.comparingDouble(n -> n.getZPosition() * (reversed ? 1 : -1)))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -361,6 +374,16 @@ public interface RedUINode {
         return convertScreenRectToParent(screenSpaceFrame);
     }
 
+    default Rect calculateChildrenFrame() {
+        List<RedUINode> subTree = getSubTree(n -> !n.isHidden());
+        subTree.remove(0); // drop this node
+
+        Rect screenSpaceFrame = subTree.stream()
+                .map(n -> n.convertParentRectToScreen(n.getFrame()))
+                .reduce(Rect.zeroRect(), Rect::union);
+        return convertScreenRectToParent(screenSpaceFrame);
+    }
+
     /**
      * Returns a list of subtree nodes that intersect with the given point. Hits are ordered
      * by z position. For each node, {@link RedUINode#checkHit(Point)} is called to check if
@@ -460,6 +483,16 @@ public interface RedUINode {
     }
 
     /**
+     * Calls {@link RedUINode#removeFromParent()} on each child safely (i.e. without concurrent modification exceptions)
+     */
+    default void removeAllChildren() {
+        List<RedUINode> children = new ArrayList<>(getOurChildren());
+        for (RedUINode child : children) {
+            child.removeFromParent();
+        }
+    }
+
+    /**
      * Runs all nodes in the subtree through a given operation in unspecific order.
      *
      * @param p        The starting point, in this node's parent's coordinate space. This is converted to keep
@@ -503,6 +536,63 @@ public interface RedUINode {
         }
 
         return consumed;
+    }
+
+    /**
+     * Recursive render call for this node and its subtree. This will render the background layer of this node
+     * and entire subtree. The call order is as follows:
+     * <ul>
+     *     <li>This node's {@link RedUINode#drawBack(MatrixStack, Point, float)} method </li>
+     *     <li>This node's {@link RedUINode#onSubTreePreDrawBack()} method</li>
+     *     <li>Each child's renderBackForSubtree method. Note that MatrixStack pose and
+     *         mouse positions are translated to correct position and depth for each child. </li>
+     *     <li>This node's {@link RedUINode#onSubTreePostDrawBack()} method</li>
+     * </ul>
+     * @param stack The matrix stack that is translated to the parent
+     * @param mouse Current mouse position, relative to the parent
+     * @param partialFrame Partial frames between ticks
+     */
+    default void renderBackForSubtree(MatrixStack stack, Point mouse, float partialFrame) {
+        drawBack(stack, mouse, partialFrame);
+
+        onSubTreePreDrawBack();
+        for (RedUINode child : getZOrderedChildren(n -> !n.isHidden(), true)) {
+            stack.pushPose();
+
+            Point relativeMouse = mouse.subtract(getPosition());
+            Point relativePos = getPosition(); //Position is always relative
+            double relativeZ = child.getRelativeZPosition();
+
+            stack.translate(relativePos.x(), relativePos.y(), relativeZ);
+            child.renderBackForSubtree(stack, relativeMouse, partialFrame);
+
+            stack.popPose();
+        }
+        onSubTreePostDrawBack();
+    }
+
+    /**
+     * Similar to background render call, but for foreground layer.
+     *
+     * @see RedUINode#renderBackForSubtree(MatrixStack, Point, float)
+     */
+    default void renderFrontForSubtree(MatrixStack stack, Point mouse, float partialFrame) {
+        drawFront(stack, mouse, partialFrame);
+
+        onSubTreePreDrawFront();
+        for (RedUINode child : getZOrderedChildren(n -> !n.isHidden(), true)) {
+            stack.pushPose();
+
+            Point relativeMouse = mouse.subtract(getPosition());
+            Point relativePos = getPosition(); //Position is always relative
+            double relativeZ = child.getRelativeZPosition();
+
+            stack.translate(relativePos.x(), relativePos.y(), relativeZ);
+            child.renderFrontForSubtree(stack, relativeMouse, partialFrame);
+
+            stack.popPose();
+        }
+        onSubTreePostDrawFront();
     }
 
     /**
@@ -617,11 +707,24 @@ public interface RedUINode {
     default boolean onCharTyped(char ch, int glfwFlags, boolean consumed) { return false; }
 
     /**
-     * Called before {@link RedUINode#drawBack(MatrixStack, Point, float)} or
-     * {@link RedUINode#drawFront(MatrixStack, Point, float)} is called on all children, but after
-     * the draw method on this node is called.
+     * @see RedUINode#renderBackForSubtree(MatrixStack, Point, float)
      */
-    default void onNodesBelowPreDraw() { }
+    default void onSubTreePreDrawBack() { }
+
+    /**
+     * @see RedUINode#renderBackForSubtree(MatrixStack, Point, float)
+     */
+    default void onSubTreePostDrawBack() { }
+
+    /**
+     * @see RedUINode#renderFrontForSubtree(MatrixStack, Point, float)
+     */
+    default void onSubTreePreDrawFront() { }
+
+    /**
+     * @see RedUINode#renderFrontForSubtree(MatrixStack, Point, float)
+     */
+    default void onSubTreePostDrawFront() { }
 
     /**
      * Draw call for the background layer, typically used to render the background. Drawing is done
@@ -641,13 +744,6 @@ public interface RedUINode {
      * @param partialFrame Partial frames between ticks
      */
     default void drawFront(MatrixStack stack, Point mouse, float partialFrame) { }
-
-    /**
-     * Called after {@link RedUINode#drawBack(MatrixStack, Point, float)} or
-     * {@link RedUINode#drawFront(MatrixStack, Point, float)} is called on all nodes below, but after
-     * the draw method on this node is called.
-     */
-    default void onNodesBelowPostDraw() { }
 
     /**
      * Node operation function that can be run over an entire graph

@@ -79,6 +79,13 @@ public abstract class ViewportRenderNode extends AbstractGuiNode {
         RenderSystem.pushMatrix();
         RenderSystem.loadIdentity();
 
+        /*
+          TODO Figure out how to sandwich the viewport at this node's z position, +- some small range.
+               For now, this only renders properly if correctly ordered in the tree (i.e. everything
+               under it renders before, and everything above it renders after).
+         */
+        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, false);
+
         // Render
         renderInViewport(pvMatrix.getModelViewMatrixStack(), getFrame().ndc(mouse), partialFrame, isFirstHit(mouse));
 

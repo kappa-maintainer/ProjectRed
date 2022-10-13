@@ -58,7 +58,7 @@ public class RedUIContainerScreen<T extends Container> extends ContainerScreen<T
             return false;
         }, false);
 
-        RenderSystem.disableDepthTest(); // UI nodes are drawn in order, so depth test is not needed
+        RenderSystem.enableDepthTest(); // Nodes render out of order, so depth test is needed
 
         // Render semi-transparent grey background
         fillGradient(stack, getScreenFrame().x(), getScreenFrame().y(), getScreenFrame().width(), getScreenFrame().height(), -1072689136, -804253680);
@@ -70,8 +70,6 @@ public class RedUIContainerScreen<T extends Container> extends ContainerScreen<T
         renderTooltip(stack, mouseX, mouseY);
         // Render foreground
         drawFrontForSubtree(stack, new Point(mouseX, mouseY), partialFrame);
-
-        RenderSystem.enableDepthTest();
     }
 
     @Override
