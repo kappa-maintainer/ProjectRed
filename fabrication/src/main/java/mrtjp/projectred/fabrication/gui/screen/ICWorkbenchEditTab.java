@@ -39,6 +39,8 @@ public class ICWorkbenchEditTab extends AbstractGuiNode {
             toolbarNode.addButtonForTab(tab);
             addChild(tab);
         }
+        toolbarNode.selectInitialTab(0);
+        toolbarNode.spreadButtonsVertically(1);
 
         ICRenderNode icRenderNode = new ICRenderNode(editor, toolManager);
         icRenderNode.setPosition(7, 18);
@@ -69,10 +71,9 @@ public class ICWorkbenchEditTab extends AbstractGuiNode {
         blit(stack, getFrame().x(), getFrame().y(), 0, 0, getFrame().width(), getFrame().height(), 512, 512);
     }
 
-
     @Override
     public boolean onKeyPressed(int glfwKeyCode, int glfwScanCode, int glfwFlags, boolean consumed) {
-        if (!consumed) {
+        if (!consumed && !isHidden()) {
             return toolManager.keyPressed(glfwKeyCode, glfwFlags);
         }
         return false;
@@ -80,9 +81,6 @@ public class ICWorkbenchEditTab extends AbstractGuiNode {
 
     @Override
     public boolean onKeyReleased(int glfwKeyCode, int glfwScanCode, int glfwFlags, boolean consumed) {
-        if (!consumed) {
-            return toolManager.keyReleased(glfwKeyCode, glfwFlags);
-        }
-        return false;
+        return toolManager.keyReleased(glfwKeyCode, glfwFlags);
     }
 }

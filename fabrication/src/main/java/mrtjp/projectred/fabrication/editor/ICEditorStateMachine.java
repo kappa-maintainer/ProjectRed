@@ -17,19 +17,23 @@ import static mrtjp.projectred.fabrication.ProjectRedFabrication.LOGGER;
 public class ICEditorStateMachine {
 
     public static final int KEY_STATE_CHANGED = 0;
-    public static final int KEY_COMPILER_LOG_ADDED = 1;
-    public static final int KEY_COMPILER_LOG_EXEC = 2;
+    public static final int KEY_COMPILER_LOG_NODE_ADDED = 1;
+    public static final int KEY_COMPILER_LOG_NODE_EXECUTED = 2;
+
+    public static final int KEY_CLIENT_COMPILE_CLICKED = 10;
 
     private final ICWorkbenchEditor editor;
 
     private static final int STATE_INITIAL = 0;
-    private static final int STATE_COMPILING = 1;
-    private static final int STATE_READY = 2;
+    private static final int STATE_AWAITING_COMPILE = 1;
+    private static final int STATE_COMPILING = 2;
+    private static final int STATE_SIMULATING = 3;
 
     private final State[] states = {
             new StateInitial(),
+            new StateAwaitingCompile(),
             new StateCompiling(),
-            new StateReady()
+            new StateSimulating()
     };
 
     private int currentState = STATE_INITIAL;
@@ -39,50 +43,67 @@ public class ICEditorStateMachine {
     private final ICSimulationContainer simulationContainer = new ICSimulationContainer();
     private final ICCompilerLog compilerLog = new ICCompilerLog(this);
 
+    private boolean autoCompileOnChange = false; //TODO client-side toggle
+
     public ICEditorStateMachine(ICWorkbenchEditor editor, StateMachineCallback callback) {
         this.editor = editor;
         this.callback = callback;
     }
 
+    public ICCompilerLog getCompilerLog() {
+        return compilerLog;
+    }
+
     public void save(CompoundNBT tag) {
         tag.putByte("comp_state", (byte) currentState);
         simulationContainer.save(tag);
+        compilerLog.save(tag);
     }
 
     public void load(CompoundNBT tag) {
         currentState = tag.getByte("comp_state") & 0xFF;
         simulationContainer.load(tag);
+        compilerLog.load(tag);
     }
 
     public void writeDesc(MCDataOutput out) {
         out.writeByte(currentState);
         simulationContainer.writeDesc(out);
+        compilerLog.writeDesc(out);
     }
 
     public void readDesc(MCDataInput in) {
         currentState = in.readUByte();
         simulationContainer.readDesc(in);
+        compilerLog.readDesc(in);
     }
 
-    public void readCompilerStream(MCDataInput in, int key) {
+    public void reset() {
+        enterState(STATE_INITIAL, true);
+    }
+
+    public void readStateMachineStream(MCDataInput in, int key) {
         switch (key) {
             case KEY_STATE_CHANGED:
-                currentState = in.readUByte();
-                LOGGER.info("CLIENT READ STATE: " + currentState);
+                enterStateOnClient(in.readUByte());
                 break;
-            case KEY_COMPILER_LOG_ADDED:
-            case KEY_COMPILER_LOG_EXEC:
+            case KEY_COMPILER_LOG_NODE_ADDED:
+            case KEY_COMPILER_LOG_NODE_EXECUTED:
                 compilerLog.readLogStream(in, key);
+                break;
+            case KEY_CLIENT_COMPILE_CLICKED:
+                onCompileTriggered();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown compiler stream key: " + key);
         }
     }
 
-    public MCDataOutput getCompilerStream(int key) {
-        return editor.getCompilerStream(key);
+    public MCDataOutput getStateMachineStream(int key) {
+        return editor.getStateMachineStream(key);
     }
 
+    //region State Machine events
     public void onTick(long time) {
         states[currentState].onTick(time);
     }
@@ -91,14 +112,33 @@ public class ICEditorStateMachine {
         states[currentState].onTileMapChanged();
     }
 
+    public void onCompileTriggered() {
+        states[currentState].onCompileTriggered();
+    }
+
     public void onInputRegistersChanged(int rotation, Function<Short, Short> changeFunction) {
         states[currentState].onInputRegistersChanged(rotation, changeFunction);
     }
+    //endregion
 
-    private boolean enterState(int id) {
-        if (currentState == id) return false;
+    //region Client-side utilities
+    public void sendCompileButtonClicked() {
+        // Notifies server to call onCompileTriggered
+        getStateMachineStream(KEY_CLIENT_COMPILE_CLICKED);
+    }
+    public boolean canTriggerCompile() {
+        return states[currentState].canTransitionTo(STATE_COMPILING);
+    }
+    public boolean isCompiling() {
+        return currentState == STATE_COMPILING;
+    }
+    //endregion
 
-        if (!states[currentState].canTransitionTo(id)) return false;
+    private void enterState(int id, boolean force) {
+        if (currentState == id) return;
+
+        if (!force && !states[currentState].canTransitionTo(id))
+            throw new RuntimeException("Illegal state change requested");
 
         int oldState = currentState;
 
@@ -107,9 +147,24 @@ public class ICEditorStateMachine {
         states[currentState].onStateEntered(oldState);
 
         LOGGER.info("State transition: " + oldState + " -> " + currentState);
-        getCompilerStream(KEY_STATE_CHANGED).writeByte(currentState);
+    }
 
-        return true;
+    private void enterStateAndSend(int id) {
+        // Shift state
+        enterState(id, false);
+
+        // Notify clients to also shift states
+        getStateMachineStream(KEY_STATE_CHANGED).writeByte(currentState);
+    }
+
+    private void enterStateOnClient(int id) {
+        int oldState = currentState;
+
+        states[currentState].onClientStateLeaving(id);
+        currentState = id;
+        states[currentState].onClientStateEntered(oldState);
+
+        LOGGER.info("Client state transition: " + oldState + " -> " + currentState);
     }
 
     public interface StateMachineCallback {
@@ -123,36 +178,70 @@ public class ICEditorStateMachine {
 
     private interface State {
 
+        //region Server-side events
         default void onTick(long time) { }
 
         default void onTileMapChanged() { }
+
+        default void onCompileTriggered() { }
 
         default void onInputRegistersChanged(int rotation, Function<Short, Short> changeFunction) { }
 
         boolean canTransitionTo(int id);
 
-        void onStateEntered(int previousStateId);
+        default void onStateEntered(int previousStateId) { }
 
-        void onStateLeaving(int nextStateId);
+        default void onStateLeaving(int nextStateId) { }
+        //endregion
+
+        //region Client-side events
+        default void onClientStateEntered(int previousStateId) { }
+
+        default void onClientStateLeaving(int nextStateId) { }
+        //endregion
     }
 
     private class StateInitial implements State {
 
         @Override
         public void onTileMapChanged() {
-            enterState(STATE_COMPILING);
+            enterStateAndSend(STATE_AWAITING_COMPILE);
+        }
+
+        @Override
+        public boolean canTransitionTo(int id) {
+            return id == STATE_AWAITING_COMPILE;
+        }
+
+        @Override
+        public void onStateEntered(int previousStateId) {
+            compilerLog.clear();
+        }
+
+        @Override
+        public void onClientStateEntered(int previousStateId) {
+            compilerLog.clear();
+        }
+    }
+
+    private class StateAwaitingCompile implements State {
+
+        @Override
+        public void onTick(long time) {
+            if (autoCompileOnChange) {
+                enterStateAndSend(STATE_COMPILING);
+            }
+        }
+
+        @Override
+        public void onCompileTriggered() {
+            enterStateAndSend(STATE_COMPILING);
         }
 
         @Override
         public boolean canTransitionTo(int id) {
             return id == STATE_COMPILING;
         }
-
-        @Override
-        public void onStateEntered(int previousStateId) { }
-
-        @Override
-        public void onStateLeaving(int nextStateId) { }
     }
 
     private class StateCompiling implements State {
@@ -175,7 +264,7 @@ public class ICEditorStateMachine {
                 ICFlatMap map = assembler.result();
                 assembler = null; //TODO make assemblers clearable
                 simulationContainer.setFlatMap(map);
-                enterState(STATE_READY);
+                enterStateAndSend(STATE_SIMULATING);
                 if (callback != null) callback.onCompileComplete();
             }
         }
@@ -187,7 +276,7 @@ public class ICEditorStateMachine {
 
         @Override
         public boolean canTransitionTo(int id) {
-            return id == STATE_READY;
+            return id == STATE_SIMULATING;
         }
 
         @Override
@@ -200,17 +289,22 @@ public class ICEditorStateMachine {
             assembler = null;
         }
 
+        @Override
+        public void onClientStateEntered(int previousStateId) {
+            compilerLog.clear();
+        }
+
         private void restartAssembly() {
             assembler = PRFabricationEngine.instance.newStepThroughAssembler();
             assembler.setEventReceiver(compilerLog);
-            compilerLog.clearLog();
+            compilerLog.clear();
 
             assembler.addTileMap(editor.getTileMap(), Collections.emptyMap());
             if (callback != null) callback.onCompileStart();
         }
     }
 
-    private class StateReady implements State {
+    private class StateSimulating implements State {
 
         private long lastTime = -1;
 
@@ -254,20 +348,17 @@ public class ICEditorStateMachine {
 
         @Override
         public void onTileMapChanged() {
-            enterState(STATE_COMPILING);
+            enterStateAndSend(STATE_AWAITING_COMPILE); //TODO enter initial if tile map was emptied
         }
 
         @Override
         public boolean canTransitionTo(int id) {
-            return id == STATE_COMPILING;
+            return id == STATE_AWAITING_COMPILE;
         }
 
         @Override
         public void onStateEntered(int previousStateId) {
             lastTime = -1;
         }
-
-        @Override
-        public void onStateLeaving(int nextStateId) { }
     }
 }

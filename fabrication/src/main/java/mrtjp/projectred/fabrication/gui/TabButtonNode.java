@@ -143,7 +143,8 @@ public abstract class TabButtonNode extends AbstractGuiNode {
     }
 
     public enum TabSide {
-        LEFT(482, 179, 20, 20, 503, 179, 6, 20, 16, 0, 0, 21);
+        LEFT(482, 179, 20, 20, 503, 179, 6, 20, 16, 0, 0, 21),
+        BOTTOM(466, 234, 20, 20, 466, 227, 20, 6, 0, -2, 21, 0);
 
         public final int u;
         public final int v;

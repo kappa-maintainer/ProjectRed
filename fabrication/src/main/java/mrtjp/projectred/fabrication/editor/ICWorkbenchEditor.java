@@ -19,10 +19,10 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
 
     private static final int STREAM_ID_GENERAL = 0;
     private static final int STREAM_ID_TILE_UPDATES = 1;
-    private static final int STREAM_ID_COMPILER = 2;
+    private static final int STREAM_ID_FSM = 2;
 
-    private static final int ADD_TILE = 1;
-    private static final int REMOVE_TILE = 2;
+    private static final int KEY_ADD_TILE = 1;
+    private static final int KEY_REMOVE_TILE = 2;
     private static final int KEY_TOOL = 10;
 
     private final IICWorkbenchEditorNetwork network;
@@ -92,7 +92,7 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
     private void clear() {
         LOGGER.info("ICWorkbenchEditor: Preparing load of initial data (Should be server only)");
         tileMap.removeAll();
-//        compiler.clear();
+        stateMachine.reset();
     }
 
     public void readBlueprintTagAndActivate(@Nullable CompoundNBT tag) {
@@ -129,8 +129,8 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
             case STREAM_ID_TILE_UPDATES:
                 readTileStream(in, frameKey);
                 break;
-            case STREAM_ID_COMPILER:
-                stateMachine.readCompilerStream(in, frameKey);
+            case STREAM_ID_FSM:
+                stateMachine.readStateMachineStream(in, frameKey);
                 break;
             default:
                 LOGGER.error("Unknown stream key " + streamKey);
@@ -157,12 +157,12 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
 
     private void readGeneralStream(MCDataInput in, int frameKey) {
         switch (frameKey) {
-            case ADD_TILE:
+            case KEY_ADD_TILE:
                 BaseTile tile = ICTileType.createFromId(in.readUByte()); //TODO check if not null?
                 tileMap.addTile(new TileCoord(in.readByte(), in.readByte(), in.readByte()), tile);
                 tile.readDesc(in);
                 break;
-            case REMOVE_TILE:
+            case KEY_REMOVE_TILE:
                 tileMap.removeTile(new TileCoord(in.readByte(), in.readByte(), in.readByte())); //TODO check if removed?
                 break;
             case KEY_TOOL:
@@ -210,8 +210,8 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
         return out;
     }
 
-    public MCDataOutput getCompilerStream(int key) {
-        return network.getBufferedStream(STREAM_ID_COMPILER, key);
+    public MCDataOutput getStateMachineStream(int key) {
+        return network.getBufferedStream(STREAM_ID_FSM, key);
     }
 
     public void addTile(BaseTile tile, TileCoord pos) {
@@ -224,7 +224,7 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
         tile.onAdded();
 
         // Send the new tile to clients
-        MCDataOutput out = network.getBufferedStream(STREAM_ID_GENERAL, ADD_TILE);
+        MCDataOutput out = network.getBufferedStream(STREAM_ID_GENERAL, KEY_ADD_TILE);
         out.writeByte(tile.getTileType().getID());
         out.writeByte(pos.x).writeByte(pos.y).writeByte(pos.z);
         tile.writeDesc(out);
@@ -244,7 +244,7 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
         tileMap.removeTile(pos);
 
         // Send the tile removed action to clients
-        MCDataOutput out = network.getBufferedStream(STREAM_ID_GENERAL, REMOVE_TILE);
+        MCDataOutput out = network.getBufferedStream(STREAM_ID_GENERAL, KEY_REMOVE_TILE);
         out.writeByte(pos.x).writeByte(pos.y).writeByte(pos.z);
 
         markTileChange();
@@ -259,6 +259,7 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
         stateMachine.onTileMapChanged();
     }
 
+    //region State Machine callbacks
     @Override
     public void onCompileStart() {
         LOGGER.info("Compiling...");
@@ -271,9 +272,9 @@ public class ICWorkbenchEditor implements ICEditorStateMachine.StateMachineCallb
 
     @Override
     public void onSimulationComplete(int changeMask, ICSimulationContainer container) {
-//        LOGGER.info("Simulation complete. Change mask: " + changeMask);
         for (BaseTileMap.BaseTileEntry entry : tileMap.getBaseTileEntries()) {
             entry.getTile().onSimRegistersChanged(changeMask, container);
         }
     }
+    //endregion
 }

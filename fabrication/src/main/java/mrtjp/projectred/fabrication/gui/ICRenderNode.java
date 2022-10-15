@@ -214,20 +214,21 @@ public class ICRenderNode extends ViewportRenderNode {
     }
 
     public interface IICRenderNodeEventReceiver {
-        void update(ICRenderNode renderNode);
 
-        void mouseButtonPressed(ICRenderNode renderNode, Vector3 mousePosition, int glfwMouseButton);
+        default void update(ICRenderNode renderNode) { }
 
-        void mouseButtonReleased(ICRenderNode renderNode, Vector3 mousePosition, int glfwMouseButton);
+        default void mouseButtonPressed(ICRenderNode renderNode, Vector3 mousePosition, int glfwMouseButton) { }
 
-        void mouseButtonDragged(ICRenderNode renderNode, Vector3 mousePosition, Vector3 delta, int glfwMouseButton);
+        default void mouseButtonReleased(ICRenderNode renderNode, Vector3 mousePosition, int glfwMouseButton) { }
 
-        void mouseScrolled(ICRenderNode renderNode, Vector3 mousePosition, double scroll);
+        default void mouseButtonDragged(ICRenderNode renderNode, Vector3 mousePosition, Vector3 delta, int glfwMouseButton) { }
 
-        void layerChanged(ICRenderNode renderNode, int previousLayer, int newLayer);
+        default void mouseScrolled(ICRenderNode renderNode, Vector3 mousePosition, double scroll) { }
 
-        void onRenderOverlay(ICRenderNode renderNode, Vector3 mousePosition, boolean isFirstHit, CCRenderState ccrs, IRenderTypeBuffer getter, MatrixStack matrixStack);
+        default void layerChanged(ICRenderNode renderNode, int previousLayer, int newLayer) { }
 
-        void buildTooltip(ICRenderNode renderNode, Vector3 mousePosition, boolean isFirstHit, List<ITextProperties> tooltip);
+        default void onRenderOverlay(ICRenderNode renderNode, Vector3 mousePosition, boolean isFirstHit, CCRenderState ccrs, IRenderTypeBuffer getter, MatrixStack matrixStack) { }
+
+        default void buildTooltip(ICRenderNode renderNode, Vector3 mousePosition, boolean isFirstHit, List<ITextProperties> tooltip) { }
     }
 }

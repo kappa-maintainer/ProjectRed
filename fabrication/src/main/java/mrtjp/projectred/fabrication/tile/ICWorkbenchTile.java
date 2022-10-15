@@ -118,8 +118,7 @@ public class ICWorkbenchTile extends ProjectRedTile implements IPacketReceiverTi
 
     @Override
     public void onBlockRemoved() {
-        boolean blueprintOnTable = getBlockState().getValue(ICWorkbenchBlock.BLUEPRINT_PROPERTY);
-        if (blueprintOnTable) {
+        if (getEditor().isActive()) {
             ItemStack blueprintToDrop = createBlueprintStack();
             ProjectRedTile.dropItem(blueprintToDrop, getLevel(), Vector3.fromBlockPos(getBlockPos()));
         }

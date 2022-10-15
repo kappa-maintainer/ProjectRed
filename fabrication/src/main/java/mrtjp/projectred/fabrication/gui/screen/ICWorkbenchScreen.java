@@ -40,6 +40,9 @@ public class ICWorkbenchScreen extends RedUIScreen {
         ICWorkbenchEditTab editTab = new ICWorkbenchEditTab(editor);
         addChild(editTab);
 
+        ICWorkbenchCompileTab compileTab = new ICWorkbenchCompileTab(editor);
+        addChild(compileTab);
+
         TabControllerNode tabControllerNode = new TabControllerNode();
         tabControllerNode.setPosition(-19, 4);
         tabControllerNode.setZPosition(0.1);
@@ -47,16 +50,17 @@ public class ICWorkbenchScreen extends RedUIScreen {
 
         tabControllerNode.addButtonForTab(new SimpleUVTab(new DebugRectNode(), "Info", TabButtonNode.TabSide.LEFT, 420, 1));
         tabControllerNode.addButtonForTab(new SimpleUVTab(editTab, "Edit", TabButtonNode.TabSide.LEFT, 420, 16));
-        tabControllerNode.addButtonForTab(new SimpleUVTab(new DebugRectNode(), "Compile", TabButtonNode.TabSide.LEFT, 420, 31));
+        tabControllerNode.addButtonForTab(new SimpleUVTab(compileTab, "Compile", TabButtonNode.TabSide.LEFT, 420, 31));
 
         tabControllerNode.selectInitialTab(1);
+        tabControllerNode.spreadButtonsVertically(1);
     }
 
     @Override
     public void drawBack(MatrixStack stack, Point mouse, float partialFrame) {
         super.drawBack(stack, mouse, partialFrame);
 
-        if (!editor.isActive()) {
+        if (!editor.isActive()) { //TODO this has to be drawn by a node above viewport node
             Rect frame = getFrame();
             fillGradient(stack, frame.x(), frame.y(), frame.width(), frame.height(), -1072689136, -804253680);
 
