@@ -7,12 +7,15 @@ import codechicken.lib.vec.Cuboid6;
 import codechicken.lib.vec.Vector3;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import mrtjp.projectred.ProjectRedFabrication;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 public class ICRenderTypes {
@@ -201,6 +204,20 @@ public class ICRenderTypes {
         box.max.y = ac.min.y + height;
         box.max.z = ac.max.z - th;
         BlockRenderer.renderCuboid(ccrs, box, 1 | 1<<2 | 1<<3);
+    }
+
+    public static void renderTextCenteredAt(MatrixStack stack, Vector3 pos, String text, int bgColor, int textColor) {
+        FontRenderer fontRenderer = Minecraft.getInstance().font;
+
+        stack.pushPose();
+
+        stack.translate(pos.x, pos.y, pos.z);
+        stack.scale(1.0f/fontRenderer.lineHeight, 1, 1.0f/fontRenderer.lineHeight);
+        stack.mulPose(Vector3f.XP.rotationDegrees(90.0F));
+
+        fontRenderer.draw(stack, text, (float) (0 - fontRenderer.width(text) / 2), (float) (0 - fontRenderer.lineHeight / 2), textColor);
+
+        stack.popPose();
     }
 
     public void sortComponents(Cuboid6 c) {

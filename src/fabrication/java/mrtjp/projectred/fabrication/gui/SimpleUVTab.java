@@ -6,6 +6,7 @@ import mrtjp.core.vec.Point;
 import mrtjp.projectred.fabrication.gui.screen.ICWorkbenchScreen;
 import mrtjp.projectred.redui.AbstractGuiNode;
 import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
 
@@ -19,13 +20,23 @@ public class SimpleUVTab implements TabControllerNode.IToolbarTab {
 
     private final int u;
     private final int v;
+    private final ResourceLocation texture;
 
-    public SimpleUVTab(AbstractGuiNode tabBodyNode, String tabName, TabButtonNode.TabSide side, int u, int v) { //TODO Icon width/height?
+    public SimpleUVTab(AbstractGuiNode tabBodyNode, String tabName, TabButtonNode.TabSide side, int u, int v, ResourceLocation texture) { //TODO Icon width/height?
         this.tabBodyNode = tabBodyNode;
         this.tabName = tabName;
         this.tabSide = side;
         this.u = u;
         this.v = v;
+        this.texture = texture;
+    }
+
+    public SimpleUVTab(AbstractGuiNode tabBodyNode, String tabName, TabButtonNode.TabSide side, int u, int v) {
+        this(tabBodyNode, tabName, side, u, v, ICWorkbenchScreen.BACKGROUND);
+    }
+
+    public AbstractGuiNode getTabBodyNode() {
+        return tabBodyNode;
     }
 
     @Override
@@ -48,7 +59,7 @@ public class SimpleUVTab implements TabControllerNode.IToolbarTab {
         return new TabButtonNode(this, tabSide) {
             @Override
             public void renderIcon(MatrixStack stack, Point mouse, float partialFrame) {
-                TextureUtils.changeTexture(ICWorkbenchScreen.BACKGROUND);
+                TextureUtils.changeTexture(texture);
                 AbstractGui.blit(stack, getFrame().x() + 3, getFrame().y() + 3, u, v, 14, 14, 512, 512);
             }
 
