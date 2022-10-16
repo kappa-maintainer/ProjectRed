@@ -15,6 +15,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 
 import static mrtjp.projectred.fabrication.ProjectRedFabrication.LOGGER;
+import static mrtjp.projectred.fabrication.editor.EditorDataUtils.*;
 
 public class FabricatedGatePart extends BundledGatePart {
 
@@ -40,11 +41,11 @@ public class FabricatedGatePart extends BundledGatePart {
         }
 
         CompoundNBT tag = stack.getTag();
-        icName = tag.getString("ic_name");
-        ICFlatMap flatMap = PRFabricationEngine.instance.deserializeFlatMap(tag.getString("flatMap"));
+        icName = tag.getString(KEY_IC_NAME);
+        ICFlatMap flatMap = PRFabricationEngine.instance.deserializeFlatMap(tag.getString(KEY_FLAT_MAP));
         simulationContainer.setFlatMap(flatMap);
-        bundledMask = tag.getByte("bmask");
-        redstoneMask = tag.getByte("rmask");
+        bundledMask = tag.getByte(KEY_IO_BUNDLED);
+        redstoneMask = tag.getByte(KEY_IO_RS);
     }
 
     @Override

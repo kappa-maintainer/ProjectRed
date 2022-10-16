@@ -30,18 +30,16 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
     }
 
     public void save(CompoundNBT tag) {
-        CompoundNBT treeTag = new CompoundNBT();
-        compileTree.save(treeTag);
-        tag.put("compile_tree", treeTag);
         tag.putInt("completed_steps", completedSteps);
         tag.putIntArray("current_path", currentPath);
+        compileTree.save(tag);
     }
 
     public void load(CompoundNBT tag) {
-        compileTree.load(tag.getCompound("compile_tree"));
         completedSteps = tag.getInt("completed_steps");
         currentPath.clear();
         currentPath.addAll(Arrays.stream(tag.getIntArray("current_path")).boxed().collect(Collectors.toList()));
+        compileTree.load(tag);
     }
 
     public void writeDesc(MCDataOutput out) {
@@ -176,9 +174,9 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
             ListNBT tileCoordsTag = new ListNBT();
             for (TileCoord coord : tileCoords) {
                 CompoundNBT coordTag = new CompoundNBT();
-                coordTag.putInt("x", coord.x);
-                coordTag.putInt("y", coord.y);
-                coordTag.putInt("z", coord.z);
+                coordTag.putByte("x", (byte) coord.x);
+                coordTag.putByte("y", (byte) coord.y);
+                coordTag.putByte("z", (byte) coord.z);
                 tileCoordsTag.add(coordTag);
             }
             tag.put("tileCoords", tileCoordsTag);
@@ -207,13 +205,15 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
         public void load(CompoundNBT tag) {
             step = ICStepThroughAssembler.AssemblerStepType.values()[tag.getByte("step")];
 
+            // Note: this is only called on fresh instance. No need to clear lists
+
             ListNBT tileCoordsTag = tag.getList("tileCoords", Constants.NBT.TAG_COMPOUND);
             for (INBT coordTag : tileCoordsTag) {
                 CompoundNBT coordTagCompound = (CompoundNBT) coordTag;
                 tileCoords.add(new TileCoord(
-                        coordTagCompound.getInt("x"),
-                        coordTagCompound.getInt("y"),
-                        coordTagCompound.getInt("z")
+                        coordTagCompound.getByte("x"),
+                        coordTagCompound.getByte("y"),
+                        coordTagCompound.getByte("z")
                 ));
             }
 
@@ -226,7 +226,6 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
                 registerRemaps.put(remapTagCompound.getInt("k"), remapTagCompound.getInt("v"));
             }
 
-            children.clear();
             ListNBT childrenTag = tag.getList("children", Constants.NBT.TAG_COMPOUND);
             for (INBT childTag : childrenTag) {
                 CompileTreeNode child = new CompileTreeNode();
@@ -380,6 +379,7 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
 
         public void load(CompoundNBT tag) {
             size = tag.getInt("size");
+            rootNodes.clear();
             ListNBT rootNodesTag = tag.getList("rootNodes", Constants.NBT.TAG_COMPOUND);
             for (INBT rootNodeTag : rootNodesTag) {
                 CompileTreeNode rootNode = new CompileTreeNode();
