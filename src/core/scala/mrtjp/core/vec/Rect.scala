@@ -45,6 +45,12 @@ case class Rect(origin:Point, size:Size)
         new Rect(Point(math.min(x, r.x), math.min(y, r.y)), Point(math.max(maxX, r.maxX), math.max(maxY, r.maxY)))
     }
 
+    def expand(x:Int, y:Int):Rect = {
+        val dw = if (width + x < 0) -width else x;
+        val dh = if (height + y < 0) -height else y;
+        new Rect(origin.subtract(dw/2, dh/2), Size(width+dw, height+dh))
+    }
+
     def trap(r:Rect) = {
         val dx = (if (r.x < x) x-r.x else 0) + (if (r.maxX > maxX) maxX-r.maxX else 0)
         val dy = (if (r.y < y) y-r.y else 0) + (if (r.maxY > maxY) maxY-r.maxY else 0)

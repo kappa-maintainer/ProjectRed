@@ -33,14 +33,7 @@ public abstract class ScrollBarNode extends AbstractGuiNode {
         // Draw scroll bar background
         drawSlider(stack, sliderFrame);
     }
-
-    @Override
-    public void drawFront(MatrixStack stack, Point mouse, float partialFrame) {
-        if (!isFirstHit(mouse)) return;
-
-        renderTooltip(stack, mouse, Collections.singletonList(new StringTextComponent("Scroll (" + scrollPercentage + ")")));
-    }
-
+    
     @Override
     public boolean mouseClicked(Point p, int glfwMouseButton, boolean consumed) {
         if (isFirstHit(p)) {
