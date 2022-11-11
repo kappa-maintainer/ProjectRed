@@ -1,12 +1,15 @@
 package mrtjp.projectred.fabrication.gui.screen;
 
+import codechicken.lib.colour.EnumColour;
 import codechicken.lib.texture.TextureUtils;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import mrtjp.core.vec.Point;
+import mrtjp.core.vec.Rect;
 import mrtjp.projectred.fabrication.editor.ICWorkbenchEditor;
 import mrtjp.projectred.fabrication.editor.tools.*;
 import mrtjp.projectred.fabrication.gui.*;
 import mrtjp.projectred.redui.AbstractGuiNode;
+import net.minecraft.client.gui.FontRenderer;
 
 import static net.minecraft.client.gui.AbstractGui.blit;
 
@@ -68,7 +71,15 @@ public class ICWorkbenchEditTab extends AbstractGuiNode {
     @Override
     public void drawBack(MatrixStack stack, Point mouse, float partialFrame) {
         TextureUtils.changeTexture(ICWorkbenchScreen.BACKGROUND);
-        blit(stack, getFrame().x(), getFrame().y(), 0, 0, getFrame().width(), getFrame().height(), 512, 512);
+
+        Rect frame = getFrame();
+        FontRenderer fontRenderer = getRoot().getFontRenderer();
+
+        blit(stack, frame.x(), frame.y(), 0, 0, frame.width(), frame.height(), 512, 512);
+
+        if (editor.isActive()) {
+            fontRenderer.draw(stack, editor.getIcName(), frame.x() + 8, frame.y() + 6, EnumColour.GRAY.argb());
+        }
     }
 
     @Override
