@@ -145,7 +145,7 @@ dependencies {
 
     fabricationCompile sourceSets.integration.output
     fabricationCompile sourceSets.transmission.output
-    fabricationShadow "io.github.mrtjp:fabrication-engine:0.1.0-alpha-14"
+    fabricationShadow "io.github.mrtjp:fabrication-engine:${config.fabrication_version}"
 }
 
 
