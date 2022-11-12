@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import mrtjp.core.vec.Point;
 import mrtjp.core.vec.Rect;
 import mrtjp.core.vec.Size;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.ItemRenderer;
@@ -176,5 +177,9 @@ public class RedUIScreen extends Screen implements RedUIRootNode {
         return font;
     }
 
+    @Override
+    public void fillGradient(MatrixStack matrixStack, int x1, int y1, int x2, int y2, int argb1, int argb2) {
+        super.fillGradient(matrixStack, x1, y1, x2, y2, argb1, argb2);
+    }
     //endregion
 }

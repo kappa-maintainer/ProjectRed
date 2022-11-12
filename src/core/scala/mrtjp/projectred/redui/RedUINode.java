@@ -783,7 +783,7 @@ public interface RedUINode {
 
     // Utility methods
 
-    default void renderTooltip(MatrixStack stack, Point mouse, List<ITextProperties> tooltip) {
+    default void renderTooltip(MatrixStack stack, Point mouse, List<? extends ITextProperties> tooltip) {
 
         if (tooltip.isEmpty()) return;
 

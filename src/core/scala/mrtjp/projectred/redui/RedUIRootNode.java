@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import mrtjp.core.vec.Point;
 import mrtjp.core.vec.Rect;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.ItemRenderer;
 
@@ -51,4 +52,9 @@ public interface RedUIRootNode extends RedUINode {
     default void drawFrontForSubtree(MatrixStack stack, Point mouse, float partialFrame) {
         renderFrontForSubtree(stack, mouse, partialFrame);
     }
+
+    //region AbstractGui accessors
+    void fillGradient(MatrixStack matrixStack, int x1, int y1, int x2, int y2, int argb1, int argb2);
+
+    //endregion
 }
