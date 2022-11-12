@@ -182,5 +182,9 @@ public class RedUIContainerScreen<T extends Container> extends ContainerScreen<T
         return font;
     }
 
+    @Override
+    public void fillGradient(MatrixStack matrixStack, int x1, int y1, int x2, int y2, int argb1, int argb2) {
+        super.fillGradient(matrixStack, x1, y1, x2, y2, argb1, argb2);
+    }
     //endregion
 }
