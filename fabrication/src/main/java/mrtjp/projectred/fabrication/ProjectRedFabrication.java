@@ -5,6 +5,7 @@ import codechicken.lib.util.SneakyUtils;
 import codechicken.multipart.api.MultiPartType;
 import mrtjp.projectred.fabrication.data.FabricationBlockStateModelProvider;
 import mrtjp.projectred.fabrication.data.FabricationItemModelProvider;
+import mrtjp.projectred.fabrication.data.FabricationRecipeProvider;
 import mrtjp.projectred.fabrication.init.*;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
@@ -75,6 +76,9 @@ public class ProjectRedFabrication {
         if (event.includeClient()) {
             generator.addProvider(new FabricationBlockStateModelProvider(generator, fileHelper));
             generator.addProvider(new FabricationItemModelProvider(generator, fileHelper));
+        }
+        if (event.includeServer()) {
+            generator.addProvider(new FabricationRecipeProvider(generator));
         }
     }
 }
