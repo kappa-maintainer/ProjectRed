@@ -362,12 +362,16 @@ public abstract class GatePart extends TMultiPart implements IConnectableFacePar
     //region Items and drops
     @Override
     public ItemStack pickItem(PartRayTraceResult hit) {
-        return getGateType().makeStack();
+        return getItem();
     }
 
     @Override
     public Iterable<ItemStack> getDrops() {
-        return Collections.singleton(getGateType().makeStack());
+        return Collections.singleton(getItem());
+    }
+
+    protected ItemStack getItem() {
+        return getGateType().makeStack();
     }
     //endregion
 
