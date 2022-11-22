@@ -8,8 +8,8 @@ import codechicken.lib.vec.Vector3;
 import mrtjp.fengine.simulate.ICGate;
 import mrtjp.fengine.simulate.ICSimulation;
 import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -19,6 +19,8 @@ import java.util.List;
 
 import static mrtjp.projectred.fabrication.ProjectRedFabrication.LOGGER;
 import static mrtjp.projectred.fabrication.engine.PRFabricationEngine.*;
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.UL_TOGGLE_DELAY;
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.UL_UNIT_TICKS;
 
 public class RepeaterGateTile extends TimedStateGateTile {
 
@@ -43,8 +45,8 @@ public class RepeaterGateTile extends TimedStateGateTile {
     @OnlyIn(Dist.CLIENT)
     public void buildInteractionToolTip(List<ITextProperties> toolTip, int i) {
 
-        toolTip.add(new StringTextComponent("Toggle delay"));
-        toolTip.add(new StringTextComponent(DELAYS[getShape()] + " ticks").withStyle(TextFormatting.GRAY)); //TODO localize
+        toolTip.add(new TranslationTextComponent(UL_TOGGLE_DELAY));
+        toolTip.add(new TranslationTextComponent(UL_UNIT_TICKS, DELAYS[getShape()]).withStyle(TextFormatting.GRAY));
     }
 
     @Override

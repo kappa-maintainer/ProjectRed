@@ -1,6 +1,11 @@
 package mrtjp.projectred.fabrication.lithography;
 
 import mrtjp.projectred.lib.Size;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.*;
 
 public class YieldCalculator {
 
@@ -67,25 +72,25 @@ public class YieldCalculator {
         return Math.pow(getSingleLayerYield(), tileMapLayers);
     }
 
-    public String getDieSizeString() {
+    public TextComponent getDieDimensionsText() {
         Size dieSize = getDieSize();
-        return String.format("%d nm x %d nm", dieSize.width, dieSize.height);
+        return new TranslationTextComponent(UL_DIMENSIONS_DIES, dieSize.width, dieSize.height);
     }
 
-    public String getWaferSizeString() {
-        return String.format("%d nm x %d nm", waferType.getWaferWidth(), waferType.getWaferHeight());
+    public TextComponent getWaferDimensionsText() {
+        return new TranslationTextComponent(UL_DIMENSIONS_NM, waferType.getWaferWidth(), waferType.getWaferHeight());
     }
 
-    public String getDiesPerWaferString() {
+    public TextComponent getDieCountDimensionsText() {
         Size dieCount = getDieCount();
-        return String.format("%d dies x %d dies (%d total)", dieCount.width, dieCount.height, dieCount.width * dieCount.height);
+        return new TranslationTextComponent(UL_DIMENSIONS_DIES_TOTAL, dieCount.width, dieCount.height, dieCount.width * dieCount.height);
     }
 
-    public String getSingleLayerYieldString() {
-        return String.format("%.2f%%", getSingleLayerYield() * 100);
+    public TextComponent getSingleLayerYieldText() {
+        return new StringTextComponent(String.format("%.2f%%", getSingleLayerYield() * 100));
     }
 
-    public String getYieldString() {
-        return String.format("%.2f%%", getMultiLayerYield() * 100);
+    public TextComponent getYieldText() {
+        return new StringTextComponent(String.format("%.2f%%", getMultiLayerYield() * 100));
     }
 }

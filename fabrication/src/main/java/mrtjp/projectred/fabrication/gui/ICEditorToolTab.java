@@ -10,8 +10,10 @@ import mrtjp.projectred.redui.AbstractGuiNode;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -68,7 +70,11 @@ public class ICEditorToolTab extends AbstractGuiNode implements TabControllerNod
         }
     }
 
-    protected void addGroup(String groupName) {
+    protected void addGroup(String unlocal) {
+        addGroup(new TranslationTextComponent(unlocal));
+    }
+
+    protected void addGroup(ITextComponent groupName) {
 
         GroupHeaderNode header = new GroupHeaderNode(groupName);
         setAndIncrGridPos(header, 4);
@@ -138,9 +144,9 @@ public class ICEditorToolTab extends AbstractGuiNode implements TabControllerNod
 
     private static class GroupHeaderNode extends AbstractGuiNode {
 
-        private final String title;
+        private final ITextComponent title;
 
-        public GroupHeaderNode(String title) {
+        public GroupHeaderNode(ITextComponent title) {
             this.title = title;
             this.setSize(GROUP_WIDTH, GROUP_HEIGHT);
         }

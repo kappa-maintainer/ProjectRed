@@ -13,12 +13,14 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 import static mrtjp.projectred.fabrication.editor.EditorDataUtils.*;
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.*;
 
 public class ICBlueprintItem extends Item {
 
@@ -59,29 +61,29 @@ public class ICBlueprintItem extends Item {
 
         if (!hasFabricationTarget(blueprintTag)) {
             tooltipList.add(new StringTextComponent("<!> ").withStyle(TextFormatting.RED)
-                    .append(new StringTextComponent("Corrupted NBT data, please discard").withStyle(TextFormatting.GRAY)));
+                    .append(new TranslationTextComponent(UL_CORRUPTED_DISCARD).withStyle(TextFormatting.GRAY)));
             return;
         }
 
-        //TODO localize
-        tooltipList.add(new StringTextComponent("Name: " + blueprintTag.getString(KEY_IC_NAME)).withStyle(TextFormatting.GRAY));
-        tooltipList.add(new StringTextComponent("Tile count: " + blueprintTag.getInt(KEY_TILE_COUNT)).withStyle(TextFormatting.GRAY));
-        tooltipList.add(new StringTextComponent("IO Types: ").withStyle(TextFormatting.GRAY));
+        tooltipList.add(new TranslationTextComponent(UL_NAME).append(": " + blueprintTag.getString(KEY_IC_NAME)).withStyle(TextFormatting.GRAY));
+        tooltipList.add(new TranslationTextComponent(UL_TILE_COUNT).append(": " + blueprintTag.getInt(KEY_TILE_COUNT)).withStyle(TextFormatting.GRAY));
+        tooltipList.add(new TranslationTextComponent(UL_IO_TYPES).append(": ").withStyle(TextFormatting.GRAY));
 
         //TODO handle other types of IO
         byte bmask = blueprintTag.getByte(KEY_IO_BUNDLED);
-        tooltipList.add(new StringTextComponent("  Top: " + getBundledIOString(bmask, 0)).withStyle(TextFormatting.GRAY));
-        tooltipList.add(new StringTextComponent("  Right: " + getBundledIOString(bmask, 1)).withStyle(TextFormatting.GRAY));
-        tooltipList.add(new StringTextComponent("  Bottom: " + getBundledIOString(bmask, 2)).withStyle(TextFormatting.GRAY));
-        tooltipList.add(new StringTextComponent("  Left: " + getBundledIOString(bmask, 3)).withStyle(TextFormatting.GRAY));
+        StringTextComponent indent = new StringTextComponent("  ");
+        tooltipList.add(indent.copy().append(new TranslationTextComponent(UL_TOP)).append(": ").append(getBundledIOTextComponent(bmask, 0)).withStyle(TextFormatting.GRAY));
+        tooltipList.add(indent.copy().append(new TranslationTextComponent(UL_RIGHT)).append(": ").append(getBundledIOTextComponent(bmask, 1)).withStyle(TextFormatting.GRAY));
+        tooltipList.add(indent.copy().append(new TranslationTextComponent(UL_BOTTOM)).append(": ").append(getBundledIOTextComponent(bmask, 2)).withStyle(TextFormatting.GRAY));
+        tooltipList.add(indent.copy().append(new TranslationTextComponent(UL_LEFT)).append(": ").append(getBundledIOTextComponent(bmask, 3)).withStyle(TextFormatting.GRAY));
 
         //TODO errors
     }
 
-    private static String getBundledIOString(byte bmask, int r) {
+    private static TranslationTextComponent getBundledIOTextComponent(byte bmask, int r) {
         int i = 0x01 << r;
         int o = 0x10 << r;
-        return ((bmask & i) != 0 ? "Bundled input" : (bmask & o) != 0 ? "Bundled output" : "None");
+        return new TranslationTextComponent((bmask & i) != 0 ? UL_BUNDLED_INPUT : (bmask & o) != 0 ? UL_BUNDLED_OUTPUT : UL_IO_NONE);
     }
 
     public static ItemStack createPhotomaskStack(ItemStack blueprintStack) {

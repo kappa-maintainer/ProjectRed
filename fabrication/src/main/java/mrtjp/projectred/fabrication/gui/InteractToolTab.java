@@ -7,9 +7,11 @@ import mrtjp.projectred.fabrication.gui.screen.ICWorkbenchScreen;
 import mrtjp.projectred.lib.Point;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.List;
+
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.UL_INTERACT_TOOL;
 
 public class InteractToolTab extends ICEditorToolTab {
 
@@ -36,7 +38,7 @@ public class InteractToolTab extends ICEditorToolTab {
 
             @Override
             public void buildTooltip(List<ITextProperties> tooltip) {
-                tooltip.add(new StringTextComponent("Interact")); //TODO Localize
+                tooltip.add(new TranslationTextComponent(UL_INTERACT_TOOL));
             }
 
             @Override

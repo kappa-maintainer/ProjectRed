@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static mrtjp.projectred.fabrication.ProjectRedFabrication.LOGGER;
 import static mrtjp.projectred.fabrication.engine.PRFabricationEngine.*;
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.*;
 
 public class IOGateTile extends RedstoneGateTile implements IIOConnectionTile {
 
@@ -133,17 +134,17 @@ public class IOGateTile extends RedstoneGateTile implements IIOConnectionTile {
     @OnlyIn(Dist.CLIENT)
     public void buildInteractionToolTip(List<ITextProperties> toolTip, int i) {
 
-        switch (i) { //TODO localize
+        switch (i) {
             case 0:
-                toolTip.add(new StringTextComponent("Toggle state"));
+                toolTip.add(new TranslationTextComponent(UL_TOGGLE_STATE));
                 toolTip.add(new StringTextComponent(((getState() & 0x44) != 0 ? "0x1" : "0x0")).withStyle(TextFormatting.GRAY));
                 break;
             case 1:
-                toolTip.add(new StringTextComponent("Toggle IO mode"));
-                toolTip.add(new StringTextComponent((isInputIOMode() ? "input" : "output")).withStyle(TextFormatting.GRAY));
+                toolTip.add(new TranslationTextComponent(UL_TOGGLE_IO_MODE));
+                toolTip.add(new TranslationTextComponent((isInputIOMode() ? UL_IO_MODE_INPUT : UL_IO_MODE_OUTPUT)).withStyle(TextFormatting.GRAY));
                 break;
             case 2:
-                toolTip.add(new StringTextComponent("Toggle colour"));
+                toolTip.add(new TranslationTextComponent(UL_TOGGLE_COLOUR));
                 toolTip.add(new TranslationTextComponent(EnumColour.values()[colour & 0xFF].getUnlocalizedName()).withStyle(TextFormatting.GRAY));
                 break;
             default:

@@ -19,9 +19,11 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.List;
+
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.*;
 
 public class WirePlacerToolTab extends ICEditorToolTab {
 
@@ -35,7 +37,7 @@ public class WirePlacerToolTab extends ICEditorToolTab {
 
     private void addWireButton(ICWireTileType type, boolean fullRow) {
         ButtonController buttonController = new ButtonController() {
-            @Override public void getTooltip(List<ITextProperties> tooltip) { tooltip.add(new StringTextComponent(type.toString())); }
+            @Override public void getTooltip(List<ITextProperties> tooltip) { tooltip.add(new TranslationTextComponent(type.tileType.getUnlocalizedName())); }
             @Override public void onClick() { tool.setWireType(type); }
             @Override public boolean isSelected() { return tool.getWireType() == type; }
 
@@ -70,7 +72,7 @@ public class WirePlacerToolTab extends ICEditorToolTab {
 
     private void construct() {
 
-        addGroup("Redwire");
+        addGroup(UL_TILEGROUP_REDWIRE);
 
         // Alloy wire
         addWireButton(ICWireTileType.RED_ALLOY, true);
@@ -79,7 +81,7 @@ public class WirePlacerToolTab extends ICEditorToolTab {
         for (ICWireTileType type : ICWireTileType.INSULATED)
             addWireButton(type, false);
 
-        addGroup("Bundled");
+        addGroup(UL_TILEGROUP_BUNDLED);
 
         // Bundled neutral wire
         addWireButton(ICWireTileType.BUNDLED_NEUTRAL, true);
@@ -102,7 +104,7 @@ public class WirePlacerToolTab extends ICEditorToolTab {
 
             @Override
             public void buildTooltip(List<ITextProperties> tooltip) {
-                tooltip.add(new StringTextComponent("Wires")); //TODO Localize
+                tooltip.add(new TranslationTextComponent(UL_WIRE_TOOL));
             }
         };
     }

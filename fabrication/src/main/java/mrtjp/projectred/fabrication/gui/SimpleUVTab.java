@@ -7,24 +7,25 @@ import mrtjp.projectred.lib.Point;
 import mrtjp.projectred.redui.AbstractGuiNode;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 
 import java.util.List;
 
 public class SimpleUVTab implements TabControllerNode.IToolbarTab {
 
     private final AbstractGuiNode tabBodyNode;
-    private final String tabName;
+    private final ITextComponent tabName;
     private final TabButtonNode.TabSide tabSide;
 
     private final int u;
     private final int v;
     private final ResourceLocation texture;
 
-    public SimpleUVTab(AbstractGuiNode tabBodyNode, String tabName, TabButtonNode.TabSide side, int u, int v, ResourceLocation texture) { //TODO Icon width/height?
+    public SimpleUVTab(AbstractGuiNode tabBodyNode, String unlocalTabName, TabButtonNode.TabSide side, int u, int v, ResourceLocation texture) { //TODO Icon width/height?
         this.tabBodyNode = tabBodyNode;
-        this.tabName = tabName;
+        this.tabName = new TranslationTextComponent(unlocalTabName);
         this.tabSide = side;
         this.u = u;
         this.v = v;
@@ -65,7 +66,7 @@ public class SimpleUVTab implements TabControllerNode.IToolbarTab {
 
             @Override
             public void buildTooltip(List<ITextProperties> tooltip) {
-                tooltip.add(new StringTextComponent(tabName));
+                tooltip.add(tabName);
             }
         };
     }

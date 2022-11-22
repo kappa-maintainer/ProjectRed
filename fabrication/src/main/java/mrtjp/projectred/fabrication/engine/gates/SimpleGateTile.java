@@ -5,13 +5,16 @@ import codechicken.lib.vec.*;
 import mrtjp.fengine.simulate.ICGate;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.ITextProperties;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.UL_SIDE_DISABLED;
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.UL_SIDE_ENABLED;
 
 public abstract class SimpleGateTile extends SidedRedstoneGateTile {
 
@@ -76,7 +79,7 @@ public abstract class SimpleGateTile extends SidedRedstoneGateTile {
     public void buildInteractionToolTip(List<ITextProperties> toolTip, int i) {
 
         boolean isEnabled = (getShape() & (1 << (i-1))) == 0;
-        toolTip.add(new StringTextComponent("side " + (isEnabled ? "enabled" : "disabled"))); // TODO localize
+        toolTip.add(new TranslationTextComponent(isEnabled ? UL_SIDE_ENABLED : UL_SIDE_DISABLED));
     }
 
     @Override

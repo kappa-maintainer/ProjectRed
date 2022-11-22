@@ -22,6 +22,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
+import static mrtjp.projectred.fabrication.init.FabricationUnlocal.*;
+
 public class ICWorkbenchScreen extends RedUIScreen {
 
     public static final ResourceLocation BACKGROUND = new ResourceLocation(ProjectRedFabrication.MOD_ID, "textures/gui/ic_workbench.png");
@@ -65,9 +67,9 @@ public class ICWorkbenchScreen extends RedUIScreen {
         tabControllerNode.setZPosition(0.1);
         contentNode.addChild(tabControllerNode);
 
-        tabControllerNode.addButtonForTab(new SimpleUVTab(infoTab, "Info", TabButtonNode.TabSide.LEFT, 420, 1));
-        tabControllerNode.addButtonForTab(new SimpleUVTab(editTab, "Edit", TabButtonNode.TabSide.LEFT, 420, 16));
-        tabControllerNode.addButtonForTab(new SimpleUVTab(compileTab, "Compile", TabButtonNode.TabSide.LEFT, 420, 31));
+        tabControllerNode.addButtonForTab(new SimpleUVTab(infoTab, UL_TAB_INFO, TabButtonNode.TabSide.LEFT, 420, 1));
+        tabControllerNode.addButtonForTab(new SimpleUVTab(editTab, UL_TAB_EDIT, TabButtonNode.TabSide.LEFT, 420, 16));
+        tabControllerNode.addButtonForTab(new SimpleUVTab(compileTab, UL_TAB_COMPILE, TabButtonNode.TabSide.LEFT, 420, 31));
 
         tabControllerNode.selectInitialTab(1);
         tabControllerNode.spreadButtonsVertically(1);
@@ -135,7 +137,7 @@ public class ICWorkbenchScreen extends RedUIScreen {
             blit(stack, getFrame().x(), getFrame().y(), 0, 222, getFrame().width(), getFrame().height(), 512, 512);
 
             FontRenderer fontRenderer = getRoot().getFontRenderer();
-            ITextComponent text = new TranslationTextComponent("Place blueprint"); // TODO: localize
+            ITextComponent text = new TranslationTextComponent(UL_PLACE_BLUEPRINT);
 
             fontRenderer.draw(stack, text,
                     getFrame().midX() - fontRenderer.width(text) / 2f,
