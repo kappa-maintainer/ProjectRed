@@ -28,6 +28,10 @@ public class FabricationUnlocal {
     public static final String UL_SIDE_ENABLED      = PREFIX + "interact.side_enabled";
     public static final String UL_SIDE_DISABLED     = PREFIX + "interact.side_disabled";
 
+    // Issues tooltips
+    public static final String UL_MULTIPLE_DRIVERS_TITLE = PREFIX + "issues.multiple_drivers.title";
+    public static final String UL_MULTIPLE_DRIVERS_DESC = PREFIX + "tile.multiple_drivers.desc";
+
     // General workbench UI
     public static final String UL_PLACE_BLUEPRINT   = PREFIX + "ui.place_blueprint";
     public static final String UL_BLUEPRINT_INFO    = PREFIX + "ui.blueprint_info";
@@ -71,8 +75,11 @@ public class FabricationUnlocal {
     public static final String UL_BUNDLED_INPUT      = PREFIX + "tooltip.bundled_input";
     public static final String UL_BUNDLED_OUTPUT     = PREFIX + "tooltip.bundled_output";
     public static final String UL_IO_NONE            = PREFIX + "tooltip.io_none";
+    public static final String UL_CANNOT_FABRICATE   = PREFIX + "tooltip.cannot_fabricate";
 
     // Numbers and measurements
+    public static final String UL_UNIT_WARNINGS          = PREFIX + "unit.warnings";
+    public static final String UL_UNIT_ERRORS            = PREFIX + "unit.errors";
     public static final String UL_UNIT_TICKS             = PREFIX + "unit.ticks";
     public static final String UL_DIMENSIONS_NM          = PREFIX + "dimensions.nm";
     public static final String UL_DIMENSIONS_TILES       = PREFIX + "dimensions.tiles";

@@ -21,6 +21,13 @@ public class EditorDataUtils {
     public static final String KEY_SIMULATION = "sim_cont"; // CompoundNBT
     public static final String KEY_COMPILER_LOG = "compiler_log"; // CompoundNBT
 
+    // ICCompilerLog
+    public static final String KEY_ISSUES_LOG = "issues_log"; // CompoundNBT
+
+    // ICIssuesLog
+    public static final String KEY_ERROR_COUNT = "error_count"; // int
+    public static final String KEY_WARNING_COUNT = "warning_count"; // int
+
     public static int getFormat(CompoundNBT tag) {
         return tag.getInt(KEY_FORMAT);
     }
@@ -40,9 +47,15 @@ public class EditorDataUtils {
     }
 
     public static boolean canFabricate(CompoundNBT tag) {
-        return hasFabricationTarget(tag) && tag.getBoolean(KEY_IS_BUILT);
+        return hasFabricationTarget(tag) && tag.getBoolean(KEY_IS_BUILT) && getErrorCount(tag) == 0;
+    }
 
-        //TODO check errors
+    public static int getErrorCount(CompoundNBT tag) {
+        return tag.getCompound(KEY_COMPILER_LOG).getCompound(KEY_ISSUES_LOG).getInt(KEY_ERROR_COUNT);
+    }
+
+    public static int getWarningCount(CompoundNBT tag) {
+        return tag.getCompound(KEY_COMPILER_LOG).getCompound(KEY_ISSUES_LOG).getInt(KEY_WARNING_COUNT);
     }
 
     // Creates copy of editor tag with only the data required to fabricate a gate

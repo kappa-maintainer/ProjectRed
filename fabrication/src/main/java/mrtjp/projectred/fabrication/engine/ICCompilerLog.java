@@ -13,14 +13,15 @@ import net.minecraftforge.common.util.Constants;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static mrtjp.projectred.fabrication.editor.ICEditorStateMachine.KEY_COMPILER_LOG_NODE_ADDED;
-import static mrtjp.projectred.fabrication.editor.ICEditorStateMachine.KEY_COMPILER_LOG_NODE_EXECUTED;
+import static mrtjp.projectred.fabrication.editor.EditorDataUtils.KEY_ISSUES_LOG;
+import static mrtjp.projectred.fabrication.editor.ICEditorStateMachine.*;
 
 public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
 
     private final ICEditorStateMachine stateMachine;
 
     private final CompileTree compileTree = new CompileTree();
+    private final ICIssuesLog issuesLog = new ICIssuesLog();
 
     private final List<Integer> currentPath = new LinkedList<>();
     private int completedSteps = 0; //TODO ideally this would be a feature in the compile tree object
@@ -29,10 +30,18 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
         this.stateMachine = stateMachine;
     }
 
+    public ICIssuesLog getIssuesLog() {
+        return issuesLog;
+    }
+
     public void save(CompoundNBT tag) {
         tag.putInt("completed_steps", completedSteps);
         tag.putIntArray("current_path", currentPath);
         compileTree.save(tag);
+
+        CompoundNBT issuesTag = new CompoundNBT();
+        issuesLog.save(issuesTag);
+        tag.put(KEY_ISSUES_LOG, issuesTag);
     }
 
     public void load(CompoundNBT tag) {
@@ -40,6 +49,7 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
         currentPath.clear();
         currentPath.addAll(Arrays.stream(tag.getIntArray("current_path")).boxed().collect(Collectors.toList()));
         compileTree.load(tag);
+        issuesLog.load(tag.getCompound(KEY_ISSUES_LOG));
     }
 
     public void writeDesc(MCDataOutput out) {
@@ -47,6 +57,7 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
         out.writeInt(completedSteps);
         out.writeInt(currentPath.size());
         for (int i : currentPath) out.writeInt(i);
+        issuesLog.writeDesc(out);
     }
 
     public void readDesc(MCDataInput in) {
@@ -55,12 +66,14 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
         currentPath.clear();
         int size = in.readInt();
         for (int i = 0; i < size; i++) currentPath.add(in.readInt());
+        issuesLog.readDesc(in);
     }
 
     public void clear() {
         compileTree.clear();
         currentPath.clear();
         completedSteps = 0;
+        issuesLog.clear();
     }
 
     //region ICStepThroughAssembler.EventReceiver
@@ -88,6 +101,15 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
     }
     //endregion
 
+    //region Compile-time logging
+    public void logMultipleDriversError(TileCoord coord, List<Integer> registerList) {
+        ICIssuesLog.MultipleDriversIssue issue = new ICIssuesLog.MultipleDriversIssue(coord, registerList);
+        issuesLog.addIssue(issue);
+        sendIssueAdded(issue);
+        System.out.println("Multiple drivers error at " + coord + " for registers " + registerList);
+    }
+    //endregion
+
     //region Packet handling
     public void readLogStream(MCDataInput in, int key) {
         switch (key) {
@@ -96,6 +118,9 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
                 break;
             case KEY_COMPILER_LOG_NODE_EXECUTED:
                 readNodeExecuted(in);
+                break;
+            case KEY_COMPILER_LOG_ISSUE_ADDED:
+                readIssueAdded(in);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown compiler stream key: " + key);
@@ -120,6 +145,12 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
             out.writeByte(i);
         }
         node.write(out);
+    }
+
+    private void sendIssueAdded(ICIssuesLog.ICIssue issue) {
+        MCDataOutput out = stateMachine.getStateMachineStream(KEY_COMPILER_LOG_ISSUE_ADDED);
+        out.writeByte(issue.type.ordinal());
+        issue.writeDesc(out);
     }
     //endregion
 
@@ -146,6 +177,13 @@ public class ICCompilerLog implements ICStepThroughAssembler.EventReceiver {
         currentPath.clear();
         currentPath.addAll(path);
         completedSteps++;
+    }
+
+    private void readIssueAdded(MCDataInput in) {
+        ICIssuesLog.ICIssue issue = ICIssuesLog.IssueType.createById(in.readUByte());
+        issue.readDesc(in);
+        issuesLog.addIssue(issue);
+        System.out.println("Issue added: type: " + issue.type + ", " + issue);
     }
 
     public List<CompileTreeNode> getCurrentStack() {

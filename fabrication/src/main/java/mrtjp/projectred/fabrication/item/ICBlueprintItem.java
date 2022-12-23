@@ -77,7 +77,21 @@ public class ICBlueprintItem extends Item {
         tooltipList.add(indent.copy().append(new TranslationTextComponent(UL_BOTTOM)).append(": ").append(getBundledIOTextComponent(bmask, 2)).withStyle(TextFormatting.GRAY));
         tooltipList.add(indent.copy().append(new TranslationTextComponent(UL_LEFT)).append(": ").append(getBundledIOTextComponent(bmask, 3)).withStyle(TextFormatting.GRAY));
 
-        //TODO errors
+        int warningCount = getWarningCount(blueprintTag);
+        int errorCount = getErrorCount(blueprintTag);
+        if (warningCount > 0) {
+            tooltipList.add(new StringTextComponent("<!> ").withStyle(TextFormatting.YELLOW)
+                    .append(new TranslationTextComponent(UL_UNIT_WARNINGS, warningCount).withStyle(TextFormatting.GRAY)));
+        }
+        if (errorCount > 0) {
+            tooltipList.add(new StringTextComponent("<!> ").withStyle(TextFormatting.RED)
+                    .append(new TranslationTextComponent(UL_UNIT_ERRORS, errorCount).withStyle(TextFormatting.GRAY)));
+        }
+
+        if (!canFabricate(blueprintTag)) {
+            tooltipList.add(new StringTextComponent(" - ")
+                    .append(new TranslationTextComponent(UL_CANNOT_FABRICATE).withStyle(TextFormatting.GRAY)));
+        }
     }
 
     private static TranslationTextComponent getBundledIOTextComponent(byte bmask, int r) {

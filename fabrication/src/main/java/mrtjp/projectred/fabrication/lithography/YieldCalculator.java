@@ -74,7 +74,7 @@ public class YieldCalculator {
 
     public TextComponent getDieDimensionsText() {
         Size dieSize = getDieSize();
-        return new TranslationTextComponent(UL_DIMENSIONS_DIES, dieSize.width, dieSize.height);
+        return new TranslationTextComponent(UL_DIMENSIONS_NM, dieSize.width, dieSize.height);
     }
 
     public TextComponent getWaferDimensionsText() {

@@ -1,10 +1,13 @@
 package mrtjp.projectred.fabrication.gui;
 
+import codechicken.lib.colour.EnumColour;
 import codechicken.lib.render.CCRenderState;
 import codechicken.lib.vec.Vector3;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import mrtjp.projectred.fabrication.editor.ICEditorToolType;
 import mrtjp.projectred.fabrication.editor.tools.IICEditorTool;
+import mrtjp.projectred.fabrication.engine.ICIssuesLog;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.util.text.ITextProperties;
 import org.lwjgl.glfw.GLFW;

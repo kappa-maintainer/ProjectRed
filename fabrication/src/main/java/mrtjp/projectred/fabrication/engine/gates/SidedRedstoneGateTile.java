@@ -146,7 +146,7 @@ public abstract class SidedRedstoneGateTile extends RedstoneGateTile {
         int absDir = IRotatableICTile.rotationToDir(absR);
         PathFinderResult pfr = pathFinder.doPathFinding((d, p) -> d == absDir);
         if (pfr.outputRegisters.size() > 1) {
-            // TODO log this somewhere
+            getEditor().getStateMachine().getCompilerLog().logMultipleDriversError(getPos(), pfr.outputRegisters);
             System.out.println("ERR: Unexpected multiple drivers: " + pfr.outputRegisters);
         }
         if (!pfr.outputRegisters.isEmpty()) {

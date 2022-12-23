@@ -9,6 +9,7 @@ import mrtjp.fengine.TileCoord;
 import mrtjp.projectred.fabrication.ProjectRedFabrication;
 import mrtjp.projectred.fabrication.editor.ICWorkbenchEditor;
 import mrtjp.projectred.fabrication.editor.tools.IICEditorTool;
+import mrtjp.projectred.fabrication.engine.ICIssuesLog;
 import mrtjp.projectred.fabrication.gui.*;
 import mrtjp.projectred.lib.Point;
 import mrtjp.projectred.redui.AbstractButtonNode;
@@ -17,10 +18,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextProperties;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.LinkedList;
 import java.util.List;
 
+import static mrtjp.projectred.fabrication.engine.ICIssuesLog.IssueSeverity.ERROR;
 import static mrtjp.projectred.fabrication.init.FabricationUnlocal.*;
 import static net.minecraft.client.gui.AbstractGui.blit;
 
@@ -30,7 +36,7 @@ public class ICWorkbenchCompileTab extends AbstractGuiNode implements ICRenderNo
 
     private final ICWorkbenchEditor editor;
 
-    private TabControllerNode tabControllerNode;
+    private List<ICompileOverlayRenderer> overlays = new LinkedList<>();
 
     private boolean upPressed = false;
     private boolean rightPressed = false;
@@ -71,8 +77,13 @@ public class ICWorkbenchCompileTab extends AbstractGuiNode implements ICRenderNo
         compileProblemsTab.setPosition(208, 77);
         addChild(compileProblemsTab);
 
+        // Keep track of overlays
+        overlays.add(compileStackTab);
+        overlays.add(compileTreeTab);
+        overlays.add(compileProblemsTab);
+
         // Bottom tabs
-        tabControllerNode = new TabControllerNode();
+        TabControllerNode tabControllerNode = new TabControllerNode();
         tabControllerNode.setPosition(212, 210);
         tabControllerNode.setZPosition(0.1);
         addChild(tabControllerNode);
@@ -160,13 +171,6 @@ public class ICWorkbenchCompileTab extends AbstractGuiNode implements ICRenderNo
         return true;
     }
 
-    protected ICompileOverlayRenderer getOverlayRenderer() {
-
-        // Overlay rendering is handled by the currently open tab
-        SimpleUVTab tab = (SimpleUVTab) tabControllerNode.getSelectedTab().orElse(tabControllerNode.getTab(0));
-        return (ICompileOverlayRenderer) tab.getTabBodyNode();
-    }
-
     //region ICRenderNode.IICRenderNodeEventReceiver
 
     @Override
@@ -200,12 +204,16 @@ public class ICWorkbenchCompileTab extends AbstractGuiNode implements ICRenderNo
         TileCoord pos = IICEditorTool.toNearestPosition(mousePosition);
         editor.getTileMap().getBaseTile(pos).ifPresent(tile -> tile.buildToolTip(tooltip));
 
-        getOverlayRenderer().buildTooltip(renderNode, mousePosition, tooltip);
+        for (ICompileOverlayRenderer overlay : overlays) {
+            overlay.buildTooltip(renderNode, mousePosition, tooltip);
+        }
     }
 
     @Override
     public void onRenderOverlay(ICRenderNode renderNode, Vector3 mousePosition, boolean isFirstHit, CCRenderState ccrs, IRenderTypeBuffer getter, MatrixStack matrixStack) {
-        getOverlayRenderer().renderOverlay(renderNode, mousePosition, isFirstHit, ccrs, getter, matrixStack);
+        for (ICompileOverlayRenderer overlay : overlays) {
+            overlay.renderOverlay(renderNode, mousePosition, isFirstHit, ccrs, getter, matrixStack);
+        }
     }
 
     //endregion

@@ -20,6 +20,7 @@ public class ICEditorStateMachine {
     public static final int KEY_STATE_CHANGED = 0;
     public static final int KEY_COMPILER_LOG_NODE_ADDED = 1;
     public static final int KEY_COMPILER_LOG_NODE_EXECUTED = 2;
+    public static final int KEY_COMPILER_LOG_ISSUE_ADDED = 3;
 
     public static final int KEY_CLIENT_COMPILE_CLICKED = 10;
 
@@ -100,6 +101,7 @@ public class ICEditorStateMachine {
                 break;
             case KEY_COMPILER_LOG_NODE_ADDED:
             case KEY_COMPILER_LOG_NODE_EXECUTED:
+            case KEY_COMPILER_LOG_ISSUE_ADDED:
                 compilerLog.readLogStream(in, key);
                 break;
             case KEY_CLIENT_COMPILE_CLICKED:

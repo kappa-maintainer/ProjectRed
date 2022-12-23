@@ -51,8 +51,10 @@ public class FabricationLanguageProvider extends LanguageProvider {
         add(UL_TOGGLE_DELAY, "Toggle delay");
         add(UL_SIDE_ENABLED, "Side enabled");
         add(UL_SIDE_DISABLED, "Side disabled");
-        add(UL_PLACE_BLUEPRINT, "Place blueprint");
+        add(UL_MULTIPLE_DRIVERS_TITLE, "Multiple drivers");
+        add(UL_MULTIPLE_DRIVERS_DESC, "Multiple registers connected to an input:");
 
+        add(UL_PLACE_BLUEPRINT, "Place blueprint");
         add(UL_BLUEPRINT_INFO, "Blueprint Info");
         add(UL_BLUEPRINT_NAME, "Name");
         add(UL_BLUEPRINT_OWNER, "Owner");
@@ -82,6 +84,7 @@ public class FabricationLanguageProvider extends LanguageProvider {
         add(UL_BUNDLED_INPUT, "Bundled input");
         add(UL_BUNDLED_OUTPUT, "Bundled output");
         add(UL_IO_NONE, "None");
+        add(UL_CANNOT_FABRICATE, "Cannot fabricate");
 
         add(UL_IO_GATE_TILE, "IO Gate");
 
@@ -92,6 +95,8 @@ public class FabricationLanguageProvider extends LanguageProvider {
         add(UL_TILEGROUP_TIMING, "Timing");
         add(UL_TILEGROUP_MEMORY, "Memory");
 
+        add(UL_UNIT_WARNINGS, "%d warnings");
+        add(UL_UNIT_ERRORS, "%d errors");
         add(UL_UNIT_TICKS, "%d ticks");
         add(UL_DIMENSIONS_NM, "%d nm x %d nm");
         add(UL_DIMENSIONS_TILES, "%d tiles x %d tiles");
