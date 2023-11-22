@@ -30,7 +30,7 @@ object ProjectRedExpansion
 
     val tabExpansion = new CreativeTabs("projectred.expansion")
     {
-        override def getTabIconItem = new ItemStack(machine2)
+        override def createIcon = new ItemStack(machine2)
     }
 
     val machine1Bakery:SubBlockBakery = new SubBlockBakery

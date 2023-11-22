@@ -19,19 +19,19 @@ class CoreProxy_server extends IProxy
 
         /* Item Registration */
         itemPart = new ItemPart
-        itemPart.setUnlocalizedName("projectred.core.itemResource")
+        itemPart.setTranslationKey("projectred.core.itemResource")
         ForgeRegistries.ITEMS.register(itemPart.setRegistryName("resource_item"))
 
         itemDrawPlate = new ItemDrawPlate
-        itemDrawPlate.setUnlocalizedName("projectred.core.drawplate")
+        itemDrawPlate.setTranslationKey("projectred.core.drawplate")
         ForgeRegistries.ITEMS.register(itemDrawPlate.setRegistryName("drawplate"))
 
         itemScrewdriver = new ItemScrewdriver
-        itemScrewdriver.setUnlocalizedName("projectred.core.screwdriver")
+        itemScrewdriver.setTranslationKey("projectred.core.screwdriver")
         ForgeRegistries.ITEMS.register(itemScrewdriver.setRegistryName("screwdriver"))
 
         itemMultimeter = new ItemMultimeter
-        itemMultimeter.setUnlocalizedName("projectred.core.multimeter")
+        itemMultimeter.setTranslationKey("projectred.core.multimeter")
         ForgeRegistries.ITEMS.register(itemMultimeter.setRegistryName("multimeter"))
 
         /* OreDictionary */

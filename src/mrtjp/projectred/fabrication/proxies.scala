@@ -35,18 +35,18 @@ class FabricationProxy_server extends IProxy with IPartFactory
     override def preinit()
     {
         icBlock = new BlockICMachine(icMachineBakery)
-        icBlock.setUnlocalizedName("projectred.fabrication.icMachine")
+        icBlock.setTranslationKey("projectred.fabrication.icMachine")
         ForgeRegistries.BLOCKS.register(icBlock.setRegistryName("ic_machine"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(icBlock).setRegistryName(icBlock.getRegistryName))
         icBlock.addTile(classOf[TileICWorkbench], 0)
         icBlock.addTile(classOf[TileICPrinter], 1)
 
         itemICBlueprint = new ItemICBlueprint
-        itemICBlueprint.setUnlocalizedName("projectred.fabrication.icBlueprint")
+        itemICBlueprint.setTranslationKey("projectred.fabrication.icBlueprint")
         ForgeRegistries.ITEMS.register(itemICBlueprint.setRegistryName("ic_blueprint"))
 
         itemICChip = new ItemICChip
-        itemICChip.setUnlocalizedName("projectred.fabrication.icChip")
+        itemICChip.setTranslationKey("projectred.fabrication.icChip")
         ForgeRegistries.ITEMS.register(itemICChip.setRegistryName("ic_chip"))
 
         MultiPartRegistry.registerParts(this, Array(GateDefinition.typeICGate))

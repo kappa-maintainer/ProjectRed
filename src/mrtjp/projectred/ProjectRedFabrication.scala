@@ -26,7 +26,7 @@ object ProjectRedFabrication
 
     val tabFabrication = new CreativeTabs("projectred.fabrication")
     {
-        override def getTabIconItem = new ItemStack(itemICChip)
+        override def createIcon = new ItemStack(itemICChip)
     }
 
     @Mod.EventHandler

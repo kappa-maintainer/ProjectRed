@@ -24,7 +24,7 @@ class IntegrationProxy_server extends IProxy with IPartFactory
     override def preinit()
     {
         itemPartGate = new ItemPartGate
-        itemPartGate.setUnlocalizedName("projectred.integration.gate")
+        itemPartGate.setTranslationKey("projectred.integration.gate")
         ForgeRegistries.ITEMS.register(itemPartGate.setRegistryName("gate"))
 
         import GateDefinition._

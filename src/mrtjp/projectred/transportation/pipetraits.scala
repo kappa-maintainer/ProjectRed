@@ -449,7 +449,7 @@ trait TInventoryPipe[T <: AbstractPipePayload] extends PayloadPipePart[T] with I
 
     abstract override def discoverStraightOverride(s:Int):Boolean =
     {
-        InvWrapper.wrap(world, posOfStraight(s), EnumFacing.getFront(s^1)) match {
+        InvWrapper.wrap(world, posOfStraight(s), EnumFacing.byIndex(s^1)) match {
             case null => false
             case _ => true
         }

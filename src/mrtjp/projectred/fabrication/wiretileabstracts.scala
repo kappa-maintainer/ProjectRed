@@ -338,12 +338,12 @@ class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
                     ch.points ++= points
                     channels += ch
 
-                    for (p <- points)
+                    points.foreach[Unit] (p => {
                         if (busWires.contains(p)) {
                             busPointToChannelsMap.getOrElseUpdate(p, MSet()) += ch
                         } else {
                             pointToChannelMap += p -> ch
-                        }
+                        }})
                     ch
             }
         }

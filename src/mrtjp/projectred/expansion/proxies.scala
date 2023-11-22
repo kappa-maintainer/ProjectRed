@@ -50,16 +50,16 @@ class ExpansionProxy_server extends IProxy with IPartFactory
         enchantmentElectricEfficiency = new EnchantmentElectricEfficiency
 
         /** Localization **/
-        itemSolar.setUnlocalizedName("projectred.expansion.solarPanel")
-        itemEmptybattery.setUnlocalizedName("projectred.expansion.batteryEmpty")
-        itemBattery.setUnlocalizedName("projectred.expansion.battery")
-        itemJetpack.setUnlocalizedName("projectred.expansion.jetpack")
-        itemScrewdriver.setUnlocalizedName("projectred.expansion.screwdriverElectric")
-        itemInfusedEnderPearl.setUnlocalizedName("projectred.expansion.enderPearlInfused")
-        itemPlan.setUnlocalizedName("projectred.expansion.plan")
+        itemSolar.setTranslationKey("projectred.expansion.solarPanel")
+        itemEmptybattery.setTranslationKey("projectred.expansion.batteryEmpty")
+        itemBattery.setTranslationKey("projectred.expansion.battery")
+        itemJetpack.setTranslationKey("projectred.expansion.jetpack")
+        itemScrewdriver.setTranslationKey("projectred.expansion.screwdriverElectric")
+        itemInfusedEnderPearl.setTranslationKey("projectred.expansion.enderPearlInfused")
+        itemPlan.setTranslationKey("projectred.expansion.plan")
 
-        machine1.setUnlocalizedName("projectred.expansion.machine1")
-        machine2.setUnlocalizedName("projectred.expansion.machine2")
+        machine1.setTranslationKey("projectred.expansion.machine1")
+        machine2.setTranslationKey("projectred.expansion.machine2")
 
         enchantmentElectricEfficiency.setName("projectred.expansion.fuelEfficiency")
 

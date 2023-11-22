@@ -20,7 +20,7 @@ object ProjectRedCore
 
     val tabCore = new CreativeTabs("projectred.core")
     {
-        override def getTabIconItem = new ItemStack(itemScrewdriver)
+        override def createIcon = new ItemStack(itemScrewdriver)
     }
 
     @Mod.EventHandler

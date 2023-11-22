@@ -25,18 +25,18 @@ class IlluminationProxy_server extends IProxy with IPartFactory
     override def preinit()
     {
         blockLamp = new BlockLamp
-        blockLamp.setUnlocalizedName("projectred.illumination.lamp")
+        blockLamp.setTranslationKey("projectred.illumination.lamp")
         ForgeRegistries.BLOCKS.register(blockLamp.setRegistryName("lamp"))
         itemBlockLamp = new ItemBlockLamp
         ForgeRegistries.ITEMS.register(itemBlockLamp.setRegistryName(blockLamp.getRegistryName))
         blockLamp.addTile(classOf[TileLamp], 0)
 
         itemPartIllumarButton = new ItemPartButton
-        itemPartIllumarButton.setUnlocalizedName("projectred.illumination.lightButton")
+        itemPartIllumarButton.setTranslationKey("projectred.illumination.lightButton")
         ForgeRegistries.ITEMS.register(itemPartIllumarButton.setRegistryName("light_button"))
 
         itemPartIllumarFButton = new ItemPartFButton
-        itemPartIllumarFButton.setUnlocalizedName("projectred.illumination.lightButtonFeedback")
+        itemPartIllumarFButton.setTranslationKey("projectred.illumination.lightButtonFeedback")
         ForgeRegistries.ITEMS.register(itemPartIllumarFButton.setRegistryName("feedback_light_button"))
 
         //TODO Add one of these lights!

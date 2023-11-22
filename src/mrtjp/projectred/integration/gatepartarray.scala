@@ -57,7 +57,7 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
 
         if (here == there && (side&6) != (part.side&6)) return 1<<Rotation.rotationTo(side, part.side)
 
-        if (side != part.side) there.move(EnumFacing.getFront(side^1)) //bring corner up to same plane
+        if (side != part.side) there.move(EnumFacing.byIndex(side^1)) //bring corner up to same plane
 
         import codechicken.lib.vec.Rotation._
         (here.getX-there.getX, here.getY-there.getY, here.getZ-there.getZ) match

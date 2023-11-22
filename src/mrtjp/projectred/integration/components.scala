@@ -97,8 +97,8 @@ object ComponentStore
         for (i <- 0 until 3)
         {
             val res = new ResourceLocation(wireIcons(i).getIconName)
-            wireData(i) = TextureUtils.loadTextureColours(new ResourceLocation(res.getResourceDomain,
-                "textures/"+res.getResourcePath+".png"))
+            wireData(i) = TextureUtils.loadTextureColours(new ResourceLocation(res.getNamespace,
+                "textures/"+res.getPath+".png"))
         }
 
         redstoneTorchIcons(0) = map.registerSprite(new ResourceLocation("minecraft:blocks/redstone_torch_off"))

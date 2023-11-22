@@ -262,7 +262,7 @@ class FramedBundledCablePart extends FramedWirePart with TCenterBundledAquisitio
 
     override def discoverStraightOverride(absDir:Int) =
     {
-        val pos = this.pos.offset(EnumFacing.getFront(absDir))
+        val pos = this.pos.offset(EnumFacing.byIndex(absDir))
         world.getTileEntity(pos) match {
             case b:IMaskedBundledTile => b.canConnectBundled(absDir^1) &&
                     (b.getConnectionMask(absDir^1)&0x10) != 0

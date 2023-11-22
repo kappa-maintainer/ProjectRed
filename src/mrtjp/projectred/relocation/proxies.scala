@@ -63,7 +63,7 @@ class RelocationProxy_server
         blockFrame = new BlockFrame
 
         /** Localiztion **/
-        blockFrame.setUnlocalizedName("projectred.relocation.frame")
+        blockFrame.setTranslationKey("projectred.relocation.frame")
 
         /** Registration **/
         ForgeRegistries.BLOCKS.register(blockMovingRow.setRegistryName("blockMovingRow"))

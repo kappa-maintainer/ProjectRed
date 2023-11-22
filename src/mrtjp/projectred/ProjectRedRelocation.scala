@@ -19,7 +19,7 @@ object ProjectRedRelocation
 
     var tabRelocation = new CreativeTabs("projectred.relocation")
     {
-        override def getTabIconItem = new ItemStack(blockFrame)
+        override def createIcon = new ItemStack(blockFrame)
     }
 
     @Mod.EventHandler

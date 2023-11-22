@@ -32,14 +32,14 @@ trait TFaceAcquisitions extends TAcquisitionsCommons with TFaceOrient
     def getCorner(r:Int) =
     {
         val absDir = absoluteDir(r)
-        val pos = this.pos.offset(EnumFacing.getFront(absDir)).offset(EnumFacing.getFront(side))
+        val pos = this.pos.offset(EnumFacing.byIndex(absDir)).offset(EnumFacing.byIndex(side))
 
         BlockMultipart.getPart(world, pos, absDir^1)
     }
 
     override def getStraight(r:Int) =
     {
-        val pos = this.pos.offset(EnumFacing.getFront(absoluteDir(r)))
+        val pos = this.pos.offset(EnumFacing.byIndex(absoluteDir(r)))
         BlockMultipart.getPart(world, pos, side)
     }
 
@@ -47,9 +47,9 @@ trait TFaceAcquisitions extends TAcquisitionsCommons with TFaceOrient
 
     def getCenter = tile.partMap(6)
 
-    def posOfCorner(r:Int) = pos.offset(EnumFacing.getFront(absoluteDir(r))).offset(EnumFacing.getFront(side))
+    def posOfCorner(r:Int) = pos.offset(EnumFacing.byIndex(absoluteDir(r))).offset(EnumFacing.byIndex(side))
 
-    override def posOfStraight(r:Int) = pos.offset(EnumFacing.getFront(absoluteDir(r)))
+    override def posOfStraight(r:Int) = pos.offset(EnumFacing.byIndex(absoluteDir(r)))
 
     def rotFromCorner(r:Int) = Rotation.rotationTo(absoluteDir(r)^1, side^1)
     def rotFromStraight(r:Int) = (r+2)%4
@@ -67,13 +67,13 @@ trait TCenterAcquisitions extends TAcquisitionsCommons with TCenterOrient
 {
     override def getStraight(s:Int) =
     {
-        val pos = posOfInternal.offset(EnumFacing.getFront(s))
+        val pos = posOfInternal.offset(EnumFacing.byIndex(s))
         BlockMultipart.getPart(world, pos, 6)
     }
 
     override def getInternal(s:Int) = tile.partMap(s)
 
-    override def posOfStraight(s:Int) = pos.offset(EnumFacing.getFront(s))
+    override def posOfStraight(s:Int) = pos.offset(EnumFacing.byIndex(s))
 }
 
 trait TConnectableCommons extends TMultiPart with IConnectable
@@ -243,7 +243,7 @@ trait TFaceConnectable extends TConnectableCommons with TFaceAcquisitions
     def outsideCornerEdgeOpen(r:Int) =
     {
         val absDir = absoluteDir(r)
-        val pos = this.pos.offset(EnumFacing.getFront(absDir))
+        val pos = this.pos.offset(EnumFacing.byIndex(absDir))
         if (world.isAirBlock(pos)) true
         else {
             val side1 = absDir^1

@@ -133,7 +133,7 @@ object MovementManager
             val sline = if (shift == 1) line.sorted else line.sorted(Ordering[Int].reverse)
             for ((basis, size) <- MathLib.splitLine(sline, shift)) {
                 val c = MathLib.rhrAxis(moveDir, normal, basis + shift)
-                rowB += new BlockRow(c, EnumFacing.getFront(moveDir), size)
+                rowB += new BlockRow(c, EnumFacing.byIndex(moveDir), size)
             }
         }
 
@@ -215,7 +215,7 @@ object MovementManager
                 val list = world.pendingTickListEntriesThisTick
 
                 val isOptifine = world.getClass.getName == "WorldServerOF"
-                val chunks = allBlocks.map(b => world.getChunkFromBlockCoords(b)).filter(_ != null)
+                val chunks = allBlocks.map(b => world.getChunk(b)).filter(_ != null)
 
                 val scheduledTicks = chunks.flatMap(ch => world.getPendingBlockUpdates(ch, !isOptifine)
                         .asInstanceOf[JAList[NextTickListEntry]] match {
@@ -352,7 +352,7 @@ class BlockStruct
     lazy val preMoveBlocks:Set[BlockPos] = rows.flatMap(_.preMoveBlocks)
     lazy val postMoveBlocks:Set[BlockPos] = rows.flatMap(_.postMoveBlocks)
 
-    lazy val allAdjacentBlocks:Set[BlockPos] = allBlocks.flatMap(b => (0 until 6).map(s => b.offset(EnumFacing.getFront(s))))
+    lazy val allAdjacentBlocks:Set[BlockPos] = allBlocks.flatMap(b => (0 until 6).map(s => b.offset(EnumFacing.byIndex(s))))
 
     def moveDir:EnumFacing = rows.head.moveDir
 
@@ -427,7 +427,7 @@ class BlockStruct
         speed = in.readFloat()
         val rb = Set.newBuilder[BlockRow]
         for (_ <- 0 until in.readUByte())
-            rb += new BlockRow(in.readPos(), EnumFacing.getFront(in.readUByte()), in.readShort())
+            rb += new BlockRow(in.readPos(), EnumFacing.byIndex(in.readUByte()), in.readShort())
         rows = rb.result()
     }
 }
@@ -439,7 +439,7 @@ class BlockRow(val pos:BlockPos, val moveDir:EnumFacing, val size:Int)
     lazy val postMoveBlocks:IndexedSeq[BlockPos] = allBlocks dropRight 1
 
     lazy val allAdjacent:IndexedSeq[BlockPos] = allBlocks.flatMap(b => (0 until 6).map(s =>
-        b.offset(EnumFacing.getFront(s)))).filterNot(allBlocks.contains)
+        b.offset(EnumFacing.byIndex(s)))).filterNot(allBlocks.contains)
 
     def contains(pos:BlockPos):Boolean =
     {

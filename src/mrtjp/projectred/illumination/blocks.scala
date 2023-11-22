@@ -207,7 +207,7 @@ class TileLamp extends MTBlockTile with ILight
 
     def checkPower =
     {
-        world.isBlockIndirectlyGettingPowered(pos) != 0 ||
+        world.getRedstonePowerFromNeighbors(pos) != 0 ||
             world.getStrongPower(pos) != 0
     }
 

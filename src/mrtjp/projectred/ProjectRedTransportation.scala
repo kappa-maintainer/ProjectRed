@@ -20,7 +20,7 @@ object ProjectRedTransportation
 
     val tabTransportation = new CreativeTabs("projectred.transportation")
     {
-        override def getTabIconItem = RoutingChipDefs.ITEMSTOCKKEEPER.makeStack
+        override def createIcon = RoutingChipDefs.ITEMSTOCKKEEPER.makeStack
     }
 
     @Mod.EventHandler

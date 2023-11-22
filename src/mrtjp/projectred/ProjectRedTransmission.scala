@@ -19,7 +19,7 @@ object ProjectRedTransmission
 
     val tabTransmission = new CreativeTabs("projectred.transmission")
     {
-        override def getTabIconItem = new ItemStack(ProjectRedTransmission.itemPartWire)
+        override def createIcon = new ItemStack(ProjectRedTransmission.itemPartWire)
     }
 
     @Mod.EventHandler

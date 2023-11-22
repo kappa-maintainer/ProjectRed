@@ -32,7 +32,7 @@ trait TFaceRSAcquisitions extends TRSAcquisitionsCommons with TFaceAcquisitions 
     {
         val pos = posOfStraight(r)
         if (world.isBlockNormalCube(pos, false))
-            world.isBlockIndirectlyGettingPowered(pos)*17
+            world.getRedstonePowerFromNeighbors(pos)*17
         else 0
     }
 
@@ -47,7 +47,7 @@ trait TFaceRSAcquisitions extends TRSAcquisitionsCommons with TFaceAcquisitions 
 
     def calcUndersideSignal =
     {
-        val face = EnumFacing.getFront(side)
+        val face = EnumFacing.byIndex(side)
         world.getRedstonePower(pos.offset(face), face)*17
     }
 
@@ -73,9 +73,9 @@ trait TCenterRSAcquisitions extends TRSAcquisitionsCommons with TCenterAcquisiti
 
     def calcWeakSignal(s:Int) =
     {
-        val pos = this.pos.offset(EnumFacing.getFront(s))
+        val pos = this.pos.offset(EnumFacing.byIndex(s))
         if (world.isBlockNormalCube(pos, false))
-            world.isBlockIndirectlyGettingPowered(pos)*17
+            world.getRedstonePowerFromNeighbors(pos)*17
         else 0
     }
 }

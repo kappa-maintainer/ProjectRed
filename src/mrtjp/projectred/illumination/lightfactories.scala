@@ -19,7 +19,7 @@ object LightFactoryFixture extends LightFactory
     val bulbModels = new Array[CCModel](6)
     val chassiModels = new Array[CCModel](6)
 
-    override def getUnlocalizedName(inv:Boolean) = if (inv) "fixtureLightInverted" else "fixtureLight"
+    override def getTranslationKey(inv:Boolean) = if (inv) "fixtureLightInverted" else "fixtureLight"
     override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_fixture_light" else "fixture_light"
     override def getType = new ResourceLocation("projectred-illumination:fixture_light")
 
@@ -61,7 +61,7 @@ object LightFactoryFallout extends LightFactory
     val chassiModels = new Array[CCModel](6)
 
 
-    override def getUnlocalizedName(inv:Boolean) = if (inv) "falloutLampInverted" else "falloutLamp"
+    override def getTranslationKey(inv:Boolean) = if (inv) "falloutLampInverted" else "falloutLamp"
     override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_fallout_lamp" else "fallout_lamp"
     override def getType = new ResourceLocation("projectred-illumination:fallout_lamp")
 
@@ -102,7 +102,7 @@ object LightFactoryCage extends LightFactory
     val chassiModels = new Array[CCModel](6)
 
 
-    override def getUnlocalizedName(inv:Boolean) = if (inv) "cageLampInverted" else "cageLamp"
+    override def getTranslationKey(inv:Boolean) = if (inv) "cageLampInverted" else "cageLamp"
     override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_cage_lamp" else "cage_lamp"
     override def getType = new ResourceLocation("projectred-illumination:cage_lamp")
 
@@ -145,7 +145,7 @@ object LightFactoryLantern extends LightFactory
     var bulbModel:CCModel = _
     val chassiModels = new Array[CCModel](7)
 
-    override def getUnlocalizedName(inv:Boolean) = if (inv) "lanternInverted" else "lantern"
+    override def getTranslationKey(inv:Boolean) = if (inv) "lanternInverted" else "lantern"
     override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_lantern" else "lantern"
     override def getType = new ResourceLocation("projectred-illumination:lantern")
 

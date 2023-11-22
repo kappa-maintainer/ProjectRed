@@ -242,7 +242,7 @@ object ToolDefs
 trait TGemTool extends Item
 {
     setCreativeTab(ProjectRedExploration.tabExploration)
-    setUnlocalizedName("projectred.exploration."+toolDef.unlocal)
+    setTranslationKey("projectred.exploration."+toolDef.unlocal)
     ForgeRegistries.ITEMS.register(setRegistryName(toolDef.registryName))
 
     def toolDef:ToolDef
@@ -264,7 +264,7 @@ class ItemGemHoe(override val toolDef:ToolDef) extends ItemHoe(toolDef.mat) with
 class ItemGemSaw(val toolDef:ToolDef) extends ItemCraftingDamage with Saw
 {
     setCreativeTab(ProjectRedExploration.tabExploration)
-    setUnlocalizedName("projectred.exploration."+toolDef.unlocal)
+    setTranslationKey("projectred.exploration."+toolDef.unlocal)
     ForgeRegistries.ITEMS.register(setRegistryName(toolDef.registryName))
     setMaxDamage(toolDef.mat.getMaxUses)
 
@@ -366,7 +366,7 @@ object ArmorDefs
 class ItemGemArmor(adef:ArmorDef, slot:EntityEquipmentSlot) extends ItemToolProxies.Armor(adef.mat, slot)
 {
     setCreativeTab(ProjectRedExploration.tabExploration)
-    setUnlocalizedName("projectred.exploration."+adef.unlocal)
+    setTranslationKey("projectred.exploration."+adef.unlocal)
     ForgeRegistries.ITEMS.register(setRegistryName(adef.registryName))
 
     override def getIsRepairable(ist1:ItemStack, ist2:ItemStack) =

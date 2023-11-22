@@ -75,7 +75,7 @@ object MovingTileRegistry extends ITileMover
 
     private def getHandler(state:IBlockState):ITileMover =
         blockMetaMap.getOrElse(state, blockMetaMap.getOrElse(state.getBlock.getDefaultState,
-            modMap.getOrElse(state.getBlock.getRegistryName.getResourceDomain, defaultMover)))
+            modMap.getOrElse(state.getBlock.getRegistryName.getNamespace, defaultMover)))
 
     override def canMove(w:World, pos:BlockPos):Boolean =
         getHandler(w.getBlockState(pos)).canMove(w, pos)
@@ -139,7 +139,7 @@ object SaveLoadTileMover extends ITileMover
         uncheckedSetBlock(w, pos2, state)
         if (tag != null) {
             TileEntity.create(w, tag) match {
-                case te:TileEntity => w.getChunkFromBlockCoords(pos2).addTileEntity(te)
+                case te:TileEntity => w.getChunk(pos2).addTileEntity(te)
                 case _ =>
             }
         }

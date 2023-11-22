@@ -196,7 +196,7 @@ abstract class FramedRedwirePart extends FramedWirePart with TRedwireCommons wit
     override def propagateOther(mode:Int)
     {
         for (s <- 0 until 6) if (!maskConnects(s))
-            WirePropagator.addNeighborChange(pos.offset(EnumFacing.getFront(s)))
+            WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(s)))
     }
 
     def calculateSignal =
@@ -264,15 +264,15 @@ class RedAlloyWirePart extends RedwirePart with TRedAlloyCommons
 
     override def propagateOther(mode:Int)
     {
-        WirePropagator.addNeighborChange(pos.offset(EnumFacing.getFront(side)))
-        WirePropagator.addNeighborChange(pos.offset(EnumFacing.getFront(side^1)))
+        WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(side)))
+        WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(side^1)))
 
         for (r <- 0 until 4) if (!maskConnects(r))
-            WirePropagator.addNeighborChange(pos.offset(EnumFacing.getFront(Rotation.rotateSide(side, r))))
+            WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(Rotation.rotateSide(side, r))))
 
         for (s <- 0 until 6) if (s != (side^1))
             WirePropagator.addNeighborChange(pos
-                    .offset(EnumFacing.getFront(side)).offset(EnumFacing.getFront(s)))
+                    .offset(EnumFacing.byIndex(side)).offset(EnumFacing.byIndex(s)))
     }
 }
 

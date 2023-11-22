@@ -32,25 +32,25 @@ class ExplorationProxy_server extends IProxy
     override def preinit()
     {
         itemWoolGin = new ItemWoolGin
-        itemWoolGin.setUnlocalizedName("projectred.exploration.woolGin")
+        itemWoolGin.setTranslationKey("projectred.exploration.woolGin")
         ForgeRegistries.ITEMS.register(itemWoolGin.setRegistryName("wool_gin"))
 
         itemBackpack = new ItemBackpack
-        itemBackpack.setUnlocalizedName("projectred.exploration.backpack")
+        itemBackpack.setTranslationKey("projectred.exploration.backpack")
         ForgeRegistries.ITEMS.register(itemBackpack.setRegistryName("backpack"))
 
         itemAthame = new ItemAthame
-        itemAthame.setUnlocalizedName("projectred.exploration.athame")
+        itemAthame.setTranslationKey("projectred.exploration.athame")
         ForgeRegistries.ITEMS.register(itemAthame.setRegistryName("athame"))
 
         blockOres = new BlockOre
-        blockOres.setUnlocalizedName("projectred.exploration.ore")
+        blockOres.setTranslationKey("projectred.exploration.ore")
         ForgeRegistries.BLOCKS.register(blockOres.setRegistryName("ore"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockOres).setRegistryName(blockOres.getRegistryName))
         for (o <- OreDefs.values) blockOres.setHarvestLevel("pickaxe", o.harvest, blockOres.getStateFromMeta(o.meta))
 
         blockDecorativeStone = new BlockDecorativeStone
-        blockDecorativeStone.setUnlocalizedName("projectred.exploration.stone")
+        blockDecorativeStone.setTranslationKey("projectred.exploration.stone")
         ForgeRegistries.BLOCKS.register(blockDecorativeStone.setRegistryName("stone"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockDecorativeStone).setRegistryName(blockDecorativeStone.getRegistryName))
         for (b <- DecorativeStoneDefs.values) {
@@ -59,12 +59,12 @@ class ExplorationProxy_server extends IProxy
         }
 
         blockDecorativeWall = new BlockDecorativeWall
-        blockDecorativeWall.setUnlocalizedName("projectred.exploration.stoneWall")
+        blockDecorativeWall.setTranslationKey("projectred.exploration.stoneWall")
         ForgeRegistries.BLOCKS.register(blockDecorativeWall.setRegistryName("stone_wall"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockDecorativeWall).setRegistryName(blockDecorativeWall.getRegistryName))
 
         blockBarrel = new BlockBarrel
-        blockBarrel.setUnlocalizedName("projectred.exploration.barrel")
+        blockBarrel.setTranslationKey("projectred.exploration.barrel")
         ForgeRegistries.BLOCKS.register(blockBarrel.setRegistryName("barrel"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockBarrel).setRegistryName(blockBarrel.getRegistryName))
         blockBarrel.addTile(classOf[TileBarrel], 0)

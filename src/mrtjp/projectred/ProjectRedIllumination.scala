@@ -20,7 +20,7 @@ object ProjectRedIllumination
 
     val tabLighting = new CreativeTabs("projectred.illumination")
     {
-        override def getTabIconItem = new ItemStack(LightFactoryCage.getItem(true))
+        override def createIcon = new ItemStack(LightFactoryCage.getItem(true))
     }
 
     @Mod.EventHandler

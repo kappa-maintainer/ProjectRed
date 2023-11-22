@@ -816,7 +816,7 @@ class Comparator(gate:SequentialGatePart) extends SequentialGateLogic(gate) with
     {
         //TODO comparator calculations may not be accurate anymore
 
-        val absDir = EnumFacing.getFront(Rotation.rotateSide(gate.side, gate.toAbsolute(2)))
+        val absDir = EnumFacing.byIndex(Rotation.rotateSide(gate.side, gate.toAbsolute(2)))
         var pos = gate.tile.getPos.offset(absDir)
         var state = gate.world.getBlockState(pos)
 

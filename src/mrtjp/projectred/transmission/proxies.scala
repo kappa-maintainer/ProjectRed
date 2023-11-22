@@ -16,11 +16,11 @@ class TransmissionProxy_server extends IProxy with IPartFactory
     override def preinit()
     {
         itemPartWire = new ItemPartWire
-        itemPartWire.setUnlocalizedName("projectred.transmission.wire")
+        itemPartWire.setTranslationKey("projectred.transmission.wire")
         ForgeRegistries.ITEMS.register(itemPartWire.setRegistryName("wire"))
 
         itemPartFramedWire = new ItemPartFramedWire
-        itemPartFramedWire.setUnlocalizedName("projectred.transmission.wireFramed")
+        itemPartFramedWire.setTranslationKey("projectred.transmission.wireFramed")
         ForgeRegistries.ITEMS.register(itemPartFramedWire.setRegistryName("framed_wire"))
 
         import WireDef._

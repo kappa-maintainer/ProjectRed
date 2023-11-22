@@ -73,7 +73,7 @@ object ProjectRedExploration
 
     val tabExploration:CreativeTabs = new CreativeTabs("projectred.exploration")
     {
-        override def getTabIconItem = new ItemStack(Blocks.GRASS)
+        override def createIcon = new ItemStack(Blocks.GRASS)
     }
 
     @Mod.EventHandler

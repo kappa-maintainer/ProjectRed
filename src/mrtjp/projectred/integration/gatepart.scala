@@ -180,7 +180,7 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
             getLogicPrimitive.onWorldLoad(this)
     }
 
-    def canStay = PRLib.canPlaceGateOnSide(world, pos.offset(EnumFacing.getFront(side)), side^1)
+    def canStay = PRLib.canPlaceGateOnSide(world, pos.offset(EnumFacing.byIndex(side)), side^1)
 
     def dropIfCantStay() =
     {

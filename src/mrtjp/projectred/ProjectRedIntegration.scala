@@ -13,7 +13,7 @@ object ProjectRedIntegration
 
     val tabIntegration = new CreativeTabs("projectred.integration")
     {
-        override def getTabIconItem = GateDefinition.OR.makeStack
+        override def createIcon = GateDefinition.OR.makeStack
     }
 
     @Mod.EventHandler

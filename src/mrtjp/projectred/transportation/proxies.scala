@@ -25,15 +25,15 @@ class TransportationProxy_server extends IProxy with IPartFactory
     override def preinit()
     {
         itemPartPipe = new ItemPartPipe
-        itemPartPipe.setUnlocalizedName("projectred.transportation.pipe")
+        itemPartPipe.setTranslationKey("projectred.transportation.pipe")
         ForgeRegistries.ITEMS.register(itemPartPipe.setRegistryName("pipe"))
 
         itemRoutingChip = new ItemRoutingChip
-        itemRoutingChip.setUnlocalizedName("projectred.transportation.routingChip")
+        itemRoutingChip.setTranslationKey("projectred.transportation.routingChip")
         ForgeRegistries.ITEMS.register(itemRoutingChip.setRegistryName("routing_chip"))
 
         itemRouterUtility = new ItemRouterUtility
-        itemRouterUtility.setUnlocalizedName("projectred.transportation.routerUtility")
+        itemRouterUtility.setTranslationKey("projectred.transportation.routerUtility")
         ForgeRegistries.ITEMS.register(itemRouterUtility.setRegistryName("router_utility"))
 
         MultiPartRegistry.registerParts(this, PipeDefs.values.map{_.partname}.toArray)

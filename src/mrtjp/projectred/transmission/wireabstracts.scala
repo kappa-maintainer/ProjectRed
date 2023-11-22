@@ -214,7 +214,7 @@ abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectab
     override def canConnectCorner(r:Int) = true
 
     override def canStay = PRLib.canPlaceWireOnSide(world,
-        pos.offset(EnumFacing.getFront(side)), side^1)
+        pos.offset(EnumFacing.byIndex(side)), side^1)
 
     override def getItem = getWireType.makeStack
 
