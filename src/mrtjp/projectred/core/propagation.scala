@@ -17,7 +17,7 @@ object WirePropagator
     private val wiresProvidePower =
     {
         try {
-            val c = ObfuscationReflectionHelper.findField(classOf[BlockRedstoneWire], "canProvidePower")
+            val c = ObfuscationReflectionHelper.findField(classOf[BlockRedstoneWire], "field_150181_a")
             c.setAccessible(true)
             c
         }
