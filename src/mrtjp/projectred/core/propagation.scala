@@ -1,7 +1,6 @@
 package mrtjp.projectred.core
 
 import java.util.{Stack => JStack}
-
 import codechicken.multipart.handler.MultipartProxy
 import codechicken.multipart.{TMultiPart, TileMultipart}
 import com.google.common.collect.HashMultimap
@@ -9,6 +8,7 @@ import net.minecraft.block.BlockRedstoneWire
 import net.minecraft.init.Blocks
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 
 import scala.collection.immutable.HashSet
 
@@ -17,7 +17,7 @@ object WirePropagator
     private val wiresProvidePower =
     {
         try {
-            val c = classOf[BlockRedstoneWire].getDeclaredFields.apply(0)
+            val c = ObfuscationReflectionHelper.findField(classOf[BlockRedstoneWire], "canProvidePower")
             c.setAccessible(true)
             c
         }

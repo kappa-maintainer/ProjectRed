@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.99.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
         //classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
     }
 }
@@ -47,31 +47,12 @@ repositories {
         url 'https://maven.cleanroommc.com/'
     }
     maven {
-        url "https://repo.cleanroommc.com/snapshots"
-    }
-    maven {
         url "https://maven.outlands.top/releases/"
     }
     maven {
         url "https://jitpack.io/"
     }
     mavenCentral()
-}
-
-ext {
-    lwjglLibraries = [
-            [
-                    'lwjgl3-glfw', 'lwjgl3-jemalloc', 'lwjgl3-openal',
-                    'lwjgl3-opengl', 'lwjgl3-stb', 'lwjgl3-tinyfd', 'lwjgl3'
-            ],
-
-            [
-                    'natives-linux-arm64', 'natives-linux-arm32', 'natives-linux',
-                    'natives-macos-arm64', 'natives-macos',
-                    'natives-windows-arm64', 'natives-windows-x86', 'natives-windows'
-            ]
-    ]
-    lwjglArch = 'natives-linux'
 }
 
 configurations {
@@ -91,12 +72,12 @@ dependencies {
     runtimeOnly "mezz.jei:jei_${config.mc_version}:${config.jei_version}"
 
 
-    minecraft ("com.cleanroommc:cleanroom:15.24.0.3009")
-    lwjglLibraries[0].each {
-        lwjglLibraries[1].each { arch ->
-            runtimeOnly "org.lwjgl3:$it:3.3.2-22-CLEANROOM:$lwjglArch"
-        }
+    minecraft ("net.minecraftforge:forge:1.12.2-14.23.5.2860") {
+        exclude group : "org.scala-lang"
     }
+
+    compileOnly 'org.scala-lang:scala-compiler:2.12.18'
+
 }
 
 def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "1")).toString()
