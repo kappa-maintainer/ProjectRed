@@ -1,19 +1,23 @@
 buildscript {
     repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
-        maven { url = 'https://maven.outlands.top/releases' }
         mavenCentral()
+        maven {
+            name = "forge"
+            url = "https://maven.minecraftforge.net/"
+        }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
-        //classpath "org.spongepowered:mixingradle:0.7-SNAPSHOT"
+        classpath("com.anatawa12.forge:ForgeGradle:2.3-1.0.+") {
+            changing = true
+        }
     }
 }
 
 
-apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'scala'
+apply plugin: 'maven'
+//apply plugin: 'curseforge'
 
 
 group = "mrtjp"
@@ -30,29 +34,18 @@ configFile.withReader {
 repositories {
     maven {
         name "chickenbones"
-        url "https://chickenbones.net/maven/"
+        url "http://chickenbones.net/maven/"
     }
 
     maven {
         name "mvnmrtjp"
-        url "https://files.projectredwiki.com/maven"
+        url "http://files.projectredwiki.com/maven"
     }
 
     maven {
         name "dvs1"
-        url "https://dvs1.progwml6.com/files/maven/"
+        url "http://dvs1.progwml6.com/files/maven/"
     }
-    maven {
-        name 'Cleanroom Maven'
-        url 'https://maven.cleanroommc.com/'
-    }
-    maven {
-        url "https://maven.outlands.top/releases/"
-    }
-    maven {
-        url "https://jitpack.io/"
-    }
-    mavenCentral()
 }
 
 configurations {
@@ -62,56 +55,26 @@ configurations {
 dependencies {
     deployerJars "org.apache.maven.wagon:wagon-ftp:2.2"
 
-    compileOnly "mrtjp:MrTJPCore:${config.mc_version}-${config.tjpcore_version}:deobf"
-    compileOnly "codechicken:CodeChickenLib:${config.mc_version}-${config.ccl_version}:deobf"
-    compileOnly "codechicken:ForgeMultipart:${config.mc_version}-${config.fmp_version}:deobf"
+    compile "mrtjp:MrTJPCore:${config.mc_version}-${config.tjpcore_version}:deobf"
+    compile "codechicken:CodeChickenLib:${config.mc_version}-${config.ccl_version}:deobf"
+    compile "codechicken:ForgeMultipart:${config.mc_version}-${config.fmp_version}:deobf"
 
     // compile against the JEI API
-    compileOnly fg.deobf("mezz.jei:jei_${config.mc_version}:${config.jei_version}:api")
+    deobfCompile "mezz.jei:jei_${config.mc_version}:${config.jei_version}:api"
     // at runtime, use the full JEI jar
-    runtimeOnly "mezz.jei:jei_${config.mc_version}:${config.jei_version}"
-
-
-    minecraft ("net.minecraftforge:forge:1.12.2-14.23.5.2860") {
-        exclude group : "org.scala-lang"
-    }
-
-    compileOnly 'org.scala-lang:scala-compiler:2.12.18'
-
+    runtime "mezz.jei:jei_${config.mc_version}:${config.jei_version}"
 }
 
-def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "1")).toString()
+def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "200")).toString()
 version = "${project.config.mod_version}."+build_number
 println "Starting build for $archivesBaseName $version for MC $config.mc_version-$config.forge_version"
 
 minecraft {
-
-    mappings channel: "stable", version: "39-1.12"
-
-    accessTransformer = file('resources/META-INF/projectred-relocation_at.cfg')
-
-    runs {
-        client {
-            workingDirectory project.file('run/client')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-        }
-
-        server {
-            workingDirectory project.file('run/server')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+    version = config.mc_version+"-"+config.forge_version
+    mappings = config.mappings
+    runDir = "run"
+    makeObfSourceJar = false
+    useDepAts = true
 }
 
 sourceSets {
@@ -127,7 +90,6 @@ sourceSets {
 }
 
 processResources {
-    duplicatesStrategy=DuplicatesStrategy.EXCLUDE
     //redo task if any of these properties change
     inputs.property "version", project.version
     inputs.property "mc.version", config.mc_version
@@ -148,25 +110,27 @@ processResources {
 }
 
 jar {//Because groovy we need to define these first other wise our zipTree call will fail.
-    archiveClassifier = 'all'
+    classifier = 'all'
     version = "${config.mc_version}-${project.version}"
 }
 
 task srcJar(type: Jar) {
     from sourceSets.main.allSource
-    archiveClassifier = 'sources'
+    classifier = 'sources'
+    version = "${config.mc_version}-${project.version}"
 }
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    archiveClassifier = 'deobf'
+    classifier = 'deobf'
+    version = "${config.mc_version}-${project.version}"
 }
 
-ext.jarVer = project.version
+ext.jarVer = "${config.mc_version}-${project.version}"
 ext.jarFile = zipTree(jar.archivePath)
 ext.baseExcludes = ["**/dan200/**", "**/coloredlightscore/**"]
 
-task integrationJar(type: Jar, dependsOn: "reobfJar") {
+task integrationJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         include "**/ProjectRedIntegration*.class"
         include "**/ProjectRedTransmission*.class"
@@ -184,10 +148,10 @@ task integrationJar(type: Jar, dependsOn: "reobfJar") {
         project.ext.baseExcludes.addAll(includes)
     }
     version = project.ext.jarVer
-    archiveClassifier = 'integration'
+    classifier = 'integration'
 }
 
-task fabricationJar(type: Jar, dependsOn: "reobfJar") {
+task fabricationJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         include "**/ProjectRedFabrication*.class"
         include "**/mrtjp/projectred/fabrication/**"
@@ -205,10 +169,10 @@ task fabricationJar(type: Jar, dependsOn: "reobfJar") {
         project.ext.baseExcludes.addAll(includes)
     }
     version = project.ext.jarVer
-    archiveClassifier = 'fabrication'
+    classifier = 'fabrication'
 }
 
-task lightingJar(type: Jar, dependsOn: "reobfJar") {
+task lightingJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         include "**/ProjectRedIllumination*.class"
         include "**/mrtjp/projectred/illumination/**"
@@ -223,10 +187,10 @@ task lightingJar(type: Jar, dependsOn: "reobfJar") {
         project.ext.baseExcludes.addAll(includes)
     }
     version = project.ext.jarVer
-    archiveClassifier = 'lighting'
+    classifier = 'lighting'
 }
 
-task mechanicalJar(type: Jar, dependsOn: "reobfJar") {
+task mechanicalJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         include "**/ProjectRedExpansion*.class"
         include "**/mrtjp/projectred/expansion/**"
@@ -257,10 +221,10 @@ task mechanicalJar(type: Jar, dependsOn: "reobfJar") {
         project.ext.baseExcludes.addAll(includes)
     }
     version = project.ext.jarVer
-    archiveClassifier = 'mechanical'
+    classifier = 'mechanical'
 }
 
-task worldJar(type: Jar, dependsOn: "reobfJar") {
+task worldJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         include "**/ProjectRedExploration*.class"
         include "**/mrtjp/projectred/exploration/**"
@@ -277,10 +241,10 @@ task worldJar(type: Jar, dependsOn: "reobfJar") {
         project.ext.baseExcludes.addAll(includes)
     }
     version = project.ext.jarVer
-    archiveClassifier = 'world'
+    classifier = 'world'
 }
 
-task compatJar(type: Jar, dependsOn: "reobfJar") {
+task compatJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         include "**/ProjectRedCompatibility*.class"
         include "**/mrtjp/projectred/compatibility/**"
@@ -293,17 +257,17 @@ task compatJar(type: Jar, dependsOn: "reobfJar") {
         project.ext.baseExcludes.addAll(includes)
     }
     version = project.ext.jarVer
-    archiveClassifier = 'compat'
+    classifier = 'compat'
 }
 
-task baseJar(type: Jar, dependsOn: "reobfJar") {
+task baseJar(type: Jar, dependsOn: reobfJar) {
     from(project.ext.jarFile) {
         exclude project.ext.baseExcludes
 
         rename("base_mod.info", 'mcmod.info')
     }
     version = project.ext.jarVer
-    archiveClassifier = 'Base'
+    classifier = 'Base'
 }
 
 // Dont include empty folders in jars
@@ -333,6 +297,53 @@ artifacts {
     archives srcJar
 }
 
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            if (project.hasProperty("local_maven")) {
+                repository(url: "file://${local_maven}")
+                pom {
+                    groupId = project.group
+                    version = "${config.mc_version}-${project.version}"
+                    artifactId = project.archivesBaseName
+                    project {
+                        name project.archivesBaseName
+                        packaging 'jar'
+                        description project.archivesBaseName
+                        url 'https://github.com/MrTJP/'+project.archivesBaseName
+
+                        scm {
+                            url 'https://github.com/MrTJP/'+project.archivesBaseName
+                            connection 'scm:git:git://github.com/MrTJP/'+project.archivesBaseName+'.git'
+                            developerConnection 'scm:git:git@github.com:MrTJP/'+project.archivesBaseName+'.git'
+                        }
+
+                        issueManagement {
+                            system 'github'
+                            url 'https://github.com/MrTJP/'+project.archivesBaseName+'/issues'
+                        }
+
+                        licenses {
+                            license {
+                                name 'Restricted Public Software License (RPSL) v1.3.1'
+                                url 'https://raw.githubusercontent.com/MrTJP/ProjectRed/master/LICENSE.md'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'mrtjp'
+                                name 'mrtjp'
+                                roles { role 'developer' }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 /*if (project.hasProperty('curseapi')) {
     curse {
