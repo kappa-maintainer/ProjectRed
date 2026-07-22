@@ -1,9 +1,8 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.lua;
 
 import javax.annotation.Nonnull;
@@ -32,7 +31,12 @@ public interface ILuaContext
      *                              intercepted, or the computer will leak memory and end up in a broken state.
      */
     @Nonnull
-    Object[] pullEvent( @Nullable String filter ) throws LuaException, InterruptedException;
+    default Object[] pullEvent( @Nullable String filter ) throws LuaException, InterruptedException
+    {
+        Object[] results = pullEventRaw( filter );
+        if( results.length >= 1 && results[0].equals( "terminate" ) ) throw new LuaException( "Terminated", 0 );
+        return results;
+    }
 
     /**
      * The same as {@link #pullEvent(String)}, except "terminated" events are ignored. Only use this if you want to
@@ -47,7 +51,10 @@ public interface ILuaContext
      * @see #pullEvent(String)
      */
     @Nonnull
-    Object[] pullEventRaw( @Nullable String filter ) throws InterruptedException;
+    default Object[] pullEventRaw( @Nullable String filter ) throws InterruptedException
+    {
+        return yield( new Object[] { filter } );
+    }
 
     /**
      * Yield the current coroutine with some arguments until it is resumed. This method is exactly equivalent to

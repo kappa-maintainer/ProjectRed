@@ -1,3 +1,8 @@
+/*
+ * This file is part of the public ComputerCraft API - http://www.computercraft.info
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
+ * For help using the API, and posting your mods, visit the forums at computercraft.info.
+ */
 package dan200.computercraft.api.pocket;
 
 import dan200.computercraft.api.ComputerCraftAPI;
@@ -13,7 +18,7 @@ import javax.annotation.Nullable;
 /**
  * Additional peripherals for pocket computers.
  *
- * This is similar to {@link dan200.computercraft.api.turtle.ITurtleUpgrade}.
+ * This is similar to {@link ITurtleUpgrade}.
  */
 public interface IPocketUpgrade
 {
@@ -47,6 +52,9 @@ public interface IPocketUpgrade
      * Return an item stack representing the type of item that a pocket computer must be crafted with to create a
      * pocket computer which holds this upgrade. This item stack is also used to determine the upgrade given by
      * {@code pocket.equip()}/{@code pocket.unequip()}.
+     *
+     * Ideally this should be constant over a session. It is recommended that you cache
+     * the item too, in order to prevent constructing it every time the method is called.
      *
      * @return The item stack used for crafting. This can be {@link ItemStack#EMPTY} if crafting is disabled.
      */

@@ -1,18 +1,21 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.peripheral;
 
 import dan200.computercraft.api.ComputerCraftAPI;
 import dan200.computercraft.api.filesystem.IMount;
 import dan200.computercraft.api.filesystem.IWritableMount;
+import dan200.computercraft.api.lua.ILuaContext;
+import dan200.computercraft.api.lua.ILuaTask;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * The interface passed to peripherals by computers or turtles, providing methods
@@ -37,7 +40,10 @@ public interface IComputerAccess
      * @see IMount
      */
     @Nullable
-    String mount( @Nonnull String desiredLocation, @Nonnull IMount mount );
+    default String mount( @Nonnull String desiredLocation, @Nonnull IMount mount )
+    {
+        return mount( desiredLocation, mount, getAttachmentName() );
+    }
 
     /**
      * Mount a mount onto the computer's file system in a read only mode.
@@ -73,7 +79,10 @@ public interface IComputerAccess
      * @see IMount
      */
     @Nullable
-    String mountWritable( @Nonnull String desiredLocation, @Nonnull IWritableMount mount );
+    default String mountWritable( @Nonnull String desiredLocation, @Nonnull IWritableMount mount )
+    {
+        return mountWritable( desiredLocation, mount, getAttachmentName() );
+    }
 
     /**
      * Mount a mount onto the computer's file system in a writable mode.
@@ -138,7 +147,7 @@ public interface IComputerAccess
      *
      *                  You may supply {@code null} to indicate that no arguments are to be supplied.
      * @throws RuntimeException If the peripheral has been detached.
-     * @see dan200.computercraft.api.peripheral.IPeripheral#callMethod
+     * @see IPeripheral#callMethod
      */
     void queueEvent( @Nonnull String event, @Nullable Object[] arguments );
 
@@ -154,4 +163,52 @@ public interface IComputerAccess
      */
     @Nonnull
     String getAttachmentName();
+
+    /**
+     * Get a set of peripherals that this computer access can "see", along with their attachment name.
+     *
+     * This may include other peripherals on the wired network or peripherals on other sides of the computer.
+     *
+     * @return All reachable peripherals
+     * @see #getAttachmentName()
+     * @see #getAvailablePeripheral(String)
+     */
+    @Nonnull
+    default Map<String, IPeripheral> getAvailablePeripherals()
+    {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Get a reachable peripheral with the given attachment name. This is a equivalent to
+     * {@link #getAvailablePeripherals()}{@code .get(name)}, though may be more efficient.
+     *
+     * @param name The peripheral's attached name
+     * @return The reachable peripheral, or {@code null} if none can be found.
+     * @see #getAvailablePeripherals()
+     */
+    @Nullable
+    default IPeripheral getAvailablePeripheral( @Nonnull String name )
+    {
+        return null;
+    }
+
+    /**
+     * Get a {@link IWorkMonitor} for tasks your peripheral might execute on the main (server) thread.
+     *
+     * This should be used to ensure your peripheral integrates with ComputerCraft's monitoring and limiting of how much
+     * server time each computer consumes. You should not need to use this if you use
+     * {@link ILuaContext#issueMainThreadTask(ILuaTask)} - this is intended for mods with their own system for running
+     * work on the main thread.
+     *
+     * Please note that the returned implementation is <em>not</em> thread-safe, and should only be used from the main
+     * thread.
+     *
+     * @return The work monitor for the main thread, or {@code null} if this computer does not have one.
+     */
+    @Nullable
+    default IWorkMonitor getMainThreadMonitor()
+    {
+        return null;
+    }
 }

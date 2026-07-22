@@ -1,18 +1,21 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.turtle;
 
 import dan200.computercraft.api.ComputerCraftAPI;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.turtle.event.TurtleAttackEvent;
+import dan200.computercraft.api.turtle.event.TurtleBlockEvent;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,7 +23,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
-
 
 /**
  * The primary interface for defining an update for Turtles. A turtle update
@@ -76,6 +78,9 @@ public interface ITurtleUpgrade
      * with to create a turtle which holds this upgrade. This item stack is also used
      * to determine the upgrade given by {@code turtle.equip()}
      *
+     * Ideally this should be constant over a session. It is recommended that you cache
+     * the item too, in order to prevent constructing it every time the method is called.
+     *
      * @return The item stack to craft with, or {@link ItemStack#EMPTY} if it cannot be crafted.
      */
     @Nonnull
@@ -94,11 +99,17 @@ public interface ITurtleUpgrade
      * and this method is not expected to be called.
      */
     @Nullable
-    IPeripheral createPeripheral( @Nonnull ITurtleAccess turtle, @Nonnull TurtleSide side );
+    default IPeripheral createPeripheral( @Nonnull ITurtleAccess turtle, @Nonnull TurtleSide side )
+    {
+        return null;
+    }
 
     /**
      * Will only be called for Tool turtle. Called when turtle.dig() or turtle.attack() is called
      * by the turtle, and the tool is required to do some work.
+     *
+     * Conforming implementations should fire {@link BlockEvent.BreakEvent} and {@link TurtleBlockEvent.Dig} for
+     * digging, {@link AttackEntityEvent} and {@link TurtleAttackEvent} for attacking.
      *
      * @param turtle    Access to the turtle that the tool resides on.
      * @param side      Which side of the turtle (left or right) the tool resides on.
@@ -112,7 +123,10 @@ public interface ITurtleUpgrade
      * to be called.
      */
     @Nonnull
-    TurtleCommandResult useTool( @Nonnull ITurtleAccess turtle, @Nonnull TurtleSide side, @Nonnull TurtleVerb verb, @Nonnull EnumFacing direction );
+    default TurtleCommandResult useTool( @Nonnull ITurtleAccess turtle, @Nonnull TurtleSide side, @Nonnull TurtleVerb verb, @Nonnull EnumFacing direction )
+    {
+        return TurtleCommandResult.failure();
+    }
 
     /**
      * Called to obtain the model to be used when rendering a turtle peripheral.
@@ -126,8 +140,8 @@ public interface ITurtleUpgrade
      * @return The model that you wish to be used to render your upgrade, and a transformation to apply to it. Returning
      * a transformation of {@code null} has the same effect as the identify matrix.
      */
-    @SideOnly(Side.CLIENT)
     @Nonnull
+    @SideOnly( Side.CLIENT )
     Pair<IBakedModel, Matrix4f> getModel( @Nullable ITurtleAccess turtle, @Nonnull TurtleSide side );
 
     /**

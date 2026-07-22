@@ -1,7 +1,7 @@
 /*
- * This file is part of ComputerCraft - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. Do not distribute without permission.
- * Send enquiries to dratcliffe@gmail.com
+ * This file is part of the public ComputerCraft API - http://www.computercraft.info
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
+ * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
 package dan200.computercraft.api.network;
 
@@ -41,7 +41,8 @@ public interface IPacketNetwork
      * to all receivers within range (or any interdimensional ones).
      *
      * @param packet The packet to send.
-     * @see #transmitInterdimensional(Packet) 
+     * @param range  The maximum distance this packet will be sent.
+     * @see #transmitInterdimensional(Packet)
      * @see IPacketReceiver#receiveSameDimension(Packet, double)
      */
     void transmitSameDimension( @Nonnull Packet packet, double range );
@@ -51,7 +52,7 @@ public interface IPacketNetwork
      * to all receivers across all dimensions.
      *
      * @param packet The packet to send.
-     * @see #transmitSameDimension(Packet, double) 
+     * @see #transmitSameDimension(Packet, double)
      * @see IPacketReceiver#receiveDifferentDimension(Packet)
      */
     void transmitInterdimensional( @Nonnull Packet packet );

@@ -1,9 +1,8 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.turtle;
 
 import dan200.computercraft.api.lua.ILuaContext;
@@ -33,6 +32,4 @@ public interface ITurtleCommand
      */
     @Nonnull
     TurtleCommandResult execute( @Nonnull ITurtleAccess turtle );
-    
-    
 }

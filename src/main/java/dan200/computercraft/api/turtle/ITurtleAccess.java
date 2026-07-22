@@ -1,11 +1,11 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.turtle;
 
+import com.mojang.authlib.GameProfile;
 import dan200.computercraft.api.lua.ILuaContext;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -136,7 +136,17 @@ public interface ITurtleAccess
     int getColour();
 
     /**
-     * Get the inventory of this turtle
+     * Get the player who owns this turtle, namely whoever placed it.
+     *
+     * @return This turtle's owner.
+     */
+    @Nonnull
+    GameProfile getOwningPlayer();
+
+    /**
+     * Get the inventory of this turtle.
+     *
+     * Note: this inventory should only be accessed and modified on the server thread.
      *
      * @return This turtle's inventory
      * @see #getItemHandler()
@@ -147,8 +157,10 @@ public interface ITurtleAccess
     /**
      * Get the inventory of this turtle as an {@link IItemHandlerModifiable}.
      *
+     * Note: this inventory should only be accessed and modified on the server thread.
+     *
      * @return This turtle's inventory
-     * @see #getInventory() 
+     * @see #getInventory()
      * @see IItemHandlerModifiable
      * @see net.minecraftforge.items.CapabilityItemHandler#ITEM_HANDLER_CAPABILITY
      */

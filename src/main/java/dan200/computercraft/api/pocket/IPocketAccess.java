@@ -1,3 +1,8 @@
+/*
+ * This file is part of the public ComputerCraft API - http://www.computercraft.info
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
+ * For help using the API, and posting your mods, visit the forums at computercraft.info.
+ */
 package dan200.computercraft.api.pocket;
 
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -10,7 +15,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * Wrapper class for pocket computers
+ * Wrapper class for pocket computers.
  */
 public interface IPocketAccess
 {
@@ -18,9 +23,21 @@ public interface IPocketAccess
      * Gets the entity holding this item.
      *
      * @return The holding entity. This may be {@code null}.
+     * @deprecated Use {@link #getValidEntity()} where possible.
      */
     @Nullable
+    @Deprecated
     Entity getEntity();
+
+    /**
+     * Gets the entity holding this item with additional safety checks.
+     *
+     * This must be called on the server thread.
+     *
+     * @return The holding entity, or {@code null} if none exists.
+     */
+    @Nullable
+    Entity getValidEntity();
 
     /**
      * Get the colour of this pocket computer as a RGB number.

@@ -1,9 +1,8 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.turtle;
 
 /**
@@ -30,7 +29,7 @@ public enum TurtleUpgradeType
      * your upgrade to also provide methods. For example, a pickaxe could provide methods
      * determining whether it can break the given block or not.
      */
-    Both,;
+    Both;
 
     public boolean isTool()
     {

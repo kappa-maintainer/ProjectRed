@@ -1,9 +1,8 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.turtle;
 
 import net.minecraft.util.EnumFacing;
@@ -19,8 +18,8 @@ import javax.annotation.Nullable;
  */
 public final class TurtleCommandResult
 {
-    private static final TurtleCommandResult s_success = new TurtleCommandResult( true, null, null );
-    private static final TurtleCommandResult s_emptyFailure = new TurtleCommandResult( false, null, null );
+    private static final TurtleCommandResult EMPTY_SUCCESS = new TurtleCommandResult( true, null, null );
+    private static final TurtleCommandResult EMPTY_FAILURE = new TurtleCommandResult( false, null, null );
 
     /**
      * Create a successful command result with no result.
@@ -30,7 +29,7 @@ public final class TurtleCommandResult
     @Nonnull
     public static TurtleCommandResult success()
     {
-        return success( null );
+        return EMPTY_SUCCESS;
     }
 
     /**
@@ -42,14 +41,8 @@ public final class TurtleCommandResult
     @Nonnull
     public static TurtleCommandResult success( @Nullable Object[] results )
     {
-        if( results == null || results.length == 0 )
-        {
-            return s_success;
-        }
-        else
-        {
-            return new TurtleCommandResult( true, null, results );
-        }
+        if( results == null || results.length == 0 ) return EMPTY_SUCCESS;
+        return new TurtleCommandResult( true, null, results );
     }
 
     /**
@@ -60,7 +53,7 @@ public final class TurtleCommandResult
     @Nonnull
     public static TurtleCommandResult failure()
     {
-        return failure( null );
+        return EMPTY_FAILURE;
     }
 
     /**
@@ -72,25 +65,19 @@ public final class TurtleCommandResult
     @Nonnull
     public static TurtleCommandResult failure( @Nullable String errorMessage )
     {
-        if( errorMessage == null )
-        {
-            return s_emptyFailure;
-        }
-        else
-        {
-            return new TurtleCommandResult( false, errorMessage, null );
-        }
+        if( errorMessage == null ) return EMPTY_FAILURE;
+        return new TurtleCommandResult( false, errorMessage, null );
     }
 
-    private final boolean m_success;
-    private final String m_errorMessage;
-    private final Object[] m_results;
+    private final boolean success;
+    private final String errorMessage;
+    private final Object[] results;
 
     private TurtleCommandResult( boolean success, String errorMessage, Object[] results )
     {
-        m_success = success;
-        m_errorMessage = errorMessage;
-        m_results = results;
+        this.success = success;
+        this.errorMessage = errorMessage;
+        this.results = results;
     }
 
     /**
@@ -100,7 +87,7 @@ public final class TurtleCommandResult
      */
     public boolean isSuccess()
     {
-        return m_success;
+        return success;
     }
 
     /**
@@ -111,7 +98,7 @@ public final class TurtleCommandResult
     @Nullable
     public String getErrorMessage()
     {
-        return m_errorMessage;
+        return errorMessage;
     }
 
     /**
@@ -122,6 +109,6 @@ public final class TurtleCommandResult
     @Nullable
     public Object[] getResults()
     {
-        return m_results;
+        return results;
     }
 }

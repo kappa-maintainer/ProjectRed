@@ -1,11 +1,11 @@
 /*
  * This file is part of the public ComputerCraft API - http://www.computercraft.info
- * Copyright Daniel Ratcliffe, 2011-2017. This API may be redistributed unmodified and in full only.
+ * Copyright Daniel Ratcliffe, 2011-2020. This API may be redistributed unmodified and in full only.
  * For help using the API, and posting your mods, visit the forums at computercraft.info.
  */
-
 package dan200.computercraft.api.peripheral;
 
+import dan200.computercraft.api.lua.ArgumentHelper;
 import dan200.computercraft.api.lua.ILuaContext;
 import dan200.computercraft.api.lua.LuaException;
 
@@ -41,8 +41,8 @@ public interface IPeripheral
      * This is called when a lua program on an attached computer calls {@code peripheral.call()} with
      * one of the methods exposed by {@link #getMethodNames()}.
      *
-     * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe
-     * when interacting with Minecraft objects.
+     * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe when interacting
+     * with Minecraft objects.
      *
      * @param computer  The interface to the computer that is making the call. Remember that multiple
      *                  computers can be attached to a peripheral at once.
@@ -58,9 +58,11 @@ public interface IPeripheral
      *                  Lua values of type "table" will be represented by Object type Map.<br>
      *                  Lua values of any other type will be represented by a null object.<br>
      *                  This array will be empty if no arguments are passed.
+     *
+     *                  It is recommended you use {@link ArgumentHelper} in order to validate and process arguments.
      * @return An array of objects, representing values you wish to return to the lua program. Integers, Doubles, Floats,
-     * Strings, Booleans, Maps and ILuaObject and null be converted to their corresponding lua type. All other types
-     * will be converted to nil.
+     * Strings, Booleans, Maps, ILuaObject and null be converted to their corresponding lua type. All other types will
+     * be converted to nil.
      *
      * You may return null to indicate no values should be returned.
      * @throws LuaException         If you throw any exception from this function, a lua error will be raised with the
@@ -70,25 +72,27 @@ public interface IPeripheral
      *                              InterruptedException will be thrown. This exception must not be caught or
      *                              intercepted, or the computer will leak memory and end up in a broken state.
      * @see #getMethodNames
+     * @see ArgumentHelper
      */
     @Nullable
     Object[] callMethod( @Nonnull IComputerAccess computer, @Nonnull ILuaContext context, int method, @Nonnull Object[] arguments ) throws LuaException, InterruptedException;
 
     /**
-     * Is called when canAttachToSide has returned true, and a computer is attaching to the peripheral.
+     * Is called when when a computer is attaching to the peripheral.
      *
      * This will occur when a peripheral is placed next to an active computer, when a computer is turned on next to a
-     * peripheral, or when a turtle travels into a square next to a peripheral.
+     * peripheral, when a turtle travels into a square next to a peripheral, or when a wired modem adjacent to this
+     * peripheral is does any of the above.
      *
-     * Between calls to attach() and detach(), the attached computer can make method calls on the peripheral using
+     * Between calls to attach and {@link #detach}, the attached computer can make method calls on the peripheral using
      * {@code peripheral.call()}. This method can be used to keep track of which computers are attached to the
      * peripheral, or to take action when attachment occurs.
      *
-     * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe
-     * when interacting with Minecraft objects.
+     * Be aware that will be called from both the server thread and ComputerCraft Lua thread, and so must be thread-safe
+     * and reentrant.
      *
-     * @param computer The interface to the computer that is being attached. Remember that multiple
-     *                 computers can be attached to a peripheral at once.
+     * @param computer The interface to the computer that is being attached. Remember that multiple computers can be
+     *                 attached to a peripheral at once.
      * @see #detach
      */
     default void attach( @Nonnull IComputerAccess computer )
@@ -96,22 +100,36 @@ public interface IPeripheral
     }
 
     /**
-     * Is called when a computer is detaching from the peripheral.
+     * Called when a computer is detaching from the peripheral.
      *
-     * This will occur when a computer shuts down, when the peripheral is removed while attached to computers,
-     * or when a turtle moves away from a square attached to a peripheral. This method can be used to keep track of
-     * which computers are attached to the peripheral, or to take action when detachment
-     * occurs.
+     * This will occur when a computer shuts down, when the peripheral is removed while attached to computers, when a
+     * turtle moves away from a block attached to a peripheral, or when a wired modem adjacent to this peripheral is
+     * detached.
      *
-     * Be aware that this will be called from the ComputerCraft Lua thread, and must be thread-safe
-     * when interacting with Minecraft objects.
+     * This method can be used to keep track of which computers are attached to the peripheral, or to take action when
+     * detachment occurs.
      *
-     * @param computer The interface to the computer that is being detached. Remember that multiple
-     *                 computers can be attached to a peripheral at once.
-     * @see #detach
+     * Be aware that this will be called from both the server and ComputerCraft Lua thread, and must be thread-safe
+     * and reentrant.
+     *
+     * @param computer The interface to the computer that is being detached. Remember that multiple computers can be
+     *                 attached to a peripheral at once.
+     * @see #attach
      */
     default void detach( @Nonnull IComputerAccess computer )
     {
+    }
+
+    /**
+     * Get the object that this peripheral provides methods for. This will generally be the tile entity
+     * or block, but may be an inventory, entity, etc...
+     *
+     * @return The object this peripheral targets
+     */
+    @Nonnull
+    default Object getTarget()
+    {
+        return this;
     }
 
     /**
