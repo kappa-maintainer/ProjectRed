@@ -106,7 +106,7 @@ sourceSets {
             resources {
                 property('mod_version', mod_version)
                 property('mc_version', minecraft_version)
-                property('forge_version', '14.23.5.2847')
+                property('forge_version', '14.23.5.2864')
                 property('tjcore_version', tjpcore_version)
                 property('ccl_version', ccl_version)
                 property('fmp_version', fmp_version)
