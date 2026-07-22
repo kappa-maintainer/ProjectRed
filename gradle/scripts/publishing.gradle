@@ -1,0 +1,42 @@
+if (publish_to_maven.toBoolean() || publish_to_local_maven.toBoolean()) {
+    publishing {
+        repositories {
+            if (publish_to_maven.toBoolean() && maven_url?.trim()) {
+                maven {
+                    name = maven_name.replaceAll('\\s', '')
+                    url = uri(maven_url)
+                    credentials(PasswordCredentials)
+                }
+            }
+        }
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                groupId = root_package
+                artifactId = mod_archive_name
+                version = project.version
+                pom {
+                    name = mod_name
+                    description = mod_description
+                    url = mod_url
+                    licenses {
+                        license {
+                            name = 'Restricted Public Software License (RPSL) v1.3.1'
+                            url = 'https://raw.githubusercontent.com/MrTJP/ProjectRed/master/LICENSE.md'
+                        }
+                    }
+                }
+                // The remapped universal jar is a separate distributable artifact.
+                artifact(tasks.named('remapJar').flatMap { it.archiveFile }) {
+                    classifier = 'universal'
+                }
+                ['integration', 'fabrication', 'lighting', 'mechanical', 'world', 'compat', 'Base'].each { classifierName ->
+                    def taskName = classifierName == 'Base' ? 'baseJar' : "${classifierName}Jar"
+                    artifact(tasks.named(taskName)) {
+                        classifier = classifierName
+                    }
+                }
+            }
+        }
+    }
+}
