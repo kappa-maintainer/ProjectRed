@@ -29,22 +29,19 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TInventory with TInventoryCapablilityTile
-{
+:
     var isBurning = false
     var isCharged = false
     var burnTimeRemaining = 0
     var powerStorage = 0
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         saveInv(tag)
         tag.setInteger("storage", powerStorage)
         tag.setShort("btime", burnTimeRemaining.toShort)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         loadInv(tag)
         powerStorage = tag.getInteger("storage")
@@ -53,36 +50,27 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         isCharged = cond.canWork
         ib = isBurning
         ic = isCharged
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         super.writeDesc(out)
         out.writeBoolean(isCharged)
         out.writeBoolean(isBurning)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         super.readDesc(in)
         isCharged = in.readBoolean()
         isBurning = in.readBoolean()
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 5 =>
             isCharged = in.readBoolean()
             isBurning = in.readBoolean()
             markRender()
             markLight()
         case _ => super.read(in, key)
-    }
 
     def sendRenderUpdate(): Unit =
-    {
         writeStream(5).writeBoolean(isCharged).writeBoolean(isBurning).sendToChunk(this)
-    }
 
     override def getBlock = ProjectRedExpansion.machine1
 
@@ -112,7 +100,6 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
     def getDrawFloor = 1000
 
     override def updateServer(): Unit =
-    {
         super.updateServer()
 
         tryBurnDust()
@@ -121,106 +108,72 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         tryBurnDust()
 
         if world.getTotalWorldTime%10 == 0 then updateRenderIfNeeded()
-    }
 
     def tryBurnDust(): Unit =
-    {
         if powerStorage < getMaxStorage && burnTimeRemaining < getBurnUseOnCharge then
-        {
             val inslot = getStackInSlot(0)
             if !inslot.isEmpty then
-            {
                 inslot.shrink(1)
                 burnTimeRemaining = getBurnTimePerDust
                 if inslot.isEmpty then setInventorySlotContents(0, ItemStack.EMPTY)
                 else setInventorySlotContents(0, inslot)
-            }
-        }
-    }
 
     def tryChargeStorage(): Unit =
-    {
         if burnTimeRemaining > 0 then
-        {
             if powerStorage < getMaxStorage && burnTimeRemaining >= getBurnUseOnCharge then
-            {
                 powerStorage += 1
                 burnTimeRemaining -= getBurnUseOnCharge
-            }
             else
-            {
                 burnTimeRemaining -= getBurnUseOnIdle
-            }
-        }
-    }
 
     def tryChargeConductor(): Unit =
-    {
         if cond.charge < getDrawFloor && powerStorage > 0 then
-        {
             var n = math.min(getDrawFloor-cond.charge, getDrawSpeed)/10
             n = math.min(n, powerStorage)
             cond.applyPower(n*1000)
             powerStorage -= n
-        }
-    }
 
     private var ib = false
     private var ic = false
     def updateRenderIfNeeded(): Unit =
-    {
         isCharged = cond.canWork
         isBurning = burnTimeRemaining > 0
         if ib != isBurning || ic != isCharged then sendRenderUpdate()
         ib = isBurning
         ic = isCharged
-    }
 
     override def getLightValue = if isBurning then 13 else 0
 
     override def onBlockRemoval(): Unit =
-    {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
-    }
-}
 
 class ContainerElectrotineGenerator(p:EntityPlayer, tile:TileElectrotineGenerator) extends ContainerPoweredMachine(tile)
-{
-    {
-        addSlotToContainer(new Slot3(tile, 0, 134, 42))
-        addPlayerInv(p, 8, 89)
-    }
+:
+    addSlotToContainer(new Slot3(tile, 0, 134, 42))
+    addPlayerInv(p, 8, 89)
 
     private var st = -1
     private var bt = -1
     override def detectAndSendChanges(): Unit =
-    {
         super.detectAndSendChanges()
         import scala.jdk.CollectionConverters.*
         for i <- listeners.asScala do
-        {
             if st != tile.powerStorage then i
                     .sendWindowProperty(this, 3, tile.powerStorage)
             if bt != tile.burnTimeRemaining then i
                     .sendWindowProperty(this, 4, tile.burnTimeRemaining)
-        }
         st = tile.powerStorage
         bt = tile.burnTimeRemaining
-    }
 
     override def updateProgressBar(id:Int, bar:Int) = id match
-    {
         case 3 => tile.powerStorage = bar
         case 4 => tile.burnTimeRemaining = bar
         case _ => super.updateProgressBar(id, bar)
-    }
-}
 
 class GuiElectrotineGenerator(tile:TileElectrotineGenerator, c:ContainerElectrotineGenerator) extends NodeGui(c, 176, 171)
-{
+:
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiElectrotineGenerator.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
@@ -244,27 +197,20 @@ class GuiElectrotineGenerator(tile:TileElectrotineGenerator, c:ContainerElectrot
 
         GuiDraw.drawString("Electrotine Generator", 8, 6, EnumColour.GRAY.argb, false)
         GuiDraw.drawString("Inventory", 8, 79, EnumColour.GRAY.argb, false)
-    }
-}
 
 object GuiElectrotineGenerator extends TGuiFactory
-{
+:
     val background = new ResourceLocation("projectred", "textures/gui/electrotine_generator.png")
     override def getID = ExpansionProxy.generatorGui
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
         player.world.getTileEntity(data.readPos()) match
-        {
             case t:TileElectrotineGenerator => new GuiElectrotineGenerator(t, t.createContainer(player))
             case _ => null
-        }
-    }
-}
 
 object RenderElectrotineGenerator extends SimpleBlockRenderer
-{
+:
     import org.apache.commons.lang3.tuple.Triple
     import mrtjp.projectred.expansion.BlockProperties.*
     import java.lang.{Boolean as JBool, Integer as JInt}
@@ -283,7 +229,7 @@ object RenderElectrotineGenerator extends SimpleBlockRenderer
     var iconT4:UVTransformation = scala.compiletime.uninitialized
 
 
-    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos:BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
+    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos:BlockPos): IExtendedBlockState = world.getTileEntity(pos) match
         case t:TileElectrotineGenerator => {
             var s = state
             s = s.withProperty(UNLISTED_CHARGED_PROPERTY, t.isCharged.asInstanceOf[JBool])
@@ -292,30 +238,25 @@ object RenderElectrotineGenerator extends SimpleBlockRenderer
             s.withProperty(UNLISTED_ROTATION_PROPERTY, t.rotation.asInstanceOf[JInt])
         }
         case _ => state
-    }
 
-    override def getWorldTransforms(state: IExtendedBlockState) = {
+    override def getWorldTransforms(state: IExtendedBlockState) =
         val isCharged = state.getValue(UNLISTED_CHARGED_PROPERTY).asInstanceOf[Boolean]
         val isBurning = state.getValue(UNLISTED_BURNING_PROPERTY).asInstanceOf[Boolean]
         val side = state.getValue(UNLISTED_SIDE_PROPERTY)
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
 
         val iconT = (isCharged, isBurning) match
-        {
             case (false, false) => iconT1
             case (true, false)  => iconT2
             case (false, true)  => iconT3
             case (true, true)   => iconT4
-        }
         Triple.of(side, rotation, iconT)
-    }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = true
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/top"))
         side1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/side1"))
@@ -328,5 +269,3 @@ object RenderElectrotineGenerator extends SimpleBlockRenderer
         iconT2 = new MultiIconTransformation(bottom, top, side1, side2b, side1, side1)
         iconT3 = new MultiIconTransformation(bottom, top, side1, side2c, side1, side1)
         iconT4 = new MultiIconTransformation(bottom, top, side1, side2d, side1, side1)
-    }
-}

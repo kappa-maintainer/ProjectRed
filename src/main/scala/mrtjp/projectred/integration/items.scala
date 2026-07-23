@@ -29,13 +29,12 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
 class ItemPartGate extends ItemCore with TItemMultiPart
-{
+:
     setHasSubtypes(true)
     setCreativeTab(ProjectRedIntegration.tabIntegration)
     var infoBuilderFunc = {(stack:ItemStack, l:JList[String]) => }
 
     def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3):TMultiPart =
-    {
         val onPos = pos.offset(EnumFacing.values()(side^1))
         if !PRLib.canPlaceGateOnSide(world, onPos, side) then return null
 
@@ -45,17 +44,14 @@ class ItemPartGate extends ItemCore with TItemMultiPart
         val gate = MultiPartRegistry.loadPart(gtype.partname, null).asInstanceOf[GatePart]
         if gate != null then gate.preparePlacement(player, pos, side, item.getItemDamage)
         gate
-    }
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
 
     @SideOnly(Side.CLIENT)
     override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
-    {
         if isInCreativeTab(tab) then
             for g <- GateDefinition.values do
                 if g.implemented then list.add(g.makeStack)
-    }
 
 //    override def registerIcons(reg:IIconRegister)
 //    {
@@ -67,13 +63,10 @@ class ItemPartGate extends ItemCore with TItemMultiPart
 //
 
     override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag): Unit =
-    {
         infoBuilderFunc(stack, tooltip)
-    }
-}
 
 object GateDefinition extends ItemDefinition
-{
+:
     override type EnumVal = GateDef
     override def getItem = ProjectRedIntegration.itemPartGate
 
@@ -121,19 +114,16 @@ object GateDefinition extends ItemDefinition
     val ICGate = new GateDef(typeICGate, true) //fabrication module
 
     class GateDef(val partname:ResourceLocation, val hidden:Boolean = false) extends ItemDef(partname.toString)
-    {
+    :
         def implemented = partname != null
-    }
-}
 
 object GateItemRenderer extends IItemRenderer
-{
+:
     override def isAmbientOcclusion = true
     override def isGui3d = true
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
     override def renderItem(item:ItemStack, transformType: TransformType): Unit =
-    {
         val meta = item.getItemDamage
         if !GateDefinition.values.isDefinedAt(meta) ||
                 !GateDefinition(meta).implemented then return
@@ -150,5 +140,3 @@ object GateItemRenderer extends IItemRenderer
         RenderGate.renderInv(item, new RedundantTransformation, item.getItemDamage, ccrs)
 
         disableBlend()
-    }
-}

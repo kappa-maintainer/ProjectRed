@@ -16,7 +16,7 @@ import net.minecraftforge.client.model.ModelLoader
 import scala.language.postfixOps
 
 abstract class ItemCraftingDamage extends ItemCore
-{
+:
     setMaxStackSize(1)
     setNoRepair()
 
@@ -27,35 +27,29 @@ abstract class ItemCraftingDamage extends ItemCore
             new ItemStack(stack.getItem, 1, stack.getItemDamage+1)
         else
             stack
-}
 
 class ItemDrawPlate extends ItemCraftingDamage
-{
+:
     setMaxDamage(512)
     setCreativeTab(ProjectRedCore.tabCore)
-}
 
 class ItemPart extends ItemCore
-{
+:
     setCreativeTab(ProjectRedCore.tabCore)
     setHasSubtypes(true)
 
     override def getSubItems(tab:CreativeTabs, subItems:NonNullList[ItemStack]): Unit =
-    {
         if isInCreativeTab(tab) then
             for i <- PartDefs.values do
                 subItems.add(i.makeStack)
-    }
 
-    override def getTranslationKey(stack: ItemStack):String = {
+    override def getTranslationKey(stack: ItemStack):String =
         val col = PartDefs.fromMeta(stack.getItemDamage)
         if col != null then getTranslationKey() + "." + col.name
         else super.getTranslationKey(stack)
-    }
-}
 
 object PartDefs extends ItemDefinition
-{
+:
     override type EnumVal = PartVal
     override def getItem = ProjectRedCore.itemPart
 
@@ -146,19 +140,15 @@ object PartDefs extends ItemDefinition
     val oreDictDefinitionRedIngot = "ingotRedAlloy"
 
     class PartVal(override val meta:Int, iconName:String) extends ItemDef(iconName)
-    {
+    :
         def setCustomModelResourceLocations(): Unit =
-        {
             ModelLoader.setCustomModelResourceLocation(getItem, meta,
                 new ModelResourceLocation("projectred:base/items", "type="+name))
-        }
 
         override def name = iconName
-    }
-}
 
 class ItemScrewdriver extends ItemCore with IScrewdriver
-{
+:
     setMaxStackSize(1)
     setMaxDamage(128)
     setNoRepair()
@@ -169,18 +159,14 @@ class ItemScrewdriver extends ItemCore with IScrewdriver
     override def canUse(player:EntityPlayer, stack:ItemStack) = true
 
     override def damageScrewdriver(player:EntityPlayer, stack:ItemStack): Unit =
-    {
         if !Configurator.unbreakableScrewdriver then
             stack.damageItem(1, player)
-    }
-}
 
 class ItemMultimeter extends ItemCore
-{
+:
     setMaxStackSize(1)
     setMaxDamage(256)
     setNoRepair()
     setCreativeTab(ProjectRedCore.tabCore)
 
     override def doesSneakBypassUse(stack:ItemStack, world:IBlockAccess, pos:BlockPos, player:EntityPlayer) = true
-}

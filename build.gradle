@@ -144,11 +144,12 @@ tasks.withType(ScalaCompile).configureEach {
     options.encoding = 'UTF-8'
     scalaCompileOptions.additionalParameters = [
             '-release:25',
-            /*'-Ytasty-reader', */
-            /*'-nowarn', */
-            /*'-source:future-migration',*/
-            '-indent',
-            '-rewrite']
+            //'-Ytasty-reader', 
+            //'-nowarn', 
+            //'-source:future-migration',
+            //'-indent',
+            //'-rewrite'
+    ]
     //scalaCompileOptions.force = true
 }
 

@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-fabrication", useMetadata = true, modLanguage = "scala")
 object ProjectRedFabrication
-{
+:
     /** Blocks **/
     var icBlock:BlockICMachine = scala.compiletime.uninitialized
 
@@ -24,22 +24,17 @@ object ProjectRedFabrication
 
     val icMachineBakery:SubBlockBakery = new SubBlockBakery
 
-    val tabFabrication: CreativeTabs = new CreativeTabs("projectred.fabrication") {
+    val tabFabrication: CreativeTabs = new CreativeTabs("projectred.fabrication"):
         override def createIcon = new ItemStack(itemICChip)
-    }
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         FabricationProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         FabricationProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         FabricationProxy.postinit()
-    }
-}

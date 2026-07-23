@@ -23,9 +23,8 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class RelocationProxy_server
-{
+:
     def preinit(): Unit =
-    {
         API.registerTileMover("saveload",
             "Saves the tile and then reloads it in the next position. Reliable but CPU intensive.",
             SaveLoadTileMover)
@@ -71,10 +70,8 @@ class RelocationProxy_server
         ForgeRegistries.ITEMS.register(new ItemBlockFrame(blockFrame).setRegistryName(blockFrame.getRegistryName))
 
         blockMovingRow.addTile(classOf[TileMovingRow], 0)
-    }
 
     def init(): Unit =
-    {
         MultiPartRegistry.registerParts((_:ResourceLocation, _:Boolean) => new FramePart, Array(FramePart.partType))
         MultiPartRegistry.registerConverter(FrameBlockConverter)
 
@@ -97,41 +94,30 @@ class RelocationProxy_server
                 override def isMovable(w:World, pos:BlockPos) = true
             }
         })
-    }
 
     def postinit(): Unit =
-    {
         MinecraftForge.EVENT_BUS.register(RelocationEventHandler)
         PacketCustom.assignHandler(RelocationSPH.channel, RelocationSPH)
-    }
-}
 
 class RelocationProxy_client extends RelocationProxy_server
-{
+:
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
 
         MinecraftForge.EVENT_BUS.register(this)
         FrameRenderer.init()
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
         MovingRenderer.init()
-    }
 
     @SideOnly(Side.CLIENT)
     override def postinit(): Unit =
-    {
         super.postinit()
 
         MinecraftForge.EVENT_BUS.register(RelocationClientEventHandler)
         PacketCustom.assignHandler(RelocationCPH.channel, RelocationCPH)
-    }
-}
 
 object RelocationProxy extends RelocationProxy_client

@@ -9,7 +9,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.common.event.FMLInterModComms
 
 object PluginChisel extends IPRPlugin
-{
+:
     val chiselModID = "chisel"
 
     override def getModIDs = Array(chiselModID, "projectred-exploration")
@@ -19,14 +19,11 @@ object PluginChisel extends IPRPlugin
     override def preInit(): Unit = {}
 
     override def init(): Unit =
-    {
         ChiselExplorationIntegration.initChiselModIntegration()
-    }
 
     override def postInit(): Unit = {}
 
     override def desc() = "Chisel: Exploration decorative blocks"
-}
 
 private object ChiselExplorationIntegration
 {
@@ -37,15 +34,13 @@ private object ChiselExplorationIntegration
     private val tagKeyMeta = "meta"
 
     def initChiselModIntegration(): Unit =
-    {
-        def addToGroup(group: String, stack: ItemStack, block: Block, meta: Int): Unit = {
+        def addToGroup(group: String, stack: ItemStack, block: Block, meta: Int): Unit =
             val message = new NBTTagCompound
             message.setString(tagKeyGroup, group)
             message.setTag(tagKeyStack, stack.serializeNBT())
             message.setString(tagKeyBlock, block.getRegistryName.toString)
             message.setInteger(tagKeyMeta, meta)
             FMLInterModComms.sendMessage(PluginChisel.chiselModID, IMCKeyAddVariation, message)
-        }
 
         /** Add conversion group [marble, marble brick] **/
         addToGroup("marble", DecorativeStoneDefs.MARBLE.makeStack, DecorativeStoneDefs.getBlock, DecorativeStoneDefs.MARBLE.meta)
@@ -55,5 +50,4 @@ private object ChiselExplorationIntegration
         addToGroup("basalt", DecorativeStoneDefs.BASALTCOBBLE.makeStack, DecorativeStoneDefs.getBlock, DecorativeStoneDefs.BASALTCOBBLE.meta)
         addToGroup("basalt", DecorativeStoneDefs.BASALT.makeStack, DecorativeStoneDefs.getBlock, DecorativeStoneDefs.BASALT.meta)
         addToGroup("basalt", DecorativeStoneDefs.BASALTBRICK.makeStack, DecorativeStoneDefs.getBlock, DecorativeStoneDefs.BASALTBRICK.meta)
-    }
 }

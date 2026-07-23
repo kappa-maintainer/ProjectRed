@@ -26,7 +26,7 @@ import org.lwjgl.opengl.GL11
 import scala.jdk.CollectionConverters.*
 
 abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusionPart with TFaceConnectable with TSwitchPacket with TIconHitEffectsPart with ITickable with TDynamicRenderPart
-{
+:
     private var gateSubID:Byte = 0
     private var gateShape:Byte = 0
 
@@ -41,46 +41,35 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
     def setShape(s:Int): Unit ={ gateShape = s.toByte }
 
     def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int): Unit =
-    {
         gateSubID = meta.toByte
         setSide(side^1)
         setRotation((Rotation.getSidedRotation(player, side)+2)%4)
-    }
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         tag.setByte("orient", orientation)
         tag.setByte("subID", gateSubID)
         tag.setByte("shape", gateShape)
         tag.setInteger("connMap", connMap)
         tag.setLong("schedTime", schedTime)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         orientation = tag.getByte("orient")
         gateSubID = tag.getByte("subID")
         gateShape = tag.getByte("shape")
         connMap = tag.getInteger("connMap")
         schedTime = tag.getLong("schedTime")
-    }
 
     override def writeDesc(packet:MCDataOutput): Unit =
-    {
         packet.writeByte(orientation)
         packet.writeByte(gateSubID)
         packet.writeByte(gateShape)
-    }
 
     override def readDesc(packet:MCDataInput): Unit =
-    {
         orientation = packet.readByte()
         gateSubID = packet.readByte()
         gateShape = packet.readByte()
-    }
 
     override def read(packet:MCDataInput, key:Int) = key match
-    {
         case 1 =>
             orientation = packet.readByte()
             if Configurator.staticGates then tile.markRender()
@@ -88,7 +77,6 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
             gateShape = packet.readByte()
             if Configurator.staticGates then tile.markRender()
         case _ => super.read(packet, key)
-    }
 
     override def setRenderFlag(part:IConnectable) = false
 
@@ -100,103 +88,67 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
     override def canConnectCorner(r:Int) = false
 
     override def scheduledTick(): Unit =
-    {
         getLogicPrimitive.scheduledTick(this)
-    }
 
     override def scheduleTick(ticks:Int): Unit =
-    {
         if schedTime < 0 then schedTime = world.getTotalWorldTime+ticks
-    }
 
     def processScheduled(): Unit =
-    {
         if schedTime >= 0 && world.getTotalWorldTime >= schedTime then
-        {
             schedTime = -1
             scheduledTick()
-        }
-    }
 
     def onChange(): Unit =
-    {
         processScheduled()
         getLogicPrimitive.onChange(this)
-    }
 
     override def update(): Unit =
-    {
         if !world.isRemote then processScheduled()
         getLogicPrimitive.onTick(this)
-    }
 
     override def onPartChanged(part:TMultiPart): Unit =
-    {
         if !world.isRemote then
-        {
             updateOutward()
             onChange()
-        }
-    }
 
     override def onNeighborChanged(): Unit =
-    {
         if !world.isRemote then
-        {
             if dropIfCantStay() then return
             updateExternalConns()
             onChange()
-        }
-    }
 
     override def onAdded(): Unit =
-    {
         super.onAdded()
         if !world.isRemote then
-        {
             getLogicPrimitive.setup(this)
             updateInward()
             onChange()
-        }
-    }
 
     override def onRemoved(): Unit =
-    {
         super.onRemoved()
         if !world.isRemote then notifyAllExternals()
-    }
 
     override def onWorldJoin(): Unit =
-    {
         super.onWorldJoin()
         if getLogic == null then
             tile.remPart(this)
-    }
 
     override def onChunkLoad(): Unit =
-    {
         super.onChunkLoad()
         if tile != null then
             getLogicPrimitive.onWorldLoad(this)
-    }
 
     def canStay = PRLib.canPlaceGateOnSide(world, pos.offset(EnumFacing.byIndex(side)), side^1)
 
     def dropIfCantStay() =
-    {
         if !canStay then
-        {
             drop()
             true
-        }
         else false
-    }
 
     def drop(): Unit =
-    {
         TileMultipart.dropItem(getItem, world, Vector3.fromTileCenter(tile))
         tile.remPart(this)
-    }
 
     def getItem = getGateDef.makeStack
 
@@ -221,34 +173,26 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
     override def getLightValue = getLogicPrimitive.lightLevel
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, held:ItemStack, hand:EnumHand):Boolean =
-    {
         if getLogicPrimitive.activate(this, player, held, hit) then return true
 
-        if !held.isEmpty && held.getItem.isInstanceOf[IScrewdriver] && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held) then {
-            if !world.isRemote then {
+        if !held.isEmpty && held.getItem.isInstanceOf[IScrewdriver] && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held) then
+            if !world.isRemote then
                 if player.isSneaking then configure()
                 else rotate()
                 held.getItem.asInstanceOf[IScrewdriver].damageScrewdriver(player, held)
-            }
             return true
-        }
         false
-    }
 
     def configure(): Unit =
-    {
-        if getLogicPrimitive.cycleShape(this) then {
+        if getLogicPrimitive.cycleShape(this) then
             updateInward()
             tile.markDirty()
             tile.notifyPartChange(this)
             sendShapeUpdate()
             notifyExternals(0xF)
             onChange()
-        }
-    }
 
     def rotate(): Unit =
-    {
         setRotation((rotation+1)%4)
         updateInward()
         tile.markDirty()
@@ -256,43 +200,32 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
         sendOrientUpdate()
         notifyExternals(0xF)
         onChange()
-    }
 
     def sendShapeUpdate(): Unit =
-    {
         getWriteStreamOf(2).writeByte(gateShape)
-    }
 
     def sendOrientUpdate(): Unit =
-    {
         getWriteStreamOf(1).writeByte(orientation)
-    }
 
     @SideOnly(Side.CLIENT)
     override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) =
-    {
-        if layer == BlockRenderLayer.CUTOUT && Configurator.staticGates then {
+        if layer == BlockRenderLayer.CUTOUT && Configurator.staticGates then
             ccrs.setBrightness(world, this.pos)
             RenderGate.renderStatic(this, pos, ccrs)
             true
-        }
         else false
-    }
 
     @SideOnly(Side.CLIENT)
     override def renderDynamic(pos:Vector3, pass:Int, frame:Float): Unit =
-    {
         val ccrs = CCRenderState.instance()
         TextureUtils.bindBlockTexture()
-        if !Configurator.staticGates then {
+        if !Configurator.staticGates then
             GL11.glDisable(GL11.GL_LIGHTING)
             ccrs.startDrawing(GL11.GL_QUADS, DefaultVertexFormats.ITEM)
             RenderGate.renderStatic(this, pos, ccrs)
             ccrs.draw()
             GL11.glEnable(GL11.GL_LIGHTING)
-        }
         RenderGate.renderDynamic(this, pos, frame, ccrs)
-    }
 
     override def canRenderDynamic(pass: Int) = pass == 0
 
@@ -301,24 +234,20 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
 
     @SideOnly(Side.CLIENT)
     override def getBrokenIcon(side:Int) = ComponentStore.baseIcon
-}
 
 object GatePart
-{
+:
     var oBoxes = Array.ofDim[Cuboid6](6, 2)
 
     oBoxes(0)(0) = new Cuboid6(1 / 8D, 0, 0, 7 / 8D, 1 / 8D, 1)
     oBoxes(0)(1) = new Cuboid6(0, 0, 1 / 8D, 1, 1 / 8D, 7 / 8D)
     for s <- 1 until 6 do
-    {
         val t = Rotation.sideRotations(s).at(Vector3.center)
         oBoxes(s)(0) = oBoxes(0)(0).copy.apply(t)
         oBoxes(s)(1) = oBoxes(0)(1).copy.apply(t)
-    }
-}
 
 abstract class GateLogic[T <: GatePart]
-{
+:
     def canConnectTo(gate:T, part:IConnectable, r:Int):Boolean
 
     def cycleShape(gate:T) = false
@@ -339,55 +268,41 @@ abstract class GateLogic[T <: GatePart]
     def getOcclusions(gate:T):Seq[Cuboid6] = GatePart.oBoxes(gate.side).toIndexedSeq
 
     def lightLevel = 7
-}
 
 trait TComplexGatePart extends GatePart
-{
+:
     def getLogicComplex = getLogic[TComplexGateLogic[TComplexGatePart]]
 
     def assertLogic(): Unit 
 
     abstract override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         getLogicComplex.save(tag)
-    }
 
     abstract override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         assertLogic()
         getLogicComplex.load(tag)
-    }
 
     abstract override def writeDesc(packet:MCDataOutput): Unit =
-    {
         super.writeDesc(packet)
         getLogicComplex.writeDesc(packet)
-    }
 
     abstract override def readDesc(packet:MCDataInput): Unit =
-    {
         super.readDesc(packet)
         assertLogic()
         getLogicComplex.readDesc(packet)
-    }
 
     abstract override def read(packet:MCDataInput, key:Int) = key match
-    {
         case k if k > 10 => getLogicComplex.read(packet, k)
         case _ => super.read(packet, key)
-    }
 
     abstract override def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int): Unit =
-    {
         super.preparePlacement(player, pos, side, meta)
         assertLogic()
-    }
-}
 
 trait TComplexGateLogic[T <: TComplexGatePart] extends GateLogic[T]
-{
+:
     def save(tag:NBTTagCompound): Unit ={}
     def load(tag:NBTTagCompound): Unit ={}
 
@@ -395,4 +310,3 @@ trait TComplexGateLogic[T <: TComplexGatePart] extends GateLogic[T]
     def writeDesc(packet:MCDataOutput): Unit ={}
 
     def read(packet:MCDataInput, key:Int): Unit ={}
-}

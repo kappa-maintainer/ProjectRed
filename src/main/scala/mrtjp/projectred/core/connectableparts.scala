@@ -8,7 +8,7 @@ import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 
 trait TAcquisitionsCommons extends TMultiPart
-{
+:
     def getStraight(dir:Int):TMultiPart
     def getInternal(dir:Int):TMultiPart
 
@@ -16,32 +16,23 @@ trait TAcquisitionsCommons extends TMultiPart
     def posOfInternal = pos
 
     def notifyStraight(dir:Int): Unit =
-    {
         val pos = posOfStraight(dir)
         world.neighborChanged(pos, MultipartProxy.block, pos)
-    }
 
     def notifyInternal(dir:Int): Unit =
-    {
         tile.notifyPartChange(getInternal(dir))
-    }
-}
 
 trait TFaceAcquisitions extends TAcquisitionsCommons with TFaceOrient
-{
+:
     def getCorner(r:Int) =
-    {
         val absDir = absoluteDir(r)
         val pos = this.pos.offset(EnumFacing.byIndex(absDir)).offset(EnumFacing.byIndex(side))
 
         BlockMultipart.getPart(world, pos, absDir^1)
-    }
 
     override def getStraight(r:Int) =
-    {
         val pos = this.pos.offset(EnumFacing.byIndex(absoluteDir(r)))
         BlockMultipart.getPart(world, pos, side)
-    }
 
     override def getInternal(r:Int) = tile.partMap(absoluteDir(r))
 
@@ -56,28 +47,22 @@ trait TFaceAcquisitions extends TAcquisitionsCommons with TFaceOrient
     def rotFromInternal(r:Int) = Rotation.rotationTo(absoluteDir(r), side)
 
     def notifyCorner(r:Int): Unit =
-    {
         val pos = posOfCorner(r)
 
         world.neighborChanged(pos, MultipartProxy.block, pos)
-    }
-}
 
 trait TCenterAcquisitions extends TAcquisitionsCommons with TCenterOrient
-{
+:
     override def getStraight(s:Int) =
-    {
         val pos = posOfInternal.offset(EnumFacing.byIndex(s))
         BlockMultipart.getPart(world, pos, 6)
-    }
 
     override def getInternal(s:Int) = tile.partMap(s)
 
     override def posOfStraight(s:Int) = pos.offset(EnumFacing.byIndex(s))
-}
 
 trait TConnectableCommons extends TMultiPart with IConnectable
-{
+:
     var connMap:Int = 0
 
     /**
@@ -143,11 +128,9 @@ trait TConnectableCommons extends TMultiPart with IConnectable
       * @return true if a new connection was added or one was removed
       */
     def updateOutward() =
-    {
         var changed = updateInternalConns()
         if updateOpenConns() then changed |= updateExternalConns()
         changed
-    }
 
     /**
       * Start update chain starting from an external change inward
@@ -158,12 +141,10 @@ trait TConnectableCommons extends TMultiPart with IConnectable
       * @return true if a new connection was added or one was removed
       */
     def updateInward() =
-    {
         updateOpenConns()
         var changed = updateInternalConns()
         changed |= updateExternalConns()
         changed
-    }
 
     def notifyAllExternals(): Unit 
     def notifyExternals(mask:Int): Unit 
@@ -173,10 +154,9 @@ trait TConnectableCommons extends TMultiPart with IConnectable
       * and the request is approved. This is done internally in the traits.
       */
     def onMaskChanged(): Unit ={}
-}
 
 trait TFaceConnectable extends TConnectableCommons with TFaceAcquisitions
-{
+:
     /**
      * Split into 4 nybbles: (from lowest)
      * 0 = Corner connections (this wire should connect around a corner to something external)
@@ -189,38 +169,29 @@ trait TFaceConnectable extends TConnectableCommons with TFaceAcquisitions
     connMap = 0
 
     override def connectCorner(part:IConnectable, r:Int, edgeRot:Int) =
-    {
-        if canConnectPart(part, r) && maskOpen(r) then {
+        if canConnectPart(part, r) && maskOpen(r) then
             val oldConn = connMap
             connMap |= 1<<r
             if setRenderFlag(part) then connMap |= 0x100000<<r
             if oldConn != connMap then onMaskChanged()
             true
-        }
         else false
-    }
 
     override def connectStraight(part:IConnectable, r:Int, edgeRot:Int) =
-    {
-        if canConnectPart(part, r) && maskOpen(r) then {
+        if canConnectPart(part, r) && maskOpen(r) then
             val oldConn = connMap
             connMap |= 0x10<<r
             if oldConn != connMap then onMaskChanged()
             true
-        }
         else false
-    }
 
     override def connectInternal(part:IConnectable, r:Int) =
-    {
-        if canConnectPart(part, r) then {
+        if canConnectPart(part, r) then
             val oldConn = connMap
             connMap |= 0x100<<r
             if oldConn != connMap then onMaskChanged()
             true
-        }
         else false
-    }
 
     /**
      * If this is a wire, should return true if this wire is smaller
@@ -241,11 +212,10 @@ trait TFaceConnectable extends TConnectableCommons with TFaceAcquisitions
     def maskConnectsCenter = (connMap&0x10000) != 0
 
     def outsideCornerEdgeOpen(r:Int) =
-    {
         val absDir = absoluteDir(r)
         val pos = this.pos.offset(EnumFacing.byIndex(absDir))
         if world.isAirBlock(pos) then true
-        else {
+        else
             val side1 = absDir^1
             val side2 = side
             val t = BlockMultipart.getTile(world, pos)//PRLib.getMultipartTile(world, pos)
@@ -253,110 +223,82 @@ trait TFaceConnectable extends TConnectableCommons with TFaceAcquisitions
                 t.partMap(side1) == null && t.partMap(side2) == null &&
                         t.partMap(PartMap.edgeBetween(side1, side2)) == null
             else false
-        }
-    }
 
     def discoverCorner(r:Int):Int =
-    {
-        if outsideCornerEdgeOpen(r) then {
-            getCorner(r) match {
+        if outsideCornerEdgeOpen(r) then
+            getCorner(r) match
                 case c:IConnectable =>
                     if (c.canConnectCorner(rotFromCorner(r)) || canConnectCorner(r)) &&
                             canConnectPart(c, r) && c.connectCorner(this, rotFromCorner(r), -1) then
                         return if setRenderFlag(c) then 2 else 1
                 case _ =>
-            }
             return if discoverCornerOverride(absoluteDir(r)) then 2 else 0
-        }
         0
-    }
 
-    def discoverStraight(r:Int) = getStraight(r) match {
+    def discoverStraight(r:Int) = getStraight(r) match
         case c:IConnectable => canConnectPart(c, r) && c.connectStraight(this, rotFromStraight(r), -1)
         case _ => discoverStraightOverride(absoluteDir(r))
-    }
 
     def discoverInternal(r:Int) =
-    {
         if tile.partMap(PartMap.edgeBetween(absoluteDir(r), side)) == null then
-            getInternal(r) match {
+            getInternal(r) match
                 case c:IConnectable => canConnectPart(c, r) && c.connectInternal(this, rotFromInternal(r))
                 case p => discoverInternalOverride(p, r)
-            }
         else false
-    }
 
-    def discoverCenter = getCenter match {
+    def discoverCenter = getCenter match
         case c:IConnectable => c.connectInternal(this, side)
         case _ => false
-    }
 
     def discoverCornerOverride(absDir:Int) = false
     def discoverStraightOverride(absDir:Int) = false
     def discoverInternalOverride(p:TMultiPart, r:Int) = false
 
     override def updateOpenConns() =
-    {
         var newConn = 0
         for r <- 0 until 4 do if discoverOpen(r) then newConn |= 0x1000<<r
-        if newConn != (connMap&0xF000) then {
+        if newConn != (connMap&0xF000) then
             connMap = connMap& ~0xF000|newConn
             true
-        }
         else false
-    }
 
     override def updateExternalConns() =
-    {
         var newConn = 0
-        for r <- 0 until 4 do if maskOpen(r) then {
+        for r <- 0 until 4 do if maskOpen(r) then
             if discoverStraight(r) then newConn |= 0x10<<r
-            else {
+            else
                 val cnrMode = discoverCorner(r)
-                if cnrMode != 0 then {
+                if cnrMode != 0 then
                     newConn |= 1<<r
                     if cnrMode == 2 then newConn |= 0x100000<<r
-                }
-            }
-        }
-        if newConn != (connMap&0xF000FF) then {
+        if newConn != (connMap&0xF000FF) then
             val diff = connMap^newConn //corners need to be notified, because normal block updates wont touch them
             connMap = connMap& ~0xF000FF|newConn
             for r <- 0 until 4 do if (diff&1<<r)!=0 then notifyCorner(r)
             true
-        }
         else false
-    }
 
     override def updateInternalConns() =
-    {
         var newConn = 0
         for r <- 0 until 4 do if discoverInternal(r) then newConn |= 0x100<<r
         if shouldDiscoverCenter && discoverCenter then newConn |= 0x10000
-        if newConn != (connMap&0x10F00) then {
+        if newConn != (connMap&0x10F00) then
             connMap = connMap& ~0x10F00|newConn
             true
-        }
         else false
-    }
 
     def shouldDiscoverCenter = true
 
     override def notifyAllExternals(): Unit =
-    {
         notifyExternals(0xF)
-    }
 
     override def notifyExternals(mask:Int): Unit =
-    {
         for r <- 0 until 4 do if (mask&1<<r) != 0 then
             if maskConnectsCorner(r) then notifyCorner(r)
             else if maskConnectsStraight(r) then notifyStraight(r)
-    }
-}
 
 trait TCenterConnectable extends TConnectableCommons with TCenterAcquisitions
-{
+:
     /**
      * Split into 3 sections: (from lowest)
      * 0x3F = Straight conns to outside
@@ -368,26 +310,20 @@ trait TCenterConnectable extends TConnectableCommons with TCenterAcquisitions
     override def canConnectCorner(r:Int) = false
 
     override def connectStraight(part:IConnectable, s:Int, edgeRot:Int) =
-    {
-        if canConnectPart(part, s) && maskOpen(s) then {
+        if canConnectPart(part, s) && maskOpen(s) then
             val oldConn = connMap
             connMap |= 1<<s
             if oldConn != connMap then onMaskChanged()
             true
-        }
         else false
-    }
 
     override def connectInternal(part:IConnectable, s:Int):Boolean =
-    {
-        if canConnectPart(part, s) then {
+        if canConnectPart(part, s) then
             val oldConn = connMap
             connMap |= 1<<s+6
             if oldConn != connMap then onMaskChanged()
             true
-        }
         else false
-    }
 
     override def connectCorner(wire:IConnectable, r:Int, edgeRot:Int) = false
 
@@ -396,63 +332,47 @@ trait TCenterConnectable extends TConnectableCommons with TCenterAcquisitions
     def maskConnectsOut(s:Int) = (connMap&1<<s) != 0
     def maskConnectsIn(s:Int) = (connMap&1<<s+6) != 0
 
-    def discoverStraight(s:Int) = getStraight(s) match {
+    def discoverStraight(s:Int) = getStraight(s) match
         case c:IConnectable => canConnectPart(c, s) && c.connectStraight(this, s^1, -1)
         case _ => discoverStraightOverride(s)
-    }
 
-    def discoverInternal(s:Int) = getInternal(s) match {
+    def discoverInternal(s:Int) = getInternal(s) match
         case c:IConnectable => canConnectPart(c, s) && c.connectInternal(this, -1)
         case p => discoverInternalOverride(p, s)
-    }
 
     def discoverStraightOverride(s:Int) = false
     def discoverInternalOverride(p:TMultiPart, s:Int) = false
 
     override def updateOpenConns() =
-    {
         var newConn = 0
         for s <- 0 until 6 do if discoverOpen(s) then newConn |= 1<<s+12
-        if newConn != (connMap&0x3F000) then {
+        if newConn != (connMap&0x3F000) then
             connMap = connMap& ~0x3F000|newConn
             true
-        }
         else false
-    }
 
     override def updateExternalConns() =
-    {
         var newConn = 0
         for s <- 0 until 6 do if maskOpen(s) then if discoverStraight(s) then newConn |= 1<<s
 
-        if newConn != (connMap&0x3f) then {
+        if newConn != (connMap&0x3f) then
             connMap = connMap& ~0x3F|newConn
             true
-        }
         else false
-    }
 
     override def updateInternalConns() =
-    {
         var newConn = 0
         for s <- 0 until 6 do if discoverInternal(s) then newConn |= 1<<s+6
 
-        if newConn != (connMap&0xFC0) then {
+        if newConn != (connMap&0xFC0) then
             connMap = connMap& ~0xFC0|newConn
             //onMaskChanged()
             true
-        }
         else false
-    }
 
     override def notifyAllExternals(): Unit =
-    {
         notifyExternals(0x3F)
-    }
 
     override def notifyExternals(mask:Int): Unit =
-    {
         for s <- 0 until 6 do if (mask&1<<s) != 0 then
             if maskConnectsOut(s) then notifyStraight(s)
-    }
-}

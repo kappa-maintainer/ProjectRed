@@ -32,54 +32,42 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import scala.language.postfixOps
 
 class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachine with TInventory with ISidedInventory with TInventoryCapablilityTile
-{
+:
     var powerStorage = 0
     var isCharged = false
 
     private var slotRoundRobin = 0
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setInteger("storage", powerStorage)
         tag.setByte("srr", slotRoundRobin.toByte)
         saveInv(tag)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         powerStorage = tag.getInteger("storage")
         slotRoundRobin = tag.getByte("srr")
         isCharged = cond.canWork
         oldIC = isCharged
         loadInv(tag)
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         super.writeDesc(out)
         out.writeBoolean(isCharged)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         super.readDesc(in)
         isCharged = in.readBoolean()
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 5 =>
             isCharged = in.readBoolean()
             markRender()
         case _ => super.read(in, key)
-    }
 
     def sendIsCharged(): Unit =
-    {
         writeStream(5).writeBoolean(isCharged).sendToChunk(this)
-    }
 
     override protected val storage = Array.fill(16)(ItemStack.EMPTY)//new Array[ItemStack](16)
     override def getInventoryStackLimit = 1
@@ -90,11 +78,9 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
     override def canExtractItem(slot:Int, stack:ItemStack, side:EnumFacing) = true
     override def canInsertItem(slot:Int, stack:ItemStack, side:EnumFacing) = side == UP
     override def getSlotsForFace(side:EnumFacing) = side match
-    {
         case UP => 0 until 8 toArray
         case NORTH|SOUTH|WEST|EAST => 8 until 16 toArray
         case _ => Array.emptyIntArray
-    }
 
     override def isItemValidForSlot(slot:Int, item:ItemStack) =
         slot < 8 && item.getItem.isInstanceOf[IChargable]
@@ -116,29 +102,23 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
     def getChargeSpeed = 15
 
     override def updateServer(): Unit =
-    {
         super.updateServer()
 
         if cond.charge > getDrawCeil && powerStorage < getMaxStorage then
-        {
             var n = math.min(cond.charge-getDrawCeil, getDrawSpeed)/10
             n = math.min(n, getMaxStorage-powerStorage)
             cond.drawPower(n*1000)
             powerStorage += n
-        }
 
         for i <- 0 until 8 do if powerStorage > 0 then
             tryChargeSlot((slotRoundRobin+i)%8)
         slotRoundRobin = (slotRoundRobin+1)%8
 
         if world.getTotalWorldTime%10 == 0 then updateRendersIfNeeded()
-    }
 
     def tryChargeSlot(i:Int): Unit =
-    {
         val stack = getStackInSlot(i)
         if !stack.isEmpty then stack.getItem match
-        {
             case ic:IChargable =>
                 val toAdd = math.min(powerStorage, getChargeSpeed)
                 val (newStack, added) = ic.addPower(stack, toAdd)
@@ -147,18 +127,13 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
                 else setInventorySlotContents(i, newStack)
                 powerStorage -= added
             case _ =>
-        }
-    }
 
     def dropStackDown(stack:ItemStack) =
-    {
         val wr = InvWrapper.wrapInternal(this, 8 until 16)
         val i = wr.injectItem(ItemKey.get(stack), stack.getCount)
         i > 0
-    }
 
     def containsUncharged:Boolean =
-    {
         (0 until 8).exists { i =>
             val stack = getStackInSlot(i)
             if stack.isEmpty then false
@@ -166,81 +141,56 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
                 case ic:IChargable => !ic.isFullyCharged(stack)
                 case _ => false
         }
-    }
 
     private var oldIC = false
     def updateRendersIfNeeded(): Unit =
-    {
         isCharged = cond.canWork
         if oldIC != isCharged then sendIsCharged()
         oldIC = isCharged
-    }
 
     override def onBlockRemoval(): Unit =
-    {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
-    }
-}
 
 class ContainerChargingBench(p:EntityPlayer, tile:TileChargingBench) extends ContainerPoweredMachine(tile)
-{
-    {
-        var id = 0
-        for (x, y) <- GuiLib.createSlotGrid(88, 17, 4, 2, 0, 0) do
-        {
-            addSlotToContainer(new Slot3(tile, id, x, y))
-            id += 1
-        }
-        for (x, y) <- GuiLib.createSlotGrid(88, 57, 4, 2, 0, 0) do
-        {
-            addSlotToContainer(new Slot3(tile, id, x, y))
-            id += 1
-        }
-        addPlayerInv(p, 8, 101)
-    }
+:
+    var id = 0
+    for (x, y) <- GuiLib.createSlotGrid(88, 17, 4, 2, 0, 0) do
+        addSlotToContainer(new Slot3(tile, id, x, y))
+        id += 1
+    for (x, y) <- GuiLib.createSlotGrid(88, 57, 4, 2, 0, 0) do
+        addSlotToContainer(new Slot3(tile, id, x, y))
+        id += 1
+    addPlayerInv(p, 8, 101)
 
     private var st = -1
     override def detectAndSendChanges(): Unit =
-    {
         super.detectAndSendChanges()
         import scala.jdk.CollectionConverters.*
         for i <- listeners.asScala do
-        {
             if st != tile.powerStorage then i
                 .sendWindowProperty(this, 3, tile.powerStorage)
-        }
         st = tile.powerStorage
-    }
 
     override def updateProgressBar(id:Int, bar:Int) = id match
-    {
         case 3 => tile.powerStorage = bar
         case _ => super.updateProgressBar(id, bar)
-    }
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
-    {
-        if 0 until 8 contains from then { //from input slots
+        if 0 until 8 contains from then //from input slots
             if tryMergeItemStack(stack, 25, 52, false) then return true //to player inv
             if tryMergeItemStack(stack, 16, 25, false) then return true //then to hotbar
-        }
-        else if 8 until 16 contains from then { //from output slots
+        else if 8 until 16 contains from then //from output slots
             if tryMergeItemStack(stack, 16, 25, true) then return true //to hotbar inversed
             if tryMergeItemStack(stack, 25, 52, true) then return true //then to player inv inversed
-        }
 
-        stack.getItem match { //from player inv
+        stack.getItem match //from player inv
             case _:IChargable => tryMergeItemStack(stack, 0, 8, false)
             case _ => false
-        }
-    }
-}
 
 class GuiChargingBench(tile:TileChargingBench, c:ContainerChargingBench) extends NodeGui(c, 176, 183)
-{
+:
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiChargingBench.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
@@ -260,27 +210,20 @@ class GuiChargingBench(tile:TileChargingBench, c:ContainerChargingBench) extends
 
         GuiDraw.drawString("Charging Bench", 8, 6, EnumColour.GRAY.argb, false)
         GuiDraw.drawString("Inventory", 8, 91, EnumColour.GRAY.argb, false)
-    }
-}
 
 object GuiChargingBench extends TGuiFactory
-{
+:
     val background = new ResourceLocation("projectred", "textures/gui/charger.png")
     override def getID = ExpansionProxy.chargingBenchBui
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
         player.world.getTileEntity(data.readPos()) match
-        {
             case t:TileChargingBench => new GuiChargingBench(t, t.createContainer(player))
             case _ => null
-        }
-    }
-}
 
 object RenderChargingBench extends SimpleBlockRenderer
-{
+:
     import java.lang.{Boolean as JBool, Integer as JInt}
 
     import org.apache.commons.lang3.tuple.Triple
@@ -295,29 +238,24 @@ object RenderChargingBench extends SimpleBlockRenderer
     var iconT1:UVTransformation = null
     var iconT2:UVTransformation = null
 
-    override def handleState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
+    override def handleState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match
         case t:TileChargingBench => state.withProperty(UNLISTED_CHARGED_PROPERTY, t.isCharged.asInstanceOf[JBool])
         case _ => state
-    }
 
-    override def getWorldTransforms(state: IExtendedBlockState) = {
+    override def getWorldTransforms(state: IExtendedBlockState) =
         val charged:JBool = state.getValue(UNLISTED_CHARGED_PROPERTY)
         Triple.of(0, 0, if charged then iconT2 else iconT1)
-    }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = true
 
     def getIcon(side:Int, meta:Int) = side match
-    {
         case 0 => bottom
         case 1 => top1
         case _ => side1
-    }
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/charger/bottom"))
         top1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/charger/top1"))
         top2 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/charger/top2"))
@@ -326,5 +264,3 @@ object RenderChargingBench extends SimpleBlockRenderer
 
         iconT1 = new MultiIconTransformation(bottom, top1, side1, side1, side1, side1)
         iconT2 = new MultiIconTransformation(bottom, top2, side2, side2, side2, side2)
-    }
-}

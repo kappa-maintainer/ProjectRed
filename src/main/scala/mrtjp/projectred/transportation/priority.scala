@@ -19,7 +19,7 @@ object Priorities extends Enum
     val ACTIVEC = new Priority("Active Craft", 0.20f, 0.30f, EnumColour.GREEN.ordinal, _.allowCrafting)
 
     class Priority(val ident:String, val speed:Float, val boost:Float, val color:Int, f:StartEndPath => Boolean) extends Value
-    {
+    :
         override def name = ident
 
         /**
@@ -30,5 +30,4 @@ object Priorities extends Enum
          * @return True if this priority can route using given path.
          */
         def isPathUsable(path:StartEndPath) = f(path)
-    }
 }

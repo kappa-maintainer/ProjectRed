@@ -11,7 +11,7 @@ import net.minecraft.network.play.{INetHandlerPlayClient, INetHandlerPlayServer}
 import net.minecraft.util.text.TextComponentString
 
 class TransportationPH
-{
+:
     val channel = "PR|Transp"
 
     val gui_ChipNBTSet = 4
@@ -25,71 +25,53 @@ class TransportationPH
     val particle_Spawn = 11
 
     val gui_FirewallPipe_action = 17
-}
 
 object TransportationCPH extends TransportationPH with IClientPacketHandler
-{
+:
     def handlePacket(packet:PacketCustom, mc:Minecraft, handler:INetHandlerPlayClient) = packet.getType match
-    {
         case this.gui_Request_open => openRequestGui(packet, mc)
         case this.gui_Request_list => receiveRequestList(packet, mc)
         case this.particle_Spawn => RouteFX2.handleClientPacket(packet, mc.world)
         case _ =>
-    }
 
     private def receiveRequestList(packet:PacketCustom, mc:Minecraft): Unit =
-    {
-        if mc.currentScreen.isInstanceOf[GuiRequester] then {
+        if mc.currentScreen.isInstanceOf[GuiRequester] then
             val gui = mc.currentScreen.asInstanceOf[GuiRequester]
             val size = packet.readInt
             var map2 = Map[ItemKey, Int]()
 
-            for i <- 0 until size do {
+            for i <- 0 until size do
                 val stack = packet.readItemStack()
                 map2 += ItemKey.get(stack) -> stack.getCount
-            }
 
             gui.receiveContentList(map2)
-        }
-    }
 
     private def openRequestGui(packet:PacketCustom, mc:Minecraft): Unit =
-    {
         val p = BlockMultipart.getPart(mc.player.world, packet.readPos(), 6)
         if p.isInstanceOf[IRouterContainer] then mc.displayGuiScreen(new GuiRequester(p.asInstanceOf[IRouterContainer]))
-    }
-}
 
 object TransportationSPH extends TransportationPH with IServerPacketHandler
-{
+:
     def handlePacket(packet:PacketCustom, sender:EntityPlayerMP, handler:INetHandlerPlayServer) = packet.getType match
-    {
         case this.gui_ChipNBTSet => setChipNBT(packet, sender)
         case this.gui_Request_action => handleRequestAction(packet, sender)
         case this.gui_Request_submit => handleRequestSubmit(packet, sender)
         case this.gui_Request_listRefresh => handleRequestListRefresh(packet, sender)
         case this.gui_FirewallPipe_action => handleFirewallAction(packet, sender)
         case _ =>
-    }
 
     private def handleFirewallAction(packet:PacketCustom, sender:EntityPlayerMP): Unit =
-    {
         val bc = packet.readPos()
         val action = packet.readByte()
         val t = BlockMultipart.getPart(sender.world, bc, 6)
         if t.isInstanceOf[RoutedFirewallPipe] then
-        {
             val p = t.asInstanceOf[RoutedFirewallPipe]
             action match
-            {
                 case 0 => p.filtExclude = !p.filtExclude
                 case 1 => p.allowRoute = !p.allowRoute
                 case 2 => p.allowBroadcast = !p.allowBroadcast
                 case 3 => p.allowCrafting = !p.allowCrafting
-            }
             p.sendOptUpdate()
-        }
-    }
 
 //    private def handleRouterUtilAction(packet:PacketCustom, sender:EntityPlayerMP)
 //    {
@@ -103,23 +85,17 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
 //    }
 
     private def handleRequestListRefresh(packet:PacketCustom, sender:EntityPlayerMP): Unit =
-    {
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
         if t.isInstanceOf[IRouterContainer] then
             sendRequestList(t.asInstanceOf[IRouterContainer], sender, packet.readBoolean, packet.readBoolean)
-    }
 
     private def handleRequestAction(packet:PacketCustom, sender:EntityPlayerMP): Unit =
-    {
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
-        if t.isInstanceOf[IRouterContainer] then {
+        if t.isInstanceOf[IRouterContainer] then
             val ident = packet.readString
             //do things
-        }
-    }
 
     private def sendRequestList(requester:IRouterContainer, player:EntityPlayerMP, collectBroadcast:Boolean, collectCrafts:Boolean): Unit =
-    {
         CollectionPathFinder.clear()
         CollectionPathFinder.start = requester
         CollectionPathFinder.collectBroadcasts = collectBroadcast
@@ -130,18 +106,15 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
         val packet2 = new PacketCustom(channel, gui_Request_list)
         packet2.writeInt(map.size)
 
-        for (k,v) <- map do {
+        for (k,v) <- map do
             val s = if v == 0 then 1 else v //TODO find way to mark craft items.
             packet2.writeItemStack(k.makeStack(s))
-        }
 
         packet2.compress().sendToPlayer(player)
-    }
 
     private def handleRequestSubmit(packet:PacketCustom, sender:EntityPlayerMP): Unit =
-    {
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
-        if t.isInstanceOf[IRouterContainer] then {
+        if t.isInstanceOf[IRouterContainer] then
             import mrtjp.projectred.transportation.RequestFlags.*
             var opt = RequestFlags.ValueSet.newBuilder
             val pull = packet.readBoolean
@@ -159,34 +132,23 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
             r.startRequest()
 
             if r.requested > 0 then
-            {
                 sender.sendMessage(new TextComponentString("Successfully requested "+r.requested+" of "+s.key.getName+"."))
                 RouteFX2.spawnType1(RouteFX2.color_request, t.asInstanceOf[IRouterContainer].getPipe)
-            }
             else
-            {
                 sender.sendMessage(new TextComponentString("Could not request "+s.stackSize+" of "+s.key.getName+". Missing:"))
                 for (k,v) <- r.getMissing do sender.sendMessage(new TextComponentString(s"$v of ${k.getName}"))
-            }
 
             sendRequestList(t.asInstanceOf[IRouterContainer], sender, pull, craft)
-        }
-    }
 
     private def setChipNBT(packet:PacketCustom, player:EntityPlayerMP): Unit =
-    {
         val slot = packet.readUByte()
         val stack = packet.readItemStack()
-        if stack.getItem == ProjectRedTransportation.itemRoutingChip then {
+        if stack.getItem == ProjectRedTransportation.itemRoutingChip then
             val playerStack = player.inventory.getStackInSlot(slot)
-            if playerStack.getItem == ProjectRedTransportation.itemRoutingChip then {
+            if playerStack.getItem == ProjectRedTransportation.itemRoutingChip then
 
                 val chip = ItemRoutingChip.loadChipFromItemStack(stack)
                 ItemRoutingChip.saveChipToItemStack(playerStack, chip)
 
                 player.inventory.setInventorySlotContents(slot, playerStack)
                 player.inventory.markDirty()
-            }
-        }
-    }
-}

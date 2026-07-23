@@ -31,59 +31,46 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 class BlockBarrel extends MultiTileBlock(Material.WOOD)
-{
+:
     setHardness(2.0F)
     setSoundType(SoundType.WOOD)
     setCreativeTab(ProjectRedExploration.tabExploration)
 
     override def getPlayerRelativeBlockHardness(state:IBlockState, player:EntityPlayer, world:World, pos:BlockPos) =
         net.minecraftforge.common.ForgeHooks.blockStrength(state, player, world, pos)
-}
 
 class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
-{
+:
     var amountStored = 0
     var item:ItemKey = null
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setInteger("storage", amountStored)
         saveInv(tag)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         amountStored = tag.getInteger("storage")
         loadInv(tag)
         refreshItemKey()
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         super.writeDesc(out)
         out.writeBoolean(nonEmpty)
-        if nonEmpty then {
+        if nonEmpty then
             out.writeItemStack(item.makeStack(0))
             out.writeInt(getStoredAmount)
-        }
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         super.readDesc(in)
         silentClear()
         if in.readBoolean() then
-        {
             item = ItemKey.get(in.readItemStack())
             amountStored = in.readInt()
             compactItems()
-        }
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 1 => silentClear()
         case 2 =>
             silentClear()
@@ -91,17 +78,14 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
             amountStored = in.readInt()
             compactItems()
         case _ => super.read(in, key)
-    }
 
     override def getDisplayName = super.getDisplayName
 
     def sendItemUpdate(): Unit =
-    {
         if isEmpty then
             writeStream(1).sendToChunk(this)
         else
             writeStream(2).writeItemStack(item.makeStack(0)).writeInt(getStoredAmount).sendToChunk(this)
-    }
 
     override def getBlock = ProjectRedExploration.blockBarrel
 
@@ -128,12 +112,10 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
         else (getStackSpace-2)*item.getMaxStackSize-amountStored
 
     def getStoredAmount =
-    {
         var i = amountStored
         if !getStackInSlot(0).isEmpty then i += getStackInSlot(0).getCount
         if !getStackInSlot(1).isEmpty then i += getStackInSlot(1).getCount
         i
-    }
 
     def getStoredFullStacks =
         if isEmpty then 0
@@ -150,7 +132,6 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
     def nonEmpty = !isEmpty
 
     override def onBlockActivated(player:EntityPlayer, side:Int):Boolean =
-    {
         if super.onBlockActivated(player, side) then return true
         if world.isRemote then return true
         //TODO Hand passthrough
@@ -158,10 +139,8 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
                 importStack(ItemUtils.getHeldStack(player)) > 0 then needsUpdate = true
 
         true
-    }
 
     override def onBlockClicked(player:EntityPlayer):Boolean =
-    {
         if super.onBlockClicked(player) then return true
         if world.isRemote then return true
         if isEmpty then return false
@@ -180,59 +159,41 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
         PRLib.dropTowardsPlayer(world, getPos, out, player)
         needsUpdate = true
         true
-    }
 
 
     override def onBlockRemoval(): Unit =
-    {
         super.onBlockRemoval()
 
         if !world.isRemote then
-        {
             var stack = getStackInSlot(1)
             while !stack.isEmpty && nonEmpty do
-            {
                 WorldLib.dropItem(world, getPos, stack)
                 setInventorySlotContents(1, ItemStack.EMPTY)
                 stack = getStackInSlot(1)
-            }
-        }
-    }
 
     private var needsUpdate = false
     override def updateServer(): Unit =
-    {
         if needsUpdate then sendItemUpdate()
         needsUpdate = false
-    }
 
     private var lastActivateTime = -1L
     def checkDoubleClick():Boolean =
-    {
         val dc = world.getTotalWorldTime-lastActivateTime <= getDoubleClickTicks
         lastActivateTime = world.getTotalWorldTime
         dc && item != null
-    }
 
     def importAll(player:EntityPlayer) =
-    {
         var s = 0
         for i <- 0 until player.inventory.getSizeInventory do
-        {
             val stack = player.inventory.getStackInSlot(i)
             if !stack.isEmpty then
-            {
                 s += importStack(stack)
                 if stack.getCount <= 0 then
                     player.inventory.setInventorySlotContents(i, ItemStack.EMPTY)
-            }
-        }
         if s > 0 then player.inventoryContainer.detectAndSendChanges()
         s
-    }
 
     def importStack(stack:ItemStack):Int =
-    {
         if stack.isEmpty then return 0
         if nonEmpty && !InvWrapper.areItemsSame(stack, item.makeStack(0)) then return 0
         var inslot = getStackInSlot(0)
@@ -240,71 +201,53 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
         val space = inslot.getMaxStackSize-inslot.getCount
         val toAdd = math.min(space, stack.getCount)
         if toAdd > 0 then
-        {
             inslot.grow(toAdd)
             stack.shrink(toAdd)
             setInventorySlotContents(0, inslot)
-        }
         toAdd
-    }
 
     private var compacting = false
     override def markDirty(): Unit =
-    {
         super.markDirty()
         compactItems()
         needsUpdate = true
-    }
 
     def refreshItemKey(): Unit =
-    {
         val inslot = getStackInSlot(1)
         item = if inslot.isEmpty then null else ItemKey.get(inslot)
-    }
 
     def compactItems(): Unit =
-    {
         if compacting then return
         compacting = true
 
         if !getStackInSlot(0).isEmpty then
-        {
             val in = getStackInSlot(0)
             var out = getStackInSlot(1)
 
             if out.isEmpty || !InvWrapper.areItemsSame(in, out) then out = in.splitStack(0)
             val toAdd = math.min(in.getCount, out.getMaxStackSize-out.getCount)
             if toAdd > 0 then
-            {
                 in.shrink(toAdd)
                 out.grow(toAdd)
-            }
             setInventorySlotContents(1, out)
 
             refreshItemKey()
 
             val sAdd = math.min(in.getCount, getFreeStorageSpace)
             if sAdd > 0 then
-            {
                 in.shrink(sAdd)
                 amountStored += sAdd
-            }
 
             if in.getCount == 0 then setInventorySlotContents(0, ItemStack.EMPTY)
-        }
 
         if amountStored > 0 then
-        {
             var out = getStackInSlot(1)
             if out.isEmpty then out = item.makeStack(0)
             val toAdd = math.min(amountStored, out.getMaxStackSize-out.getCount)
             if toAdd > 0 then
-            {
                 out.grow(toAdd)
                 amountStored -= toAdd
                 setInventorySlotContents(1, out)
-            }
-        }
 
         refreshItemKey()
 
@@ -314,23 +257,18 @@ class TileBarrel extends MTBlockTile with TInventory with ISidedInventory
                 setInventorySlotContents(i, ItemStack.EMPTY)
 
         compacting = false
-    }
 
     def silentClear(): Unit =
-    {
         item = null
         amountStored = 0
         compacting = true //dont run compactItems
         setInventorySlotContents(0, ItemStack.EMPTY)
         setInventorySlotContents(1, ItemStack.EMPTY)
         compacting = false
-    }
-}
 
 object RenderBarrel extends TileEntitySpecialRenderer[TileBarrel] //with TCubeMapRender
-{
+:
     override def render(tile:TileBarrel, x:Double, y:Double, z:Double, frame:Float, destroyProgress:Int, alpha:Float): Unit =
-    {
         if tile.item == null then return
 
         val stack = tile.item.makeStack(1)
@@ -344,11 +282,9 @@ object RenderBarrel extends TileEntitySpecialRenderer[TileBarrel] //with TCubeMa
 
         val text =
             if total > 0 then
-            {
                 if stackSize == 1 || stacks == 0 then s"$total"
                 else if extra == 0 then s"$stacks x $stackSize"
                 else s"$stacks x $stackSize + $extra"
-            }
             else ""
 
         val tw = GuiDraw.getStringWidth(text)
@@ -380,7 +316,6 @@ object RenderBarrel extends TileEntitySpecialRenderer[TileBarrel] //with TCubeMa
         )
 
         for i <- 0 until 4 do
-        {
             val finalT = new TransformationList(
                 Rotation.quarterRotations(i).at(Vector3.center),
                 new Translation(x, y, z)
@@ -407,21 +342,17 @@ object RenderBarrel extends TileEntitySpecialRenderer[TileBarrel] //with TCubeMa
             popMatrix()
 
             GlStateTracker.popState()
-        }
-    }
-}
 
 object BarrelInvWrapper extends IInvWrapperRegister
-{
+:
     override def wrapperID = "pr_barrel"
 
     override def matches(inv:IInventory) = inv.isInstanceOf[TileBarrel]
 
     override def create(inv:IInventory) = new BarrelInvWrapper(inv)
-}
 
 class BarrelInvWrapper(inv:IInventory) extends VanillaWrapper(inv, false)
-{
+:
     def getBarrel = inv.asInstanceOf[TileBarrel]
 
     override def getSpaceForItem(item:ItemKey) =
@@ -430,19 +361,15 @@ class BarrelInvWrapper(inv:IInventory) extends VanillaWrapper(inv, false)
     override def hasSpaceForItem(item:ItemKey) = getSpaceForItem(item) > 0
 
     override def getItemCount(item:ItemKey) =
-    {
         var count = if slots.contains(1) && getBarrel.nonEmpty && eq.matches(item, getBarrel.item) then getBarrel.getStoredAmount else 0
         if hidePerSlot || hidePerType then count -= 1
         math.max(count, 0)
-    }
 
     override def hasItem(item:ItemKey) = getItemCount(item) > 0
 
     override def injectItem(item:ItemKey, toAdd:Int) =
-    {
         var itemsLeft = toAdd
         if slots.contains(0) && (getBarrel.isEmpty ||item == getBarrel.item) then
-        {
             import scala.util.control.Breaks.*
             breakable { while itemsLeft > 0 && getBarrel.getFreeSpace > 0 do
             {
@@ -450,19 +377,14 @@ class BarrelInvWrapper(inv:IInventory) extends VanillaWrapper(inv, false)
                 val added = getBarrel.importStack(item.makeStack(toAdd))
                 itemsLeft -= added
             }}
-        }
         toAdd-itemsLeft
-    }
 
     override def extractItem(item:ItemKey, toExtract:Int) =
-    {
         var itemsLeft = toExtract
         val hidden = if hidePerSlot || hidePerType then 1 else 0
 
         if slots.contains(1) && eq.matches(item, getBarrel.item) then
-        {
             while itemsLeft > 0 && getBarrel.getStoredAmount-hidden > 0 do
-            {
                 var toRem = math.min(itemsLeft, getBarrel.getStoredAmount)
                 toRem = math.min(toRem, item.getMaxStackSize)
 
@@ -472,18 +394,10 @@ class BarrelInvWrapper(inv:IInventory) extends VanillaWrapper(inv, false)
 
                 if bottomStack.getCount <= 0 then getBarrel.setInventorySlotContents(1, ItemStack.EMPTY)
                 else getBarrel.markDirty()
-            }
-        }
         toExtract-itemsLeft
-    }
 
     override def getAllItemStacks:Map[ItemKey, Int] =
-    {
         if slots.contains(1) && getBarrel.nonEmpty then
-        {
             val count = getBarrel.getStoredAmount-(if hidePerSlot || hidePerType then 1 else 0)
             if count > 0 then return Map(getBarrel.item -> count)
-        }
         Map.empty
-    }
-}

@@ -8,17 +8,14 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 object ProjectRedCompatibility
 {
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         CompatibilityProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         CompatibilityProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         CompatibilityProxy.postinit()
-    }
 }

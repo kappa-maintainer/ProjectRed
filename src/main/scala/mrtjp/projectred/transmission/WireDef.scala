@@ -11,7 +11,7 @@ import net.minecraftforge.oredict.OreDictionary
 import scala.language.postfixOps
 
 object WireDef extends ItemDefinition
-{
+:
     override type EnumVal = WireDef
     override def getItem = ProjectRedTransmission.itemPartWire
 
@@ -73,19 +73,16 @@ object WireDef extends ItemDefinition
     val oreDictDefinitionBundled = "projredBundledCable"
 
     def initOreDict(): Unit =
-    {
-        for w <- INSULATED_WIRES do {
+        for w <- INSULATED_WIRES do
             if w.hasFramedForm then OreDictionary.registerOre(oreDictDefinitionInsFramed, w.makeFramedStack)
             OreDictionary.registerOre(oreDictDefinitionInsulated, w.makeStack)
-        }
         for w <- BUNDLED_WIRES do OreDictionary.registerOre(oreDictDefinitionBundled, w.makeStack)
-    }
 
     def apply(wireType:ResourceLocation, framedType:ResourceLocation, thickness:Int, itemColour:Int, textures:String*) =
         new WireDef(wireType, framedType, thickness, itemColour, textures)
 
     class WireDef(val wireType:ResourceLocation, val framedType:ResourceLocation, val thickness:Int, val itemColour:Int, textures:Seq[String]) extends ItemDef(wireType.toString)
-    {
+    :
         var wireSprites:Array[TextureAtlasSprite] = scala.compiletime.uninitialized
 
         def hasWireForm = wireType != null
@@ -93,15 +90,11 @@ object WireDef extends ItemDefinition
 
         @SideOnly(Side.CLIENT)
         def loadTextures(map:TextureMap): Unit =
-        {
             wireSprites = new Array[TextureAtlasSprite](textures.length)
             for i <- textures.indices do
                 wireSprites(i) = map.registerSprite(
                     new ResourceLocation("projectred:blocks/integration/"+textures(i)))
-        }
 
         def makeFramedStack:ItemStack = makeFramedStack(1)
         def makeFramedStack(i:Int) =
         if hasFramedForm then new ItemStack(ProjectRedTransmission.itemPartFramedWire, i, meta) else ItemStack.EMPTY
-    }
-}

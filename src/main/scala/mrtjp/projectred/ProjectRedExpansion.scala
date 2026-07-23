@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-expansion", useMetadata = true, modLanguage = "scala")
 object ProjectRedExpansion
-{
+:
     /** Blocks **/
     var machine1:BlockMachine = scala.compiletime.uninitialized //machines
     var machine2:BlockMachine = scala.compiletime.uninitialized //devices
@@ -28,25 +28,20 @@ object ProjectRedExpansion
     /** Parts **/
     var itemSolar:ItemSolarPanel = scala.compiletime.uninitialized
 
-    val tabExpansion: CreativeTabs = new CreativeTabs("projectred.expansion") {
+    val tabExpansion: CreativeTabs = new CreativeTabs("projectred.expansion"):
         override def createIcon = new ItemStack(machine2)
-    }
 
     val machine1Bakery:SubBlockBakery = new SubBlockBakery
     val machine2Bakery:SubBlockBakery = new SubBlockBakery
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         ExpansionProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         ExpansionProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         ExpansionProxy.postinit()
-    }
-}

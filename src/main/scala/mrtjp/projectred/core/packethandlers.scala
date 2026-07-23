@@ -8,29 +8,18 @@ import net.minecraft.entity.player.EntityPlayerMP
 import net.minecraft.network.play.{INetHandlerPlayClient, INetHandlerPlayServer}
 
 class CorePH
-{
+:
     var channel = ProjectRedCore
-}
 
 object CoreCPH extends CorePH with IClientPacketHandler
-{
+:
     def handlePacket(packet:PacketCustom, mc:Minecraft, nethandler:INetHandlerPlayClient): Unit =
-    {
         val world = mc.world
         packet.getType match
-        {
             case _ =>
-        }
-    }
-}
 
 object CoreSPH extends CorePH with IServerPacketHandler
-{
+:
     override def handlePacket(packet:PacketCustom, sender:EntityPlayerMP, nethandler:INetHandlerPlayServer): Unit =
-    {
         packet.getType match
-        {
             case _ =>
-        }
-    }
-}

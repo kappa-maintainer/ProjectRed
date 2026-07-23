@@ -26,11 +26,10 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import net.minecraftforge.oredict.OreDictionary
 
 class ExplorationProxy_server extends IProxy
-{
+:
     val guiIDBackpack = 1
 
     override def preinit(): Unit =
-    {
         itemWoolGin = new ItemWoolGin
         itemWoolGin.setTranslationKey("projectred.exploration.woolGin")
         ForgeRegistries.ITEMS.register(itemWoolGin.setRegistryName("wool_gin"))
@@ -53,10 +52,9 @@ class ExplorationProxy_server extends IProxy
         blockDecorativeStone.setTranslationKey("projectred.exploration.stone")
         ForgeRegistries.BLOCKS.register(blockDecorativeStone.setRegistryName("stone"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockDecorativeStone).setRegistryName(blockDecorativeStone.getRegistryName))
-        for b <- DecorativeStoneDefs.values do {
+        for b <- DecorativeStoneDefs.values do
             blockDecorativeStone.setHarvestLevel("pickaxe", b.harvest, blockDecorativeStone.getStateFromMeta(b.meta))
             BlockMicroMaterial.createAndRegister(blockDecorativeStone.getStateFromMeta(b.meta)) //Register as microblocks
-        }
 
         blockDecorativeWall = new BlockDecorativeWall
         blockDecorativeWall.setTranslationKey("projectred.exploration.stoneWall")
@@ -130,15 +128,12 @@ class ExplorationProxy_server extends IProxy
 
         /* Ore Dictionary */
         initOreDict()
-    }
 
     override def init(): Unit =
-    {
         //World Gen
 
         //Ruby
         if Configurator.gen_Ruby then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_ruby"
             logic.resistance = 8+Configurator.gen_Ruby_resistance
@@ -152,11 +147,9 @@ class ExplorationProxy_server extends IProxy
             gen.material = Set((Blocks.STONE, 0))
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         //Sapphire
         if Configurator.gen_Sapphire then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_sapphire"
             logic.resistance = 8+Configurator.gen_Sapphire_resistance
@@ -170,11 +163,9 @@ class ExplorationProxy_server extends IProxy
             gen.material = Set((Blocks.STONE, 0))
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         //Peridot
         if Configurator.gen_Peridot then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_peridot"
             logic.resistance = 8+Configurator.gen_Peridot_resistance
@@ -188,11 +179,9 @@ class ExplorationProxy_server extends IProxy
             gen.material = Set((Blocks.STONE, 0))
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         //Marble
         if Configurator.gen_MarbleCave then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_marblecave"
             logic.resistance = 4+Configurator.gen_MarbleCave_resistance
@@ -207,11 +196,9 @@ class ExplorationProxy_server extends IProxy
             gen.material = Set((Blocks.STONE, 0))
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         //Volcano
         if Configurator.gen_Volcano then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_volcano"
             logic.resistance = 16+Configurator.gen_Volcano_resistance
@@ -227,7 +214,6 @@ class ExplorationProxy_server extends IProxy
             gen.materialStart = Set(gen.liq)
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         //Lily
 //        if (Configurator.gen_Lily)
@@ -246,7 +232,6 @@ class ExplorationProxy_server extends IProxy
 
         //Copper
         if Configurator.gen_Copper then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_copper"
             logic.resistance = Configurator.gen_Copper_resistance
@@ -261,11 +246,9 @@ class ExplorationProxy_server extends IProxy
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
 
-        }
 
         //Tin
         if Configurator.gen_Tin then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_tin"
             logic.resistance = Configurator.gen_Tin_resistance
@@ -280,11 +263,9 @@ class ExplorationProxy_server extends IProxy
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
 
-        }
 
         //Silver
         if Configurator.gen_Silver then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_silver"
             logic.resistance = Configurator.gen_Silver_resistance
@@ -298,11 +279,9 @@ class ExplorationProxy_server extends IProxy
             gen.material = Set((Blocks.STONE, 0))
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         //Electrotine
         if Configurator.gen_Electrotine then
-        {
             val logic = new GenLogicUniform
             logic.name = "pr_electrotine"
             logic.resistance = Configurator.gen_Electrotine_resistance
@@ -316,7 +295,6 @@ class ExplorationProxy_server extends IProxy
             gen.material = Set((Blocks.STONE, 0))
             logic.gen = gen
             SimpleGenHandler.registerStructure(logic)
-        }
 
         /** Smelting Recipes **/
         GameRegistry.addSmelting(DecorativeStoneDefs.BASALTCOBBLE.makeStack, DecorativeStoneDefs.BASALT.makeStack, 0.1f)
@@ -327,15 +305,11 @@ class ExplorationProxy_server extends IProxy
         GameRegistry.addSmelting(OreDefs.ORETIN.makeStack, PartDefs.TININGOT.makeStack, 0.7f)
         GameRegistry.addSmelting(OreDefs.ORESILVER.makeStack, PartDefs.SILVERINGOT.makeStack, 0.8f)
         GameRegistry.addSmelting(OreDefs.OREELECTROTINE.makeStack, PartDefs.ELECTROTINE.makeStack, 0.7f)
-    }
 
     override def postinit(): Unit =
-    {
         InvWrapper.register(BarrelInvWrapper)
-    }
 
     private def initOreDict(): Unit =
-    {
         for i <- 0 until 16 do
             OreDictionary.registerOre(ItemBackpack.oreDictionaryVal, new ItemStack(ProjectRedExploration.itemBackpack, 1, i))
 
@@ -356,14 +330,11 @@ class ExplorationProxy_server extends IProxy
         OreDictionary.registerOre("blockTin", DecorativeStoneDefs.TINBLOCK.makeStack)
         OreDictionary.registerOre("blockSilver", DecorativeStoneDefs.SILVERBLOCK.makeStack)
         OreDictionary.registerOre("blockElectrotine", DecorativeStoneDefs.ELECTROTINEBLOCK.makeStack)
-    }
-}
 
 class ExplorationProxy_client extends ExplorationProxy_server
-{
+:
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
         ModelLoader.setCustomStateMapper(blockOres, new StateMapperBase {
             override protected def getModelResourceLocation(state: IBlockState): ModelResourceLocation = {
@@ -377,10 +348,9 @@ class ExplorationProxy_client extends ExplorationProxy_server
         })
         registerItemModelTypes(Item.getItemFromBlock(blockOres), "projectred:world/ore", OreDefs)
         registerItemModelTypes(Item.getItemFromBlock(blockDecorativeStone), "projectred:world/deceratives", DecorativeStoneDefs)
-        for v <- DecorativeStoneDefs.values do {
+        for v <- DecorativeStoneDefs.values do
             val modelloc = new ModelResourceLocation("projectred:world/wall", "type=" + v.getVariantName + ",up=true,east=true,west=true")
             ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(blockDecorativeWall), v.meta, modelloc)
-        }
         ModelLoader.setCustomStateMapper(blockDecorativeWall, new StateMapperBase {
             override protected def getModelResourceLocation(state: IBlockState): ModelResourceLocation = {
                 import java.lang.{Boolean as JBool}
@@ -408,9 +378,8 @@ class ExplorationProxy_client extends ExplorationProxy_server
 
         registerModelType(itemWoolGin, "projectred:world/items", "wool_gin")
         registerModelType(itemAthame, "projectred:world/items", "athame")
-        for i <- 0 until 16 do {
+        for i <- 0 until 16 do
             registerModelType(itemBackpack, i, "projectred:world/items", "backpack_" + i)
-        }
 
         registerToolModel(itemRubyAxe, "ruby_axe")
         registerToolModel(itemSapphireAxe, "sapphire_axe")
@@ -464,51 +433,41 @@ class ExplorationProxy_client extends ExplorationProxy_server
         registerArmorModel(itemPeridotChestplate, "peridot_chestplate")
         registerArmorModel(itemPeridotLeggings, "peridot_leggings")
         registerArmorModel(itemPeridotBoots, "peridot_boots")
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
 
         GuiHandler.register(GuiBackpack, guiIDBackpack)
 
         ClientRegistry.bindTileEntitySpecialRenderer(classOf[TileBarrel], RenderBarrel)
-    }
 
     @SideOnly(Side.CLIENT)
-    def registerItemModelTypes(item:Item, regName:String, itemDef:ItemDefinition): Unit = {
-        for v <- itemDef.values do {
+    def registerItemModelTypes(item:Item, regName:String, itemDef:ItemDefinition): Unit =
+        for v <- itemDef.values do
             val modelloc = new ModelResourceLocation(regName, "type=" + v.getVariantName)
             ModelLoader.setCustomModelResourceLocation(item, v.meta, modelloc)
-        }
-    }
 
     @SideOnly(Side.CLIENT)
-    def registerModelType(item:Item, jsonLocation:String, typeValue:String): Unit ={
+    def registerModelType(item:Item, jsonLocation:String, typeValue:String): Unit =
         registerModelType(item, 0, jsonLocation, typeValue)
-    }
 
     @SideOnly(Side.CLIENT)
-    def registerModelType(item:Item, meta:Int, jsonLocation:String, typeValue:String): Unit = {
+    def registerModelType(item:Item, meta:Int, jsonLocation:String, typeValue:String): Unit =
         val modelLoc = new ModelResourceLocation(jsonLocation, "type=" + typeValue)
         ModelLoader.setCustomModelResourceLocation(item, meta, modelLoc)
-    }
 
     @SideOnly(Side.CLIENT)
-    def registerToolModel(item: Item, variant:String): Unit = {
+    def registerToolModel(item: Item, variant:String): Unit =
         val modelLoc = new ModelResourceLocation("projectred:world/tools", "type=" + variant)
         ModelLoader.setCustomModelResourceLocation(item, 0, modelLoc)
         ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition {
             override def getModelLocation(stack: ItemStack): ModelResourceLocation = modelLoc
         })
-    }
 
     @SideOnly(Side.CLIENT)
-    def registerArmorModel(item: Item, variant:String) = {
+    def registerArmorModel(item: Item, variant:String) =
         val modelLoc = new ModelResourceLocation("projectred:world/armor", s"type=$variant")
         ModelLoader.setCustomModelResourceLocation(item, 0, modelLoc)
-    }
-}
 
 object ExplorationProxy extends ExplorationProxy_client

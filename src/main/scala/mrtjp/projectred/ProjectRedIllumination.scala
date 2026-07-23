@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-illumination", useMetadata = true, modLanguage = "scala")
 object ProjectRedIllumination
-{
+:
     /** Blocks **/
     var blockLamp:BlockLamp = scala.compiletime.uninitialized
     var itemBlockLamp:ItemBlock = scala.compiletime.uninitialized
@@ -18,22 +18,17 @@ object ProjectRedIllumination
     var itemPartIllumarButton:ItemPartButton = scala.compiletime.uninitialized
     var itemPartIllumarFButton:ItemPartFButton = scala.compiletime.uninitialized
 
-    val tabLighting: CreativeTabs = new CreativeTabs("projectred.illumination") {
+    val tabLighting: CreativeTabs = new CreativeTabs("projectred.illumination"):
         override def createIcon = new ItemStack(LightFactoryCage.getItem(true))
-    }
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         IlluminationProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         IlluminationProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         IlluminationProxy.postinit()
-    }
-}

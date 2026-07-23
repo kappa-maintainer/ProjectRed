@@ -13,15 +13,13 @@ import java.util.UUID
 import scala.collection.immutable.HashSet
 
 object AbstractPipePayload
-{
+:
     private var maxID = 0
 
     def claimID() =
-    {
         if maxID < Short.MaxValue then maxID += 1
         else maxID = 0
         maxID
-    }
 
     def create():NetworkPayload = new NetworkPayload(claimID())
 
@@ -35,10 +33,9 @@ object AbstractPipePayload
 //        r.payload = stack.copy
 //        r
 //    }
-}
 
 class AbstractPipePayload(val payloadID:Int)
-{
+:
     var payload:ItemKeyStack = null
     var parent:PayloadPipePart[?] = null
 
@@ -51,10 +48,9 @@ class AbstractPipePayload(val payloadID:Int)
     var data = 0
 
     private var wanderThroughs = 0
-    def tickPayloadWander(): Unit ={
+    def tickPayloadWander(): Unit =
         if Configurator.maxPipesWandered > 0 then
             wanderThroughs += 1
-    }
 
     def isEntering = ((data>>6)&1) != 0
     def isEntering_=(b:Boolean): Unit ={ if b then data |= 0x40 else data &= ~0x40 }
@@ -74,74 +70,56 @@ class AbstractPipePayload(val payloadID:Int)
     def bind(p:PayloadPipePart[?]): Unit ={ parent = p }
 
     def reset(): Unit =
-    {
         isEntering = true
         input = 6
         output = 6
-    }
 
     def preItemRemove(): Unit ={}
 
     def moveProgress(prog:Float): Unit =
-    {
         progress += prog
-    }
 
     def getItemStack = payload.makeStack
 
     def setItemStack(item:ItemStack): Unit =
-    {
         payload = ItemKeyStack.get(item)
-    }
 
     def isCorrupted = getItemStack.isEmpty || getItemStack.getCount <= 0 ||
             (Configurator.maxPipesWandered > 0 && wanderThroughs > Configurator.maxPipesWandered)
 
     override def equals(other:Any) = other match
-    {
         case that:AbstractPipePayload => payloadID == that.payloadID
         case _ => false
-    }
 
     override def hashCode() = payloadID
 
     def save(tag:NBTTagCompound): Unit =
-    {
         tag.setInteger("idata", data)
         val tag2 = new NBTTagCompound
         getItemStack.writeToNBT(tag2)
         tag.setTag("Item", tag2)
-    }
 
     def load(tag:NBTTagCompound): Unit =
-    {
         data = tag.getInteger("idata")
         setItemStack(new ItemStack(tag.getCompoundTag("Item")))
-    }
 
     def writeDesc(packet:MCDataOutput): Unit =
-    {
         packet.writeItemStack(getItemStack)
         packet.writeInt(data)
-    }
 
     def readDesc(packet:MCDataInput): Unit =
-    {
         setItemStack(packet.readItemStack())
         data = packet.readInt()
-    }
 
 
     def getEntityForDrop(pos: BlockPos):EntityItem = getEntityForDrop(pos.getX, pos.getY, pos.getZ)
     def getEntityForDrop(x:Int, y:Int, z:Int):EntityItem =
-    {
         val dir = if isEntering then input else output
         val prog = progress
         var deltaX = x+0.5D
         var deltaY = y+0.25D
         var deltaZ = z+0.5D
         dir match
-        {
             case 0 => deltaY = (y-0.25D)+(1.0D-prog)
             case 1 => deltaY = (y-0.25D)+prog
             case 2 => deltaZ = z+(1.0D-prog)
@@ -149,7 +127,6 @@ class AbstractPipePayload(val payloadID:Int)
             case 4 => deltaX = x+(1.0D-prog)
             case 5 => deltaX = x+prog
             case _ =>
-        }
 
         val item = new EntityItem(parent.world, deltaX, deltaY, deltaZ, payload.makeStack)
         item.motionX = 0
@@ -157,7 +134,6 @@ class AbstractPipePayload(val payloadID:Int)
         item.motionZ = 0
         item.hoverStart = 0
         dir match
-        {
             case 0 => item.motionY = -speed
             case 1 => item.motionY = +speed
             case 2 => item.motionZ = -speed
@@ -165,15 +141,12 @@ class AbstractPipePayload(val payloadID:Int)
             case 4 => item.motionX = -speed
             case 5 => item.motionX = +speed
             case _ =>
-        }
         item.setPickupDelay(10)
         item.lifespan = 1600
         item
-    }
-}
 
 class PressurePayload(payloadID:Int) extends AbstractPipePayload(payloadID)
-{
+:
     // Extended Data
     // CCCC CCCC PPPP PPPP SSSS SSSS 0EOO OIII
     // I = input
@@ -188,32 +161,23 @@ class PressurePayload(payloadID:Int) extends AbstractPipePayload(payloadID)
     var colour:Byte = -1
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setByte("col", colour)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         colour = tag.getByte("col")
-    }
 
     override def writeDesc(packet:MCDataOutput): Unit =
-    {
         super.writeDesc(packet)
         packet.writeByte(colour)
-    }
 
     override def readDesc(packet:MCDataInput): Unit =
-    {
         super.readDesc(packet)
         colour = packet.readByte()
-    }
-}
 
 class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
-{
+:
     // Extended Data
     // 0000 NNNN PPPP PPPP SSSS SSSS 0EOO OIII
     // I = input
@@ -226,9 +190,7 @@ class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
     def priorityIndex_=(i:Int): Unit ={ data = (data& ~0xF000000)|(i&0xF)<<24 }
 
     override def preItemRemove(): Unit =
-    {
         resetTrip()
-    }
 
     var destinationIP = -1
     var destinationUUID:UUID = null
@@ -237,37 +199,29 @@ class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
     def netPriority = Priorities(priorityIndex)
 
     def setDestination(ip:Int, p:NetworkPriority) =
-    {
         destinationIP = ip
         priorityIndex = p.ordinal
         val router = RouterServices.getRouter(ip)
         if router != null then destinationUUID = router.getID
         else destinationIP = -1
         this
-    }
 
     def resetTrip(): Unit =
-    {
-        if destinationIP > -1 then {
+        if destinationIP > -1 then
             val r = RouterServices.getRouter(destinationIP)
             if r != null then //r.getParent.itemLost(payload)
                 r.getContainer.postNetworkEvent(PayloadLostEnrouteEvent(payload.key, payload.stackSize))
-        }
         destinationIP = -1
         destinationUUID = null
         hasArrived = false
         priorityIndex = Priorities.WANDERING.ordinal
-    }
 
     def refreshIP(): Unit =
-    {
         val router = RouterServices.getRouter(destinationIP)
         if router == null || router.getID != destinationUUID then destinationIP = RouterServices.getIPforUUID(destinationUUID)
-    }
-}
 
 class PayloadMovement[T <: AbstractPipePayload]
-{
+:
     import scala.jdk.CollectionConverters.*
     var delegate = HashSet[T]()
     var inputQueue = HashSet[T]()
@@ -279,63 +233,42 @@ class PayloadMovement[T <: AbstractPipePayload]
     def get(id:Int):T = delegate.find(_.payloadID == id).getOrElse(null.asInstanceOf[T])
 
     def getOrElseUpdate(id:Int, f:Unit => T):T =
-    {
         val payload = get(id)
         if payload == null then
-        {
             val newInput = f(())
             add(newInput)
             newInput
-        }
         else payload
-    }
 
     def scheduleLoad(item:T): Unit =
-    {
         delay = 10
         inputQueue += item
-    }
 
     def executeLoad(): Unit =
-    {
         delay -= 1
         if delay > 0 then return
 
         delegate ++= inputQueue
         inputQueue = HashSet[T]()
-    }
 
     def exececuteRemove(): Unit =
-    {
         delegate --= outputQueue
         outputQueue = HashSet[T]()
-    }
 
     def scheduleRemoval(item:T) =
-    {
         if outputQueue.contains(item) then false
         else
-        {
             outputQueue += item
             true
-        }
-    }
 
     def unscheduleRemoval(item:T) =
-    {
         if outputQueue.contains(item) then
-        {
             outputQueue -= item
             true
-        }
         else false
-    }
 
     def add(e:T): Unit =
-    {
         delegate += e
-    }
 
     def it = delegate.iterator
     def Jdel = delegate.asJavaCollection
-}

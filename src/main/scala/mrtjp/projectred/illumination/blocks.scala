@@ -38,7 +38,7 @@ import org.apache.commons.lang3.tuple.Triple
 import org.lwjgl.opengl.GL11
 
 class BlockLamp extends MultiTileBlock(Material.REDSTONE_LIGHT) with IRedstoneConnectorBlock with IBakeryProvider
-{
+:
     setHardness(0.5F)
     setCreativeTab(ProjectRedIllumination.tabLighting)
 
@@ -52,10 +52,8 @@ class BlockLamp extends MultiTileBlock(Material.REDSTONE_LIGHT) with IRedstoneCo
 
     @SideOnly(Side.CLIENT)
     override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
-    {
         for i <- 0 until 32 do
             list.add(new ItemStack(ProjectRedIllumination.blockLamp, 1, i))
-    }
 
     override def canCreatureSpawn(state:IBlockState, world:IBlockAccess, pos:BlockPos, t:SpawnPlacementType) = false
 
@@ -76,49 +74,41 @@ class BlockLamp extends MultiTileBlock(Material.REDSTONE_LIGHT) with IRedstoneCo
 
     @SideOnly(Side.CLIENT)
     override def getBakery: IBakery = LampBakery
-}
 
-object BlockProperties {
+object BlockProperties:
     val UNLISTED_ON_PROPERTY = new UnlistedBooleanProperty("on")
     val UNLISTED_COLOUR_PROPERTY = new UnlistedIntegerProperty("colour")
-}
 
 class ItemBlockLamp extends ItemBlockCore(ProjectRedIllumination.blockLamp)
-{
+:
     override def getMetadata(meta:Int) = 0 //we want everything on meta 0, since tiles store the colour
-}
 
 object LampBakery extends SimpleBlockRenderer
-{
-    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos:BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
+:
+    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos:BlockPos): IExtendedBlockState = world.getTileEntity(pos) match
         case t:TileLamp => state.withProperty(BlockProperties.UNLISTED_ON_PROPERTY, t.isOn.asInstanceOf[JBool])
                 .withProperty(BlockProperties.UNLISTED_COLOUR_PROPERTY, t.getColor.asInstanceOf[JInt])
         case _ => state
-    }
 
 
-    override def getWorldTransforms(state: IExtendedBlockState) = {
+    override def getWorldTransforms(state: IExtendedBlockState) =
         val isOn = state.getValue(BlockProperties.UNLISTED_ON_PROPERTY)
         val colour = state.getValue(BlockProperties.UNLISTED_COLOUR_PROPERTY)
         val t = new IconTransformation((if isOn then LampRenderer.iconsOn else LampRenderer.iconsOff)(colour))
         Triple.of(0, 0, t)
-    }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0,
         new IconTransformation(if stack.getItemDamage > 15 then LampRenderer.iconsOn(stack.getItemDamage%16) else LampRenderer.iconsOff(stack.getItemDamage)))
 
     override def shouldCull(): Boolean = true
 
-    override def registerIcons(textureMap: TextureMap): Unit = {
-        for i <- 0 until 16 do {
+    override def registerIcons(textureMap: TextureMap): Unit =
+        for i <- 0 until 16 do
             LampRenderer.iconsOn(i) = textureMap.registerSprite(new ResourceLocation("projectred:blocks/lighting/lampon/"+i))
             LampRenderer.iconsOff(i) = textureMap.registerSprite(new ResourceLocation("projectred:blocks/lighting/lampoff/"+i))
-        }
-    }
-}
 
 object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRenderer
-{//TODO, This can be optimized in 1.12. CCL has model wrapping.
+://TODO, This can be optimized in 1.12. CCL has model wrapping.
     val iconsOn = new Array[TextureAtlasSprite](16)
     val iconsOff = new Array[TextureAtlasSprite](16)
 
@@ -127,7 +117,6 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
     override def renderItem(item:ItemStack, transformType: TransformType): Unit =
-    {
         import scala.jdk.CollectionConverters.*
         val meta = item.getItemDamage
         val icon = new IconTransformation(if meta > 15 then LampRenderer.iconsOn(meta%16) else LampRenderer.iconsOff(meta))
@@ -142,44 +131,34 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
         val model = ModelBakery.getCachedItemModel(item)
 
         renderQuads(model.getQuads(null, null, 0))
-        for face <- EnumFacing.VALUES do {
+        for face <- EnumFacing.VALUES do
             renderQuads(model.getQuads(null, face, 0))
-        }
 
-        def renderQuads(quads: JList[BakedQuad]) = {
-            for quad:BakedQuad <- quads.asScala do {
+        def renderQuads(quads: JList[BakedQuad]) =
+            for quad:BakedQuad <- quads.asScala do
                 ccrs.getBuffer.addVertexData(quad.getVertexData)
-            }
-        }
 
         ccrs.draw()
 
-        if meta > 15 then {
+        if meta > 15 then
             RenderHalo.prepareRenderState()
             RenderHalo.renderHalo(lBounds, meta%16, new RedundantTransformation)
             RenderHalo.restoreRenderState()
-        }
-    }
 
     private val lBounds = Cuboid6.full.copy.expand(0.05D)
 
     override def render(tile:TileLamp, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float): Unit =
-    {
         if tile.isOn then
             RenderHalo.addLight(tile.getPos, tile.getColor, lBounds)
-    }
 
-}
 
 class TileLamp extends MTBlockTile with ILight
-{
+:
     var powered = false
     var shape:Byte = 0
 
     def setShape(colour:Int, inverted:Boolean): Unit =
-    {
         shape = (colour&0xF | (if inverted then 1 else 0) << 4).toByte
-    }
 
     def getColor = shape&0xF
     def getInverted = (shape&0x10) != 0
@@ -191,80 +170,57 @@ class TileLamp extends MTBlockTile with ILight
     override def getPickBlock = new ItemStack(getBlock, 1, getColor+(if getInverted then 16 else 0))
 
     override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack): Unit =
-    {
         setShape(stack.getItemDamage%16, stack.getItemDamage > 15)
         //scheduleTick(2)
         updateState(true)
-    }
 
     override def getLightValue = if getInverted != powered then
         IlluminationProxy.getLightValue(getColor, 15) else 0
 
     override def onNeighborBlockChange(): Unit =
-    {
         if !world.isRemote then updateState(false)//scheduleTick(2)
-    }
 
     def checkPower =
-    {
         world.getRedstonePowerFromNeighbors(pos) != 0 ||
             world.getStrongPower(pos) != 0
-    }
 
     def updateState(forceRender:Boolean): Unit =
-    {
         var updated = false
-        if !world.isRemote then {
+        if !world.isRemote then
             val old = powered
             powered = checkPower
-            if old != powered then {
+            if old != powered then
                 updated = true
                 updateRender()
-            }
-        }
         if forceRender && !updated then updateRender()
-    }
 
     def updateRender(): Unit =
-    {
         if !world.isRemote then markDescUpdate()
         markLight()
         markRender()
-    }
 
     override def onScheduledTick(): Unit =
-    {
         updateState(false)
-    }
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         tag.setByte("sh", shape)
         tag.setBoolean("pow", powered)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         shape = tag.getByte("sh")
         powered = tag.getBoolean("pow")
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         out.writeByte(shape).writeBoolean(powered)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         shape = in.readByte()
         powered = in.readBoolean()
         markRender()
         markLight()
-    }
-}
 
 class BlockAirousLight extends BlockCore(Material.AIR)
-{
+:
     override def getRenderType(state:IBlockState) = EnumBlockRenderType.INVISIBLE
 
     override def getCollisionBoundingBox(blockState:IBlockState, worldIn:IBlockAccess, pos:BlockPos) = null
@@ -317,54 +273,41 @@ class BlockAirousLight extends BlockCore(Material.AIR)
     }
 
     override def getLightValue(state:IBlockState, world:IBlockAccess, pos:BlockPos) =
-        world.getTileEntity(pos) match {
+        world.getTileEntity(pos) match
             case t:TileAirousLight => t.lightVal
             case _ => 0
-        }
-}
 
 class TileAirousLight extends TileEntity with ITickable
-{
+:
     private var sourcePos = BlockPos.ORIGIN
     private var sourcePartID = -1
     private var color = -1
     private var delay = 100
 
     override def update(): Unit =
-    {
-        if !world.isRemote then {
+        if !world.isRemote then
             if {delay -= 1; delay} > 0 then return
             delay = world.rand.nextInt(100)
 
             val light = getLight
             if light == null || !light.isOn || light.getColor != color then
                 world.setBlockToAir(pos)
-        }
-    }
 
     private def getLight:ILight =
-    {
-        if sourcePartID > -1 then {
-            BlockMultipart.getPart(world, sourcePos, sourcePartID) match {
+        if sourcePartID > -1 then
+            BlockMultipart.getPart(world, sourcePos, sourcePartID) match
                 case light:ILight => return light
                 case _ =>
-            }
-        }
-        world.getTileEntity(sourcePos) match {
+        world.getTileEntity(sourcePos) match
             case l:ILight => l
             case _ => null
-        }
-    }
 
     def setSource(pos:BlockPos, color:Int, partID:Int) =
-    {
         sourcePos = pos
         this.color = color
         sourcePartID = partID
-    }
 
     override def readFromNBT(tag:NBTTagCompound): Unit =
-    {
         super.readFromNBT(tag)
         val x = tag.getInteger("sX")
         val y = tag.getInteger("sY")
@@ -372,10 +315,8 @@ class TileAirousLight extends TileEntity with ITickable
         sourcePos = new BlockPos(x, y, z)
         sourcePartID = tag.getByte("spID")
         color = tag.getByte("col")
-    }
 
     override def writeToNBT(tag:NBTTagCompound) =
-    {
         super.writeToNBT(tag)
         tag.setInteger("sX", sourcePos.getX)
         tag.setInteger("sY", sourcePos.getY)
@@ -383,7 +324,5 @@ class TileAirousLight extends TileEntity with ITickable
         tag.setByte("spID", sourcePartID.asInstanceOf[Byte])
         tag.setByte("col", color.asInstanceOf[Byte])
         tag
-    }
 
     def lightVal = IlluminationProxy.getLightValue(color, 15)
-}

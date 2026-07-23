@@ -9,22 +9,19 @@ import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.OreDictionary.*
 
 trait TRecipeObject
-{
+:
     def matches(that:ItemKeyStack):Boolean
-}
 
 trait RecipeInput extends TRecipeObject
-{
+:
     def matchingInputs:Seq[ItemStack]
-}
 
 trait RecipeOutput extends TRecipeObject
-{
+:
     def createOutput:ItemStack
-}
 
 class ItemIn(val key:ItemKeyStack) extends RecipeInput
-{
+:
     def this(s:ItemStack) = this(ItemKeyStack.get(s))
     def this(b:Block) = this(new ItemStack(b))
     def this(i:item.Item) = this(new ItemStack(i))
@@ -39,10 +36,9 @@ class ItemIn(val key:ItemKeyStack) extends RecipeInput
 
     val ins = Seq(key.makeStack)
     override def matchingInputs = ins
-}
 
 class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
-{
+:
     import scala.jdk.CollectionConverters.*
     def this(id:Int) = this(Seq(id))
     def this(name:String) = this(getOreID(name))
@@ -52,17 +48,14 @@ class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
     def this(stack:ItemKeyStack) = this(stack.makeStack)
 
     def matches(that:ItemKeyStack) =
-    {
         getOreIDs(that.makeStack).exists(oreIDs contains _)
-    }
 
     val ins: Seq[ItemStack] = oreIDs.map(getOreName).flatMap(name => getOres(name).asScala.toIndexedSeq)
 
     override def matchingInputs: Seq[ItemStack] = ins
-}
 
 class ItemOut(val key:ItemKeyStack) extends RecipeOutput
-{
+:
     def this(s:ItemStack) = this(ItemKeyStack.get(s))
     def this(b:Block) = this(new ItemStack(b))
     def this(i:Item) = this(new ItemStack(i))
@@ -71,10 +64,9 @@ class ItemOut(val key:ItemKeyStack) extends RecipeOutput
         key == that
 
     override def createOutput = key.makeStack
-}
 
 object MicroIn
-{
+:
     //class ids
     def face = FaceMicroFactory.getFactoryID
     def hollowFace = HollowMicroFactory.getFactoryID
@@ -85,7 +77,6 @@ object MicroIn
     val eight = 1
     val fourth = 2
     val half = 4
-}
 
 class MicroIn(factoryID:Int, size:Int, material:String) extends RecipeInput
 {

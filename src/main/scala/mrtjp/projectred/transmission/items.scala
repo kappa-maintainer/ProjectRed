@@ -17,53 +17,42 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class ItemPartWire extends ItemCore with TItemMultiPart
-{
+:
     setHasSubtypes(true)
     setCreativeTab(ProjectRedTransmission.tabTransmission)
 
     def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3) =
-    {
         val onPos = pos.offset(EnumFacing.values()(side^1))
         if !PRLib.canPlaceWireOnSide(world, onPos, side) then null
-        else {
+        else
             val wiredef = WireDef.values(item.getItemDamage)
             val w = MultiPartRegistry.loadPart(wiredef.wireType, null).asInstanceOf[WirePart]
             if w != null then w.preparePlacement(side, item.getItemDamage)
             w
-        }
-    }
 
     @SideOnly(Side.CLIENT)
     override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
-    {
         if isInCreativeTab(tab) then
             for w <- WireDef.values do
                 if w.hasWireForm then list.add(w.makeStack)
-    }
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
-}
 
 class ItemPartFramedWire extends ItemCore with TItemMultiPart
-{
+:
     setHasSubtypes(true)
     setCreativeTab(ProjectRedTransmission.tabTransmission)
 
     def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3) =
-    {
         val wiredef = WireDef.values(item.getItemDamage)
         val w = MultiPartRegistry.loadPart(wiredef.framedType, null).asInstanceOf[FramedWirePart]
         if w != null then w.preparePlacement(side, item.getItemDamage)
         w
-    }
 
     @SideOnly(Side.CLIENT)
     override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
-    {
         if isInCreativeTab(tab) then
             for w <- WireDef.values do
                 if w.hasFramedForm then list.add(w.makeFramedStack)
-    }
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
-}

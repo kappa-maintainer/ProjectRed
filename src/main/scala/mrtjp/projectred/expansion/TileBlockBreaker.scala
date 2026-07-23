@@ -22,7 +22,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import scala.jdk.CollectionConverters.*
 
 class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IRedstoneConnector with TNonStickableFrontFace
-{
+:
     override def getBlock = ProjectRedExpansion.machine2
     override def doesRotate = false
     override def doesOrient = true
@@ -32,7 +32,6 @@ class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IReds
     override def canConnectSide(side:Int) = side == this.side
 
     override def onActivate(): Unit =
-    {
         val bc = getPos.offset(EnumFacing.VALUES(side^1))
         val state = world.getBlockState(bc)
 
@@ -45,21 +44,18 @@ class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IReds
         world.playEvent(null, 2001, getPos, Block.getStateId(state))
         world.setBlockToAir(bc)
         exportBuffer()
-    }
 
     def getHarvestLevel = 2
 
     override def getConnectionMask(side:Int) = if (side^1) == this.side then 0 else 0x1F
     override def weakPowerLevel(side:Int, mask:Int) = 0
-}
 
 class TileDiamondBlockBreaker extends TileBlockBreaker
-{
+:
     override def getHarvestLevel = 3
-}
 
 class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
-{
+:
     import java.lang.{Boolean as JBool, Integer as JInt}
 
     import mrtjp.projectred.expansion.BlockProperties.*
@@ -74,7 +70,7 @@ class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
     var iconT1:UVTransformation = scala.compiletime.uninitialized
     var iconT2:UVTransformation = scala.compiletime.uninitialized
 
-    override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos):IExtendedBlockState = world.getTileEntity(pos) match {
+    override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos):IExtendedBlockState = world.getTileEntity(pos) match
         case t:TActiveDevice => {
             var s = state
             s = s.withProperty(UNLISTED_SIDE_PROPERTY, t.side.asInstanceOf[JInt])
@@ -83,22 +79,19 @@ class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
             s.withProperty(UNLISTED_POWERED_PROPERTY, t.powered.asInstanceOf[JBool])
         }
         case _ => state
-    }
 
-    override def getWorldTransforms(state:IExtendedBlockState) = {
+    override def getWorldTransforms(state:IExtendedBlockState) =
         val side = state.getValue(UNLISTED_SIDE_PROPERTY)
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val active = state.getValue(UNLISTED_ACTIVE_PROPERTY).asInstanceOf[Boolean]
         val powered = state.getValue(UNLISTED_POWERED_PROPERTY).asInstanceOf[Boolean]
         Triple.of(side, rotation, if active || powered then iconT2 else iconT1)
-    }
 
     override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = true
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         bottom = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/bottom"))
         top1 = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/top1"))
         side1 = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/side1"))
@@ -107,8 +100,6 @@ class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
 
         iconT1 = new MultiIconTransformation(bottom, top1, side1, side1, side1, side1)
         iconT2 = new MultiIconTransformation(bottom, top2, side2, side2, side2, side2)
-    }
-}
 
 object RenderBlockBreaker extends RenderBlockBreakerBase("breaker")
 

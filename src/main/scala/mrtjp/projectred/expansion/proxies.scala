@@ -28,9 +28,8 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class ExpansionProxy_server extends IProxy with IPartFactory
-{
+:
     def preinit(): Unit =
-    {
         PacketCustom.assignHandler(ExpansionSPH.channel, ExpansionSPH)
 
         MultiPartRegistry.registerParts(this, Array(SolarPanelPart.typeID))
@@ -97,30 +96,22 @@ class ExpansionProxy_server extends IProxy with IPartFactory
         machine2.addTile(classOf[TileProjectBench], 10)
         machine2.addTile(classOf[TileAutoCrafter], 11)
         machine2.addTile(classOf[TileDiamondBlockBreaker], 12)
-    }
 
     def init(): Unit =
-    {
         CapabilityTeleposedEnderPearl.registerCapability()
-    }
 
     def postinit(): Unit =
-    {
         InductiveFurnaceRecipeLib.init()
 
         SpacebarServerTracker.register()
         ForwardServerTracker.register()
-    }
 
     override def createPart(name:ResourceLocation, client:Boolean):TMultiPart = name match
-    {
         case SolarPanelPart.typeID => new SolarPanelPart
         case _ => null
-    }
-}
 
 class ExpansionProxy_client extends ExpansionProxy_server
-{
+:
     val furnaceGui = 20
     val generatorGui = 21
 
@@ -133,7 +124,6 @@ class ExpansionProxy_client extends ExpansionProxy_server
 
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
         PacketCustom.assignHandler(ExpansionCPH.channel, ExpansionCPH)
 
@@ -295,11 +285,9 @@ class ExpansionProxy_client extends ExpansionProxy_server
 
         registerBlockToBakery(machine1, machine1Bakery.registerKeyGens(machine1), new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
         registerBlockToBakery(machine2, machine2Bakery.registerKeyGens(machine2), new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
-    }
 
     @SideOnly(Side.CLIENT)
     def registerBlockToBakery(block:Block, iconRegister:IIconRegister, stateMap:IStateMapper) =
-    {
         val model = new CCBakeryModel()
         val regLoc = block.getRegistryName
         ModelLoader.setCustomStateMapper(block, stateMap)
@@ -307,20 +295,15 @@ class ExpansionProxy_client extends ExpansionProxy_server
             override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(regLoc, "normal")
         })
         ModelRegistryHelper.register(new ModelResourceLocation(regLoc, "normal"), model)
-        if iconRegister != null then {
+        if iconRegister != null then
             TextureUtils.addIconRegister(iconRegister)
-        }
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
-    }
 
     @SideOnly(Side.CLIENT)
     override def postinit(): Unit =
-    {
         super.postinit()
 
         GuiHandler.register(GuiInductiveFurnace, furnaceGui)
@@ -336,21 +319,17 @@ class ExpansionProxy_client extends ExpansionProxy_server
         ForwardClientTracker.register()
 
         ItemJetpack.register()
-    }
-}
 
 object ExpansionProxy extends ExpansionProxy_client
 
 object SpacebarServerTracker extends TServerKeyTracker
 object SpacebarClientTracker extends TClientKeyTracker
-{
+:
     override def getTracker = SpacebarServerTracker
     override def getIsKeyDown = Minecraft.getMinecraft.gameSettings.keyBindJump.isKeyDown
-}
 
 object ForwardServerTracker extends TServerKeyTracker
 object ForwardClientTracker extends TClientKeyTracker
-{
+:
     override def getTracker = ForwardServerTracker
     override def getIsKeyDown = Minecraft.getMinecraft.gameSettings.keyBindForward.isKeyDown
-}

@@ -25,7 +25,7 @@ import scala.collection.immutable.Queue
 import scala.collection.mutable.{Set as MSet}
 
 object RouteFX2
-{
+:
     val color_receive = EnumColour.ORANGE.ordinal
     val color_send = EnumColour.PURPLE.ordinal
     val color_relay = EnumColour.CYAN.ordinal
@@ -42,14 +42,11 @@ object RouteFX2
 
     //type 1 - expanding bubble
     def spawnType1(colour:Int, pipe:TNetworkPipe): Unit =
-    {
         if !pipe.world.isRemote then sendPacket(pipe.world, pipe.posOfInternal, 1, colour, -1)
         else spawnType1_do(colour, pipe)
-    }
 
     @SideOnly(Side.CLIENT)
     private def spawnType1_do(colour:Int, pipe:TNetworkPipe): Unit =
-    {
         if isFXDisabled then return
 
         val c1 = EnumColour.BLACK
@@ -79,18 +76,14 @@ object RouteFX2
             kill()
         )
         particle.runAction(act)
-    }
 
     //type 2 - 1 meter exit beam
     def spawnType2(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
-    {
         if !pipe.world.isRemote then sendPacket(pipe.world, pipe.posOfInternal, 2, colour, dir)
         else spawnType2_do(colour, dir, pipe)
-    }
 
     @SideOnly(Side.CLIENT)
     private def spawnType2_do(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
-    {
         if isFXDisabled then return
 
         val c1 = EnumColour.BLACK
@@ -119,18 +112,14 @@ object RouteFX2
             kill()
         )
         beam.runAction(act)
-    }
 
     //type 3 - router to router path finding beam
     def spawnType3(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
-    {
         if !pipe.world.isRemote then sendPacket(pipe.world, pipe.posOfInternal, 3, colour, dir)
         else spawnType3_do(colour, dir, pipe)
-    }
 
     @SideOnly(Side.CLIENT)
     private def spawnType3_do(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
-    {
         if isFXDisabled then return
 
         val paths = BeamPathFinder.findPaths(pipe, dir)
@@ -151,7 +140,7 @@ object RouteFX2
             kill()
         )
 
-        for path <- paths do if path.size > 1 then {
+        for path <- paths do if path.size > 1 then
             val beam = new BeamMulti(pipe.world)
             Minecraft.getMinecraft.effectRenderer.addEffect(beam)
             beam.setMaxAge(20)
@@ -160,41 +149,31 @@ object RouteFX2
             beam.alpha = 0
             beam.setRGB(c1.rF, c1.gF, c1.bF)
             beam.runAction(act)
-        }
-    }
 
     def sendPacket(w:World, pos:BlockPos, id:Int, colour:Int, dir:Int): Unit =
-    {
         val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.particle_Spawn)
         packet.writeByte(id)
         packet.writeByte(colour).writePos(pos)
         if dir != -1 then packet.writeByte(dir)
         packet.sendPacketToAllAround(pos, 64, w.provider.getDimension)
-    }
 
     def handleClientPacket(in:MCDataInput, w:World): Unit =
-    {
         val id = in.readUByte()
         val colour = in.readUByte()
-        BlockMultipart.getPart(w, in.readPos(), 6) match {
-            case pipe:TNetworkPipe => id match {
+        BlockMultipart.getPart(w, in.readPos(), 6) match
+            case pipe:TNetworkPipe => id match
                 case 1 => spawnType1_do(colour, pipe.asInstanceOf[TNetworkPipe])
                 case 2 => spawnType2_do(colour, in.readUByte(), pipe.asInstanceOf[TNetworkPipe])
                 case 3 => spawnType3_do(colour, in.readUByte(), pipe.asInstanceOf[TNetworkPipe])
                 case _ =>
-            }
             case _ =>
-        }
-    }
-}
 
 object BeamPathFinder
-{
+:
     private var pipe:TNetworkPipe = null
     private val paths = MSet[Seq[Int]]()
 
     def findPaths(p:TNetworkPipe, dir:Int):Set[Seq[Vector3]] =
-    {
         pipe = p
 
         val pos = pipe.pos
@@ -206,33 +185,25 @@ object BeamPathFinder
         pipe = null
         paths.clear()
         result.map(traceAndVectorize(pos, _))
-    }
 
     @tailrec
     private def iterate(open:Seq[Node], closed:Set[Node] = Set.empty):Unit = open match
-    {
         case Seq() =>
         case Seq(next, rest*) => getMultiPart(next.pos) match
-        {
             case iwr:(IRouterContainer & TNetworkPipe) =>
                 if !closed.exists(_.pos == next.pos) then paths += next.path
                 iterate(rest, closed+next)
             case p:TNetworkSubsystem =>
                 val upNext = Seq.newBuilder[Node]
                 for s <- 0 until 6 do if s != (next.dir^1) && p.maskConnects(s) then
-                {
                     val route = next --> (s, p.getPathWeight)
                     if !closed(route) && !open.contains(route) then upNext += route
-                }
                 iterate(rest++upNext.result(), closed+next)
             case _ => iterate(rest, closed+next)
-        }
-    }
 
     private def getMultiPart(pos:BlockPos) = BlockMultipart.getPart(pipe.world, pos, 6)
 
     private def traceAndVectorize(start:BlockPos, path:Seq[Int]):Seq[Vector3] =
-    {
         val newList = Seq.newBuilder[BlockPos]
         val iterator = path.iterator
 
@@ -240,43 +211,33 @@ object BeamPathFinder
         var pos = new MutableBlockPos(start)
 
         while iterator.hasNext do
-        {
             val dir = iterator.next()
             if dir == prev then pos.move(EnumFacing.values()(dir))
-            else {
+            else
                 newList += pos.toImmutable
                 pos.move(EnumFacing.values()(dir))
                 prev = dir
-            }
-        }
 
         newList += pos.toImmutable
         newList.result().map(Vector3.fromBlockPosCenter)
-    }
-}
 
 private object Node
-{
+:
     def apply(pos:BlockPos):Node = new Node(pos, 0, 6)
     def apply(pos:BlockPos, dir:Int):Node = new Node(pos.offset(EnumFacing.values()(dir)), 1, dir, Seq(dir))
-}
 private class Node(val pos:BlockPos, val dist:Int, val dir:Int, val path:Seq[Int] = Seq.empty) extends Ordered[Node]
 {
     def -->(toDir:Int, distAway:Int):Node =
-    {
         val bc2 = pos.offset(EnumFacing.values()(toDir))
         new Node(bc2, dist+distAway, toDir, path :+ toDir)
-    }
     def -->(toDir:Int):Node = this -->(toDir, 1)
 
     override def compare(that:Node) = dist-that.dist
 
     override def equals(other:Any) = other match
-    {
         case that:Node =>
             pos == that.pos && dir == that.dir
         case _ => false
-    }
 
     override def hashCode = pos.hashCode
 

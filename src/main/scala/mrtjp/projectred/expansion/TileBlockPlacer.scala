@@ -45,23 +45,17 @@ import scala.collection.mutable.{Stack as MStack}
 import scala.ref.WeakReference
 
 class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory with TInventoryCapablilityTile with IRedstoneConnector with TNonStickableFrontFace
-{
+:
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         saveInv(tag)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         loadInv(tag)
-    }
 
     override def markDirty(): Unit =
-    {
         super.markDirty()
-    }
 
     override def getDisplayName = super.getDisplayName
     override def getBlock = ProjectRedExpansion.machine2
@@ -75,32 +69,25 @@ class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory wit
     override def getName = "block_placer"
 
     def locateFakePlayer(): Unit =
-    {
         val pos = new Vector3(x, y, z).add(positions(side))
         val (pitch, yaw) = angles(side)
         fakePlayer.setLocationAndAngles(pos.x, pos.y, pos.z, yaw, pitch)
-    }
 
     override def onBlockRemoval(): Unit =
-    {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
-    }
 
     override def onBlockActivated(player:EntityPlayer, actside:Int):Boolean =
-    {
         if super.onBlockActivated(player, actside) then return true
 
         if !world.isRemote then
             GuiBlockPlacer.open(player, createContainer(player), _.writePos(getPos))
         true
-    }
 
     def createContainer(player:EntityPlayer) =
         new ContainerBlockPlacer(player, this)
 
     override def onActivate(): Unit =
-    {
         if world.isRemote then return
         spawnFakePlayer(world.asInstanceOf[WorldServer])
 
@@ -111,45 +98,33 @@ class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory wit
         locateFakePlayer()
 
         var used = false
-        for i <- 0 until 9 do if !used then {
+        for i <- 0 until 9 do if !used then
             val stack = getStackInSlot(i)
-            if !stack.isEmpty && tryUseItem(stack, upos, i) then {
+            if !stack.isEmpty && tryUseItem(stack, upos, i) then
                 if fakePlayer.isHandActive then fakePlayer.stopActiveHand()
                 used = true
-            }
-        }
         copyInvFromPlayer()
         popFakePlayerData()
-    }
 
     def copyInvToPlayer(): Unit =
-    {
         for i <- 0 until 9 do
             fakePlayer.inventory.setInventorySlotContents(i, getStackInSlot(i))
-    }
 
     def copyInvFromPlayer(): Unit =
-    {
         for i <- 0 until 9 do
             setInventorySlotContents(i, fakePlayer.inventory.getStackInSlot(i))
-    }
     //TODO
     //FIXME This all need a complete rewrite due to the new interaction system.
     def tryUseItem(stack:ItemStack, pos:BlockPos, slot:Int) =
-    {
         fakePlayer.inventory.currentItem = slot
 
-        try {
+        try
             tryRightClick(stack, pos, slot) || tryEntityClick(stack, pos)
-        } catch {
+        catch
             case e:Throwable => false
-        }
-    }
 
     def tryRightClick(stack:ItemStack, pos:BlockPos, slot:Int):Boolean =
-    {
         def tryUse(pos:BlockPos):Boolean =
-        {
             //TODO, Ensure the fake players's inventory is setup properly. We can no longer pass a stack here, so the implementor gets it from the player with the given hand.
             val event = ForgeHooks.onRightClickBlock(fakePlayer, EnumHand.MAIN_HAND, pos, EnumFacing.UP, new Vec3d(0.5, 0.5, 0.5))
             if event.isCanceled || event.getUseBlock == Event.Result.DENY then return false
@@ -157,69 +132,56 @@ class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory wit
             import EnumActionResult.*
 
             stack.onItemUseFirst(fakePlayer, world, pos, EnumHand.MAIN_HAND,
-                EnumFacing.UP, 0.5F, 0.5f, 0.5F) match {
+                EnumFacing.UP, 0.5F, 0.5f, 0.5F) match
                 case FAIL => return false
                 case SUCCESS => return true
                 case PASS =>
-            }
 
             stack.onItemUse(fakePlayer, world, pos, EnumHand.MAIN_HAND,
-                EnumFacing.UP, 0.5f, 0.5f, 0.5f) match {
+                EnumFacing.UP, 0.5f, 0.5f, 0.5f) match
                 case FAIL => return false
                 case SUCCESS => return true
                 case PASS =>
-            }
 
             val size = stack.getCount
             val result = stack.useItemRightClick(world, fakePlayer, EnumHand.MAIN_HAND)
             val resStack = result.getResult
-            if stack != resStack || resStack.getCount != size then {
+            if stack != resStack || resStack.getCount != size then
                 fakePlayer.setHeldItem(EnumHand.MAIN_HAND, resStack)
-                if resStack.isEmpty then {
+                if resStack.isEmpty then
                     ForgeEventFactory.onPlayerDestroyItem(fakePlayer, stack, EnumHand.MAIN_HAND)
-                }
-            }
-            result.getType match {
+            result.getType match
                 case FAIL => return false
                 case SUCCESS => return true
                 case PASS =>
-            }
 
             false
-        }
 
         if tryUse(pos) then return true
         if tryUse(pos.down) then return true
 
         false
-    }
 
     def tryEntityClick(stack:ItemStack, pos:BlockPos):Boolean =
-    {
         val start = Vector3.fromBlockPosCenter(pos)
         val end = Vector3.fromBlockPosCenter(pos.offset(EnumFacing.VALUES(side^1), 2))
         val e = traceEntityHits(start, end)
         e != null && useOnEntity(stack, e)
-    }
 
     def useOnEntity(stack:ItemStack, e:Entity):Boolean =
-    {
         import EnumActionResult.*
         //TODO Same here.
-        e.applyPlayerInteraction(fakePlayer, new Vec3d(0, 0, 0), EnumHand.MAIN_HAND) match {
+        e.applyPlayerInteraction(fakePlayer, new Vec3d(0, 0, 0), EnumHand.MAIN_HAND) match
             case FAIL => return false
             case SUCCESS => return true
             case PASS =>
-        }
 
         if e.isInstanceOf[EntityLivingBase] then
             if stack.interactWithEntity(fakePlayer, e.asInstanceOf[EntityLivingBase], EnumHand.MAIN_HAND) then
                 return true
         false
-    }
 
     def traceEntityHits(start:Vector3, end:Vector3): Entity =
-    {
         val box = new Cuboid6(0, 1, 0, 1, 3.5, 1).apply(rotationT).add(pos)
         val elist = world.getEntitiesWithinAABBExcludingEntity(fakePlayer, box.aabb)
 
@@ -235,30 +197,25 @@ class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory wit
         else
             null
 
-    }
 
     override def getConnectionMask(side:Int) = if (side^1) == this.side then 0 else 0x1F
     override def weakPowerLevel(side:Int, mask:Int) = 0
 
-    override def hasCapability(capability: Capability[?], facing: EnumFacing): Boolean = {
+    override def hasCapability(capability: Capability[?], facing: EnumFacing): Boolean =
         if capability == IRelocationAPI.FRAME_CAPABILITY then return true
         super.hasCapability(capability, facing)
-    }
 
-    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
+    override def getCapability[T](capability: Capability[T], facing: EnumFacing): T =
         if capability == IRelocationAPI.FRAME_CAPABILITY then return this.asInstanceOf[T]
         super.getCapability(capability, facing)
-    }
-}
 
 trait TNonStickableFrontFace extends TTileOrient with IFrame
-{
+:
     override def stickOut(w:World, pos:BlockPos, side:EnumFacing) = false
     override def stickIn(w:World, pos:BlockPos, side:EnumFacing) = (this.side^1) != side.getIndex
-}
 
 object TileBlockPlacer
-{
+:
     var fakePlayerWeakRef = WeakReference[EntityPlayer](null)
     val fakePlayerDataStack = new MStack[(Vector3, Float, Float, IInventory)]()
 
@@ -283,14 +240,11 @@ object TileBlockPlacer
     )
 
     def spawnFakePlayer(world:WorldServer): Unit =
-    {
         if fakePlayer == null then
             fakePlayerWeakRef = WeakReference(FakePlayerFactory.get(world,
                 new GameProfile(UUID.randomUUID(), "[PR_FAKE]")))
-    }
 
     def pushFakePlayerData(): Unit =
-    {
         val size = fakePlayer.inventory.getSizeInventory
         val inv = new SimpleInventory(size)
         for i <- 0 until size do
@@ -299,61 +253,45 @@ object TileBlockPlacer
         val yaw = fakePlayer.rotationYaw
         val pitch = fakePlayer.rotationPitch
         fakePlayerDataStack.push((pos, yaw, pitch, inv))
-    }
 
     def popFakePlayerData(): Unit =
-    {
         val (pos, yaw, pitch, inv) = fakePlayerDataStack.pop()
         for i <- 0 until inv.getSizeInventory do
             fakePlayer.inventory.setInventorySlotContents(i, inv.getStackInSlot(i))
         fakePlayer.setLocationAndAngles(pos.x, pos.y, pos.z, yaw, pitch)
-    }
-}
 
 class ContainerBlockPlacer(p:EntityPlayer, tile:TileBlockPlacer) extends NodeContainer
-{
-    {
+:
         var s = 0
         for (x, y) <- GuiLib.createSlotGrid(62, 18, 3, 3, 0, 0) do
-        {
             addSlotToContainer(new Slot3(tile, s, x, y))
             s += 1
-        }
         addPlayerInv(p, 8, 86)
-    }
-}
 
 class GuiBlockPlacer(c:ContainerBlockPlacer) extends NodeGui(c, 176, 168)
-{
+:
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiBlockPlacer.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, 176, 168)
         GuiDraw.drawString("Block Placer", 8, 6, EnumColour.GRAY.argb, false)
         GuiDraw.drawString("Inventory", 8, 75, EnumColour.GRAY.argb, false)
-    }
-}
 
 object GuiBlockPlacer extends TGuiFactory
-{
+:
     val background = new ResourceLocation("projectred", "textures/gui/placer.png")
 
     override def getID = ExpansionProxy.blockPlacerGui
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
-        val t = player.world.getTileEntity(data.readPos()) match {
+        val t = player.world.getTileEntity(data.readPos()) match
             case tile:TileBlockPlacer => tile
             case _ => null
-        }
         if t != null then new GuiBlockPlacer(t.createContainer(player))
         else null
-    }
-}
 
 object RenderBlockPlacer extends SimpleBlockRenderer
-{
+:
     import java.lang.{Boolean as JBool, Integer as JInt}
 
     import mrtjp.projectred.expansion.BlockProperties.*
@@ -370,7 +308,7 @@ object RenderBlockPlacer extends SimpleBlockRenderer
     var iconT1:UVTransformation = scala.compiletime.uninitialized
     var iconT2:UVTransformation = scala.compiletime.uninitialized
 
-    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
+    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match
         case t: TActiveDevice => {
             var s = state
             s = s.withProperty(UNLISTED_SIDE_PROPERTY, t.side.asInstanceOf[JInt])
@@ -379,21 +317,18 @@ object RenderBlockPlacer extends SimpleBlockRenderer
             s.withProperty(UNLISTED_POWERED_PROPERTY, t.powered.asInstanceOf[JBool])
         }
         case _ => state
-    }
 
-    override def getWorldTransforms(state: IExtendedBlockState) = {
+    override def getWorldTransforms(state: IExtendedBlockState) =
         val side = state.getValue(UNLISTED_SIDE_PROPERTY)
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val active = state.getValue(UNLISTED_ACTIVE_PROPERTY).asInstanceOf[Boolean]
         val powered = state.getValue(UNLISTED_POWERED_PROPERTY).asInstanceOf[Boolean]
         Triple.of(side, rotation, if active || powered then iconT2 else iconT1)
-    }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
     override def shouldCull() = true
 
     def getIcon(s:Int, meta:Int) = s match
-    {
         case 0 => bottom
         case 1 => topA
         case 2 => side1A
@@ -401,10 +336,8 @@ object RenderBlockPlacer extends SimpleBlockRenderer
         case 4 => side2A
         case 5 => side2A
         case _ => bottom
-    }
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         def register(s:String) = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/placer/$s"))
         bottom = register("bottom")
 
@@ -418,5 +351,3 @@ object RenderBlockPlacer extends SimpleBlockRenderer
 
         iconT1 = new MultiIconTransformation(bottom, topA, side1A, side1A, side2A, side2A)
         iconT2 = new MultiIconTransformation(bottom, topB, side1B, side1B, side2B, side2B)
-    }
-}

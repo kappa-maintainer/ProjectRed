@@ -10,9 +10,8 @@ import scala.jdk.CollectionConverters.*
 
 @JEIPlugin
 class ExpansionJEIPlugin extends IModPlugin
-{
+:
     override def register(registry:IModRegistry): Unit =
-    {
         //Inductive furnace
         registry.addRecipeCatalyst(new ItemStack(machine1, 1, 0), SMELTING)
         registry.addRecipeClickArea(classOf[GuiInductiveFurnace], 76, 36, 30, 23, SMELTING)
@@ -25,13 +24,11 @@ class ExpansionJEIPlugin extends IModPlugin
 
         //Auto crafting table
         registry.addRecipeCatalyst(new ItemStack(machine2, 1, 11), CRAFTING) //auto crafting bench
-    }
 
     override def onRuntimeAvailable(jeiRuntime:IJeiRuntime): Unit ={}
-}
 
 object ProjectBenchRecipeTransferInfo extends IRecipeTransferInfo[ContainerProjectBench]
-{
+:
     override def getRecipeCategoryUid = CRAFTING
 
     override def getContainerClass = classOf[ContainerProjectBench]
@@ -41,4 +38,3 @@ object ProjectBenchRecipeTransferInfo extends IRecipeTransferInfo[ContainerProje
     override def getInventorySlots(container:ContainerProjectBench) = ((9 until 27) ++ (29 until 65) map container.getSlot).asJava
 
     override def canHandle(container: ContainerProjectBench) = true//TODO??
-}

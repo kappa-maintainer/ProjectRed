@@ -30,18 +30,16 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import scala.jdk.CollectionConverters.*
 
 class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOcclusionPart with TIconHitEffectsPart// with ICapabilityProvider
-{
+:
     override val getType = FramePart.partType
 
-    override def stickOut(w:World, pos:BlockPos, side:EnumFacing) = tile.partMap(side.ordinal) match {
+    override def stickOut(w:World, pos:BlockPos, side:EnumFacing) = tile.partMap(side.ordinal) match
         case part:CommonMicroblock => part.getSize != 1
         case _ => true
-    }
 
-    override def stickIn(w:World, pos:BlockPos, side:EnumFacing) = tile.partMap(side.ordinal) match {
+    override def stickIn(w:World, pos:BlockPos, side:EnumFacing) = tile.partMap(side.ordinal) match
         case part:CommonMicroblock => part.getSize != 1
         case _ => true
-    }
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) =
         player.getDigSpeed(ProjectRedRelocation.blockFrame.getDefaultState, new BlockPos(0, -1, 0))
@@ -51,69 +49,53 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
 
     override def getBounds = Cuboid6.full
 
-    override def getOcclusionBoxes: java.lang.Iterable[Cuboid6] = {
-        FramePart.sideOccludeTest match {
+    override def getOcclusionBoxes: java.lang.Iterable[Cuboid6] =
+        FramePart.sideOccludeTest match
             case -1 => Seq().asJava
             case s => Seq(FramePart.aBounds(s)).asJava
-        }
-    }
 
     def sideOcclusionTest(side:Int) =
-    {
         FramePart.sideOccludeTest = side
         val fits = tile.canReplacePart(this, this)
         FramePart.sideOccludeTest = -1
         fits
-    }
 
     def sideOcclusionMask =
-    {
         var mask = 0
         for s <- 0 until 6 do if sideOcclusionTest(s) then mask |= 1<<s
         mask
-    }
 
     override def occlusionTest(npart:TMultiPart): Boolean =
-    {
         if npart.isInstanceOf[FramePart] then return false
 
         //modified normal occlusion test that also tests collision boxes
         if FramePart.sideOccludeTest != -1 then
-        {
             var boxes = Seq[Cuboid6]()
-            npart match {
+            npart match
                 case part: TNormalOcclusionPart => boxes ++= part.getOcclusionBoxes.asScala
                 case _ =>
-            }
-            npart match {
+            npart match
                 case part: TPartialOcclusionPart => boxes ++= part.getPartialOcclusionBoxes.asScala
                 case _ =>
-            }
             boxes ++= npart.getCollisionBoxes.asScala
 
             NormalOcclusionTest(boxes, getOcclusionBoxes.asScala)
-        }
         else super.occlusionTest(npart)
-    }
 
     override def collisionRayTrace(start:Vec3d, end:Vec3d) =
-    {
-        FrameModelGen.raytrace(pos, ~sideOcclusionMask,  start, end) match {
+        FrameModelGen.raytrace(pos, ~sideOcclusionMask,  start, end) match
             case mop:RayTraceResult =>
                 val cube = new IndexedCuboid6(0, Cuboid6.full)
                 val dist = start.squareDistanceTo(mop.hitVec)
                 new CuboidRayTraceResult(new Vector3(mop.hitVec), mop.getBlockPos, mop.sideHit, cube, dist)
             case null => null
-        }
-    }
 
-    override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) = layer match {
+    override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) = layer match
         case BlockRenderLayer.CUTOUT =>
             ccrs.setBrightness(world, this.pos)
             FrameRenderer.render(ccrs, pos, ~sideOcclusionMask)
             true
         case _ => super.renderStatic(pos, layer, ccrs)
-    }
 
     @SideOnly(Side.CLIENT)
     override def getBreakingIcon(hit:CuboidRayTraceResult) = getBrokenIcon(hit.sideHit.ordinal)
@@ -128,42 +110,36 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
 //        if (capability == CapabilityFrame.CAPABILITY) this.asInstanceOf[T]
 //        else null.asInstanceOf[T]
 //    }
-}
 
 object FramePart
-{
+:
     val partType = new ResourceLocation("projectred-relocation:partFrame")
 
     var sideOccludeTest = -1
 
     var aBounds = new Array[Cuboid6](6)
 
-    {
         val i = 4/16D
         val th = 1/16D
         for s <- 0 until 6 do
             aBounds(s) = new Cuboid6(i, 0, i, 1-i, th, 1-i)
                     .apply(sideRotations(s).at(center))
-    }
-}
 
 object FrameBlockConverter extends IPartConverter
-{
+:
     override def canConvert(world:World, pos:BlockPos, state:IBlockState) =
         state == ProjectRedRelocation.blockFrame.getDefaultState
 
     override def convert(world:World, pos:BlockPos, state:IBlockState) = new FramePart
-}
 
 object FMPTileHandler extends ITileMover
 {
-    override def canMove(w:World, pos:BlockPos) = w.getTileEntity(pos) match {
+    override def canMove(w:World, pos:BlockPos) = w.getTileEntity(pos) match
         case t:TileMultipart => true
         case _ => false
-    }
 
-    override def move(w:World, pos:BlockPos, dir:EnumFacing): Unit = {
-        WorldLib.uncheckedGetTileEntity(w, pos) match {
+    override def move(w:World, pos:BlockPos, dir:EnumFacing): Unit =
+        WorldLib.uncheckedGetTileEntity(w, pos) match
             case t:TileMultipart =>
                 t.invalidate()
                 WorldLib.uncheckedRemoveTileEntity(w, pos)
@@ -175,11 +151,8 @@ object FMPTileHandler extends ITileMover
                 t.validate()
                 WorldLib.uncheckedSetTileEntity(w, pos2, t)
             case _ =>
-        }
-    }
 
-    override def postMove(w:World, pos:BlockPos) = WorldLib.uncheckedGetTileEntity(w, pos) match {
+    override def postMove(w:World, pos:BlockPos) = WorldLib.uncheckedGetTileEntity(w, pos) match
         case te:TileMultipart => te.onMoved()
         case _ =>
-    }
 }

@@ -38,53 +38,39 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import scala.jdk.CollectionConverters.*
 
 class TileTeleposer extends TileMachine with TPoweredMachine
-{
+:
     var isCharged = false
     var storage = 0
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setInteger("storage", storage)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         storage = tag.getInteger("storage")
         isCharged = storage >= getTransportDraw
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         super.writeDesc(out)
         out.writeBoolean(isCharged)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         super.readDesc(in)
         isCharged = in.readBoolean()
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 2 => //doTransformFX()
         case 3 =>
             isCharged = in.readBoolean()
             markRender()
         case _ => super.read(in, key)
-    }
 
     def sendTransformFX(): Unit =
-    {
         writeStream(2).sendToChunk(this)
-    }
 
     def sendICUpdate(): Unit =
-    {
         writeStream(3).writeBoolean(storage >= getTransportDraw).sendToChunk(this)
-    }
 
     override def getBlock = ProjectRedExpansion.machine2
 
@@ -96,67 +82,48 @@ class TileTeleposer extends TileMachine with TPoweredMachine
     def getTransportDraw = 8000
 
     override def updateServer(): Unit =
-    {
         super.updateServer()
 
         if storage >= getTransportDraw then
-        {
             updateHeldItems()
             updateOrbits()
             if world.getTotalWorldTime%20 == 0 then
-            {
                 tryInfusePearlItem()
                 tryTransportEnderProjectile()
-            }
-        }
 
         if cond.charge > getDrawCeil && storage < getMaxStorage then
-        {
             var n = math.min(cond.charge-getDrawCeil, getDrawSpeed)/10
             n = math.min(n, getMaxStorage-storage)
             cond.drawPower(n*1000)
             storage += n
-        }
 
         if world.getTotalWorldTime%10 == 0 then updateRendersIfNeeded()
-    }
 
     override def updateClient(): Unit =
-    {
         super.updateClient()
 
-        if isCharged then {
+        if isCharged then
             updateOrbits()
             updateHeldItems()
             doPearlBeamFX()
             doRandomSparklies()
-        }
-    }
 
     def updateRendersIfNeeded(): Unit =
-    {
         val ic2 = storage >= getTransportDraw
         if isCharged != ic2 then sendICUpdate()
         isCharged = ic2
-    }
 
     def updateOrbits(): Unit =
-    {
         for e <- getProjectilesToOrbit do
             makeEntityOrbit(e)
-    }
 
     def updateHeldItems(): Unit =
-    {
         for e <- getAllItemEntities do
             makeEntityHeld(e)
-    }
 
     def tryInfusePearlItem(): Unit =
-    {
         val ei = getProminentHeldItem
         if ei != null && ei.getItem.getItem == Items.ENDER_PEARL && ei.getItem.getCount == 1 then
-        {
             ei.setDead()
             val stack = new ItemStack(ProjectRedExpansion.itemInfusedEnderPearl)
             ItemInfusedEnderPearl.setLocation(stack, x, y, z)
@@ -168,31 +135,22 @@ class TileTeleposer extends TileMachine with TPoweredMachine
 
             world.spawnEntity(ent)
             sendTransformFX()
-        }
-    }
 
     def tryTransportEnderProjectile(): Unit =
-    {
         if storage < getTransportDraw then return
 
         def dest = getDestination
         if dest != null && (dest != getPos) then
-        {
-            val te = world.getTileEntity(dest) match {
+            val te = world.getTileEntity(dest) match
                 case tile:TileTeleposer => tile
                 case _ => null
-            }
             if te != null && te.storage >= te.getTransportDraw then
-            {
                 val thatDest = te.getDestination
                 if thatDest != null && thatDest.getX == x && thatDest.getY == y && thatDest.getZ == z then
-                {
                     val ep = getProminentEnderProjectile
                     if ep != null then
-                    {
                         ep.setDead()
                         if ep.getThrower != null then
-                        {
                             val newEP = new EntityEnderPearl(world, ep.getThrower)
                             newEP.motionX = 0
                             newEP.motionY = 0.1
@@ -205,34 +163,21 @@ class TileTeleposer extends TileMachine with TPoweredMachine
                             te.getProminentHeldItem.setPickupDelay(80)
                             storage -= getTransportDraw
                             te.storage -= te.getTransportDraw
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     def getDestination:BlockPos =
-    {
         val ei = getProminentHeldItem
         if ei != null && ei.getItem.getItem.isInstanceOf[ItemInfusedEnderPearl] &&
             ItemInfusedEnderPearl.hasLocation(ei.getItem) then
             ItemInfusedEnderPearl.getLocation(ei.getItem)
         else null
-    }
 
     def getProminentHeldItem =
-    {
         val all = getAllItemEntities
         all.headOption match
-        {
             case Some(ie) if all.size == 1 => ie
             case _ => null
-        }
-    }
 
     def getProminentEnderProjectile =
-    {
         val box = Cuboid6.full.copy.add(new Vector3(x, y+1, z)).aabb
 
         world.getEntitiesWithinAABB(classOf[EntityEnderPearl], box)
@@ -240,23 +185,17 @@ class TileTeleposer extends TileMachine with TPoweredMachine
                 .asScala
                 .filterNot(CapabilityTeleposedEnderPearl.isTeleposed)
                 .headOption match
-        {
             case Some(ep) => ep
             case _ => null
-        }
-    }
 
     def getProjectilesToOrbit =
-    {
         val box = new Cuboid6(-3, 0, -3, 4, 4, 4).add(new Vector3(x, y, z)).aabb
         world.getEntitiesWithinAABB(classOf[EntityEnderPearl], box)
                 .asInstanceOf[JList[EntityEnderPearl]]
                 .asScala
                 .filterNot(CapabilityTeleposedEnderPearl.isTeleposed)
-    }
 
     def getAllItemEntities =
-    {
         Cuboid6.full = new Cuboid6(0, 0, 0, 1, 1, 1)
         val box = Cuboid6.full.copy.add(new Vector3(x, y+1, z)).aabb
         world.getEntitiesWithinAABB(classOf[EntityItem], box)
@@ -265,10 +204,8 @@ class TileTeleposer extends TileMachine with TPoweredMachine
                     !s.isEmpty && (s.getItem == Items.ENDER_PEARL ||
                             s.getItem == ProjectRedExpansion.itemInfusedEnderPearl)
                 }
-    }
 
     def makeEntityOrbit(e:EntityEnderPearl): Unit =
-    {
         val target = Vector3.center.copy.add(x, y+1, z)
         val rpos = new Vector3(e.posX, e.posY, e.posZ).subtract(target)
         val targetDistance = math.max(0.35, math.sqrt(rpos.x*rpos.x+rpos.z*rpos.z)*0.97)
@@ -289,10 +226,8 @@ class TileTeleposer extends TileMachine with TPoweredMachine
             target.y+targetHeight,
             target.z+math.sin(orbitAngle)*targetDistance
         )
-    }
 
     def makeEntityHeld(e:EntityItem): Unit =
-    {
         val target = Vector3.center.copy.add(x, y+0.6, z)
         val rpos = new Vector3(e.posX, e.posY, e.posZ).subtract(target)
         val targetPos = rpos.multiply(0.80).add(target)
@@ -305,13 +240,11 @@ class TileTeleposer extends TileMachine with TPoweredMachine
         e.lifespan = e.getAge + maxAge
 
         e.setPosition(targetPos.x, targetPos.y, targetPos.z)
-    }
 
     private var beams:AnyRef = null
 
     @SideOnly(Side.CLIENT)
     def doPearlBeamFX(): Unit =
-    {
         if beams == null then beams = Array[BeamPulse2]()
         var beams2 = beams.asInstanceOf[Array[BeamPulse2]]
 
@@ -322,17 +255,14 @@ class TileTeleposer extends TileMachine with TPoweredMachine
         val source = Vector3.center.copy.add(x, y+1, z)
 
         for i <- elist.indices do
-        {
             var beam = beams2(i)
             if beam == null || !beam.isAlive then
-            {
                 beam = new BeamPulse2(world)
                 beam.setMaxAge(20)
                 beam.alpha = 0.3
                 beam.setRGB(0.5, 0.5, 0.5)
                 beams2(i) = beam
                 Minecraft.getMinecraft.effectRenderer.addEffect(beam)
-            }
             val ent = elist(i)
 
             beam.setAge(beam.getAge%beam.getMaxAge)
@@ -340,15 +270,11 @@ class TileTeleposer extends TileMachine with TPoweredMachine
             beam.setTarget(ent.posX, ent.posY, ent.posZ)
             if source.copy.subtract(new Vector3(ent.posX, ent.posY, ent.posZ)).mag() < 0.75 then
                 beam.doPulse(EnumColour.GREEN.rF, EnumColour.GREEN.gF, EnumColour.GREEN.bF)
-        }
 
-    }
 
     @SideOnly(Side.CLIENT)
     def doRandomSparklies(): Unit =
-    {
         if world.getTotalWorldTime%15 == 0 && world.rand.nextDouble() > 0.20 then
-        {
             val p = new SpriteParticle(world)
             p.setPos(new Vector3(x+0.5, y+1.0, z+0.5).add(new Vector3(1, 1, 1).multiply(world.rand.nextDouble())))
             p.isImmortal = true
@@ -381,14 +307,10 @@ class TileTeleposer extends TileMachine with TPoweredMachine
             p.runAction(a)
 
             Minecraft.getMinecraft.effectRenderer.addEffect(p)
-        }
-    }
 
     @SideOnly(Side.CLIENT)
     def doTransformFX(): Unit =
-    {
         for i <- 0 until 16 do
-        {
             val start = new Vector3(x, y+1, z).add(Vector3.center)
             val p = new SpriteParticle(world)
             Minecraft.getMinecraft.effectRenderer.addEffect(p)
@@ -410,47 +332,37 @@ class TileTeleposer extends TileMachine with TPoweredMachine
                 kill()
             )
             p.runAction(a1)
-        }
-    }
-}
 
 trait ITeleposedItem
-{
+:
     var isTeleposed: Boolean = false
-}
 
 class TeleposedProperty extends ITeleposedItem with ICapabilityProvider with ICapabilitySerializable[NBTTagCompound]
-{
+:
     isTeleposed = false
 
     override def hasCapability(capability:Capability[?], facing:EnumFacing) = capability == teleposedEnderPearlCapability
 
-    override def getCapability[T](capability:Capability[T], facing:EnumFacing) = {
+    override def getCapability[T](capability:Capability[T], facing:EnumFacing) =
         if capability == teleposedEnderPearlCapability then this.asInstanceOf[T]
         else null.asInstanceOf[T]
-    }
 
-    override def serializeNBT() = {
+    override def serializeNBT() =
         val tag = new NBTTagCompound
         tag.setBoolean("isTeleposed", isTeleposed)
         tag
-    }
 
     override def deserializeNBT(nbt:NBTTagCompound): Unit =
-    {
         isTeleposed = nbt.getBoolean("isTeleposed")
-    }
-}
 
 object CapabilityTeleposedEnderPearl
-{
+:
     val teleposedEnderPearlCapabilityID = new ResourceLocation("projectred:teleposedEnderPearl")
 
     @CapabilityInject(classOf[ITeleposedItem])
     var teleposedEnderPearlCapability:Capability[ITeleposedItem] = scala.compiletime.uninitialized
 
     def registerCapability(): Unit =
-    {
         //Register the capability with the manager
         CapabilityManager.INSTANCE.register(classOf[ITeleposedItem], new IStorage[ITeleposedItem] {
             override def writeNBT(capability:Capability[ITeleposedItem], instance:ITeleposedItem, side:EnumFacing) = null
@@ -461,35 +373,24 @@ object CapabilityTeleposedEnderPearl
 
         //Subscribe to attachment events
         MinecraftForge.EVENT_BUS.register(this)
-    }
 
     @SubscribeEvent
     def onAttachCapability(event:AttachCapabilitiesEvent[Entity]): Unit =
-    {
-        event.getObject match {
+        event.getObject match
             case ei:EntityEnderPearl =>
                 event.addCapability(teleposedEnderPearlCapabilityID, new TeleposedProperty)
             case _ =>
-        }
-    }
 
 
     def setTeleposed(e:EntityEnderPearl): Unit =
-    {
-        e.getCapability(teleposedEnderPearlCapability, null) match {
+        e.getCapability(teleposedEnderPearlCapability, null) match
             case t:ITeleposedItem => t.isTeleposed = true
             case null =>
-        }
-    }
 
     def isTeleposed(e:EntityEnderPearl) =
-    {
-        e.getCapability(teleposedEnderPearlCapability, null) match {
+        e.getCapability(teleposedEnderPearlCapability, null) match
             case t:ITeleposedItem => t.isTeleposed
             case null => false
-        }
-    }
-}
 
 object RenderTeleposer extends SimpleBlockRenderer
 {
@@ -507,24 +408,20 @@ object RenderTeleposer extends SimpleBlockRenderer
     var iconT1:UVTransformation = scala.compiletime.uninitialized
     var iconT2:UVTransformation = scala.compiletime.uninitialized
 
-    override def handleState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): IExtendedBlockState = {
+    override def handleState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): IExtendedBlockState =
 
-        world.getTileEntity(pos) match {
+        world.getTileEntity(pos) match
             case t:TileTeleposer => state.withProperty(UNLISTED_CHARGED_PROPERTY, t.isCharged.asInstanceOf[JBool])
             case _ => state
-        }
-    }
 
-    override def getWorldTransforms(state: IExtendedBlockState) = {
+    override def getWorldTransforms(state: IExtendedBlockState) =
         val isCharged = state.getValue(UNLISTED_CHARGED_PROPERTY)
         Triple.of(0, 0, if isCharged then iconT2 else iconT1)
-    }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
     override def shouldCull() = true
 
     override def registerIcons(map:TextureMap): Unit =
-    {
         bottom = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/teleposer/bottom"))
         top1 = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/teleposer/top1"))
         top2 = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/teleposer/top2"))
@@ -533,5 +430,4 @@ object RenderTeleposer extends SimpleBlockRenderer
 
         iconT1 = new MultiIconTransformation(bottom, top1, side1, side1, side1, side1)
         iconT2 = new MultiIconTransformation(bottom, top2, side2, side2, side2, side2)
-    }
 }

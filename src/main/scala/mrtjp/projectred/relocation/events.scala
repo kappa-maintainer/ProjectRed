@@ -12,34 +12,25 @@ import net.minecraftforge.fml.common.gameevent.TickEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 object RelocationEventHandler
-{
+:
     @SubscribeEvent
     def worldUnload(event:WorldEvent.Unload): Unit =
-    {
         RelocationSPH.onWorldUnload(event.getWorld)
         MovementManager.onWorldUnload(event.getWorld)
-    }
 
     @SubscribeEvent
     def chunkWatch(event:ChunkWatchEvent.Watch): Unit =
-    {
         RelocationSPH.onChunkWatch(event.getPlayer, event.getChunk)
-    }
 
     @SubscribeEvent
     def chunkUnwatch(event:ChunkWatchEvent.UnWatch): Unit =
-    {
         RelocationSPH.onChunkUnWatch(event.getPlayer, event.getChunk)
-    }
 
     @SubscribeEvent
     def serverTick(event:TickEvent.ServerTickEvent): Unit =
-    {
-        if event.phase == TickEvent.Phase.END then {
+        if event.phase == TickEvent.Phase.END then
             RelocationSPH.onTickEnd()
             MovementManager.onTick(false)
-        }
-    }
 
     @SubscribeEvent
     def worldTick(event:TickEvent.WorldTickEvent): Unit =
@@ -49,7 +40,6 @@ object RelocationEventHandler
         //      MovementManager2.onTick(false)
         //    }
     }
-}
 
 object RelocationClientEventHandler
 {
@@ -65,19 +55,15 @@ object RelocationClientEventHandler
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     def onRenderWorld(e:RenderWorldLastEvent): Unit =
-    {
         MovingRenderer.onPreRenderTick(e.getPartialTicks)
         MovingRenderer.onRenderWorldEvent()
         MovingRenderer.onPostRenderTick()
-    }
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     def clientTick(event:TickEvent.ClientTickEvent): Unit =
-    {
         if event.phase == TickEvent.Phase.END then
             MovementManager.onTick(true) //TODO call from better place. This moves blocks even when client is paused
-    }
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)

@@ -17,13 +17,12 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class TransportationProxy_server extends IProxy with IPartFactory
-{
+:
     val guiIDInterfacePipe = 5
     val guiIDFirewallPipe = 6
     val guiIDRoutingChips = 7
 
     override def preinit(): Unit =
-    {
         itemPartPipe = new ItemPartPipe
         itemPartPipe.setTranslationKey("projectred.transportation.pipe")
         ForgeRegistries.ITEMS.register(itemPartPipe.setRegistryName("pipe"))
@@ -38,22 +37,18 @@ class TransportationProxy_server extends IProxy with IPartFactory
 
         MultiPartRegistry.registerParts(this, PipeDefs.values.map{_.partname}.toArray)
         MinecraftForge.EVENT_BUS.register(ChipResetRecipe)
-    }
 
     override def init(): Unit =
     {
     }
 
     override def postinit(): Unit =
-    {
         PacketCustom.assignHandler(TransportationSPH.channel, TransportationSPH)
 
         for i <- 0 until Configurator.routerUpdateThreadCount do new TableUpdateThread(i)
-    }
 
     import mrtjp.projectred.transportation.PipeDefs.*
     override def createPart(name:ResourceLocation, client:Boolean) = name match
-    {
         case BASIC.partname => new BasicPipePart
         case ROUTEDJUNCTION.partname => new RoutedJunctionPipePart
         case ROUTEDINTERFACE.partname => new RoutedInterfacePipePart
@@ -64,14 +59,11 @@ class TransportationProxy_server extends IProxy with IPartFactory
         case NETWORKVALVE.partname => new NetworkValvePipePart
         case NETWORKLATENCY.partname => new NetworkLatencyPipePart
         case _ => null
-    }
-}
 
 class TransportationProxy_client extends TransportationProxy_server
-{
+:
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
 
         ModelRegistryHelper.registerItemRenderer(itemPartPipe, PipeItemRenderer)
@@ -82,26 +74,20 @@ class TransportationProxy_client extends TransportationProxy_server
         ModelLoader.setCustomModelResourceLocation(itemRouterUtility, 0,
             new ModelResourceLocation("projectred:mechanical/tools", "type=router_utility"))
         TextureUtils.addIconRegister(RenderPipe)
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
         MicroMaterialRegistry.registerHighlightRenderer(PipeRSHighlightRenderer)
         MicroMaterialRegistry.registerHighlightRenderer(PipeColourHighlightRenderer)
-    }
 
     @SideOnly(Side.CLIENT)
     override def postinit(): Unit =
-    {
         super.postinit()
         PacketCustom.assignHandler(TransportationCPH.channel, TransportationCPH)
 
         GuiHandler.register(GuiInterfacePipe, guiIDInterfacePipe)
         GuiHandler.register(GuiFirewallPipe, guiIDFirewallPipe)
         GuiHandler.register(GuiChipConfig, guiIDRoutingChips)
-    }
-}
 
 object TransportationProxy extends TransportationProxy_client

@@ -14,7 +14,7 @@ import scala.collection.mutable
 import scala.collection.mutable.{Map as MMap, Buffer as MBuffer, Set as MSet}
 
 trait IWireICTile
-{
+:
     /**
       * Returns true if this wire is attached to a signal sink on side r
       */
@@ -50,87 +50,62 @@ trait IWireICTile
       * Returns true if the wire is connected on a side
       */
     def isConnected(r:Int):Boolean
-}
 
 object IWireICTile
-{
+:
     val SingleWire = 0
     val PortWire = 1
     val BusWire = 2
-}
 
 abstract class WireICTile extends ICTile with TConnectableICTile with ISEWireTile with IWireICTile
-{
+:
     override def save(tag:NBTTagCompound): Unit =
-    {
         tag.setByte("connMap", connMap)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         connMap = tag.getByte("connMap")
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         out.writeByte(connMap)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         connMap = in.readByte()
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 1 => connMap = in.readByte()
         case _ => super.read(in, key)
-    }
 
     def sendConnUpdate(): Unit =
-    {
         writeStreamOf(1).writeByte(connMap)
-    }
 
     override def onMaskChanged(): Unit =
-    {
         sendConnUpdate()
         editor.markSchematicChanged()
-    }
 
     override def onNeighborChanged(): Unit =
-    {
         if !editor.network.isRemote then
             updateConns()
-    }
 
     override def onAdded(): Unit =
-    {
         super.onAdded()
         if !editor.network.isRemote then
             updateConns()
-    }
 
     override def onRemoved(): Unit =
-    {
         super.onRemoved()
         if !editor.network.isRemote then notify(connMap)
-    }
 
     override def getPropMask(r:Int) = 0xF
 
     override def isConnected(r:Int) = maskConnects(r)
 
     override def buildWireNet(r:Int) =
-    {
         val wireNet = new WireNet(tileMap, pos, 0xF)
         wireNet.calculateNetwork()
         wireNet
-    }
-}
 
 private class WireNetChannel
-{
+:
     val points = MBuffer[(Point, Int)]()
 
     val inputs = MBuffer[(Point, Int)]()
@@ -140,47 +115,37 @@ private class WireNetChannel
     private var outputRegID = -1
 
     def allocateRegisters(linker:ISELinker): Unit =
-    {
         outputRegID = linker.allocateRegisterID(points.map(_._1).toSet)
         linker.addRegister(outputRegID, new StandardRegister[Byte](0))
 
-        if inputs.size > 1 then { //multiple drivers to this channel, will have to be OR'd together
-            for s <- inputs do {
+        if inputs.size > 1 then //multiple drivers to this channel, will have to be OR'd together
+            for s <- inputs do
                 val id = linker.allocateRegisterID(points.map(_._1).toSet)
                 linker.addRegister(id, new StandardRegister[Byte](0))
                 inputsToRegIDMap += s -> id
-            }
-        } else { //only one driver to this channel. input can write to output register directly
+        else //only one driver to this channel. input can write to output register directly
             for s <- inputs do //should only be 1 in here
                 inputsToRegIDMap += s -> outputRegID
-        }
-    }
 
     def declareOperations(linker:ISELinker): Unit =
-    {
-        if inputs.size > 1 then {
+        if inputs.size > 1 then
             val gateID = linker.allocateGateID(points.map(_._1).toSet)
             val outRegID = outputRegID
             val inRegIDs = inputsToRegIDMap.values.toSeq
-            val op = new ISEGate {
-                override def compute(ic:SEIntegratedCircuit): Unit = {
+            val op = new ISEGate:
+                override def compute(ic:SEIntegratedCircuit): Unit =
                     ic.queueRegVal[Byte](outRegID,
                         if inRegIDs.exists(ic.getRegVal(_) != 0) then 1 else 0)
-                }
-            }
             linker.addGate(gateID, op, inRegIDs, Seq(outputRegID))
-        }
-    }
 
     def getInputRegID(p:Point, r:Int) = inputsToRegIDMap((p, r))
 
     def getOutputRegID = outputRegID
 
     def getAllRegisters = inputsToRegIDMap.values.toSet + outputRegID
-}
 
 class ImplicitWireNet(ic:ICTileMapContainer, p:Point, r:Int) extends IWireNet
-{
+:
     override val points: mutable.Buffer[(Point, Int)] = mutable.Buffer[(Point, Int)]()
 
     private var regID = -1
@@ -189,7 +154,6 @@ class ImplicitWireNet(ic:ICTileMapContainer, p:Point, r:Int) extends IWireNet
     private var hasSignalOut = false
 
     def calculateNetwork(): Unit =
-    {
         points += ((p, r))
         val p2 = p.offset(r)
         points += ((p2, (r+2)%4))
@@ -197,49 +161,40 @@ class ImplicitWireNet(ic:ICTileMapContainer, p:Point, r:Int) extends IWireNet
         val t1 = ic.getTile(p)
         val t2 = ic.getTile(p2)
 
-        (t1, t2) match {
+        (t1, t2) match
             case (g1:(IRedwireICGate & TConnectableICTile), g2:(IRedwireICGate & TConnectableICTile)) =>
                 hasSignalOut = g1.canOutputTo(r) && g2.canInputFrom(g1.rotFromStraight(r))
                 hasSignalIn = g1.canInputFrom(r) && g2.canOutputTo(g1.rotFromStraight(r))
             case _ =>
-        }
-    }
 
     def isRedundant = !hasSignalIn && !hasSignalOut
 
     override def allocateRegisters(linker:ISELinker): Unit =
-    {
         regID = linker.allocateRegisterID(points.map(_._1).toSet)
         linker.addRegister(regID, new StandardRegister[Byte](0))
-    }
 
     override def declareOperations(linker:ISELinker): Unit ={}
 
-    override def getInputRegister(p:Point, r:Int) = {
-        if points.contains((p, r)) then {
-            if p == this.p && r == this.r then {
+    override def getInputRegister(p:Point, r:Int) =
+        if points.contains((p, r)) then
+            if p == this.p && r == this.r then
                 if hasSignalIn then regID else REG_ZERO
-            } else {
+            else
                 if hasSignalOut then regID else REG_ZERO
-            }
-        } else
+        else
             REG_ZERO
-    }
 
-    override def getOutputRegister(p:Point, r:Int) = {
-        if points.contains((p, r)) then {
-            if p == this.p && r == this.r then {
+    override def getOutputRegister(p:Point, r:Int) =
+        if points.contains((p, r)) then
+            if p == this.p && r == this.r then
                 if hasSignalOut then regID else REG_ZERO
-            } else {
+            else
                 if hasSignalIn then regID else REG_ZERO
-            }
-        } else
+        else
             REG_ZERO
-    }
-}
 
 class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
-{
+:
     override val points: mutable.Buffer[(Point, Int)] = mutable.Buffer[(Point, Int)]()
 
     private val channels = mutable.Buffer[WireNetChannel]()
@@ -254,83 +209,69 @@ class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
     private val pointToChannelMap = MMap[(Point, Int), WireNetChannel]() //non bus points to channel map
     private val busPointToChannelsMap = MMap[(Point, Int), MSet[WireNetChannel]]() //bus points to passing channels map
 
-    private def searchForWireNet(open:Seq[NetSearchNode], closed:Set[NetSearchNode] = Set()):Unit = open match {
+    private def searchForWireNet(open:Seq[NetSearchNode], closed:Set[NetSearchNode] = Set()):Unit = open match
         case Seq() =>
-        case Seq(next, rest@_*) => ic.getTile(next.pos) match {
+        case Seq(next, rest@_*) => ic.getTile(next.pos) match
             case w:IWireICTile =>
 
                 val upNext = Seq.newBuilder[NetSearchNode]
 
-                for r <- 0 until 4 do if (next.mask&1<<r) != 0 then {
-                    w.getConnType(r) match {
+                for r <- 0 until 4 do if (next.mask&1<<r) != 0 then
+                    w.getConnType(r) match
                         case IWireICTile.BusWire => busWires += ((next.pos, r))
                         case IWireICTile.PortWire => portWires += ((next.pos, r))
                         case IWireICTile.SingleWire => singleWires += ((next.pos, r))
-                    }
 
                     if w.isNetOutput(r) then outputs += ((next.pos, r))
                     if w.isNetInput(r) then inputs += ((next.pos, r))
 
-                    if w.isConnected(r) then ic.getTile(next.pos.offset(r)) match {
+                    if w.isConnected(r) then ic.getTile(next.pos.offset(r)) match
                         case w2:IWireICTile =>
                             val p = next --> (r, w2.getPropMask((r+2)%4))
                             if !closed(p) && !open.contains(p) then upNext += p
                         case _ =>
-                    }
 
                     points += ((next.pos, r))
-                }
 
                 searchForWireNet(rest ++ upNext.result(), closed + next)
 
             case _ =>
                 searchForWireNet(rest)
-        }
-    }
 
     def mapChannelForPoint(p:Point, r:Int):Set[(Point, Int)] =
-    {
-        val (cmask, pmask) = ic.getTile(p) match {
+        val (cmask, pmask) = ic.getTile(p) match
             case w:IWireICTile =>
                 (w.getInputColourMask(r)|w.getOutputColourMask(r), w.getPropMask(r))
             case _ => (0, 0)
-        }
 
         if cmask == 0 then return null
         if pmask == 0 then return null
 
-        def iterate(open:Seq[CSearchNode2], closed:Set[CSearchNode2] = Set(), points:Set[(Point, Int)] = Set()):Set[(Point, Int)] = open match {
+        def iterate(open:Seq[CSearchNode2], closed:Set[CSearchNode2] = Set(), points:Set[(Point, Int)] = Set()):Set[(Point, Int)] = open match
             case Seq() => points
-            case Seq(next, rest@_*) => ic.getTile(next.pos) match {
+            case Seq(next, rest@_*) => ic.getTile(next.pos) match
                 case w:IWireICTile =>
                     val upNext = Seq.newBuilder[CSearchNode2]
-                    for r <- 0 until 4 do if (next.pmask&1<<r) != 0 && w.isConnected(r) then {
-                        ic.getTile(next.pos.offset(r)) match {
+                    for r <- 0 until 4 do if (next.pmask&1<<r) != 0 && w.isConnected(r) then
+                        ic.getTile(next.pos.offset(r)) match
                             case w2:IWireICTile =>
                                 val newCMask = (1<<next.colour & w2.getInputColourMask((r+2)%4)) | w2.getOutputColourMask((r+2)%4)
                                 val newPMask = w2.getPropMask((r+2)%4)
                                 val routes = next --> (r, newCMask, newPMask)
-                                for r <- routes do {
+                                for r <- routes do
                                     if !open.contains(r) && !closed.contains(r) then
                                         upNext += r
-                                }
                             case _ =>
-                        }
 
-                    }
                     iterate(rest ++ upNext.result(), closed + next, points + ((next.pos, next.r)))
-            }
-        }
 
         iterate(CSearchNode2.startNodes(p, cmask, pmask))
-    }
 
     def calculateNetwork(): Unit =
-    {
         searchForWireNet(Seq(NetSearchNode(p, mask)))
 
-        def getOrCreateChannel(p:Point, r:Int):WireNetChannel = {
-            pointToChannelMap.get((p, r)) match {
+        def getOrCreateChannel(p:Point, r:Int):WireNetChannel =
+            pointToChannelMap.get((p, r)) match
                 case Some(c) => c
                 case _ =>
                     val points = mapChannelForPoint(p, r)
@@ -345,21 +286,15 @@ class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
                             pointToChannelMap += p -> ch
                         }})
                     ch
-            }
-        }
 
-        for (p, r) <- inputs do {
+        for (p, r) <- inputs do
             val channel = getOrCreateChannel(p, r)
             channel.inputs += ((p, r))
-        }
-        for (p, r) <- outputs do {
+        for (p, r) <- outputs do
             val channel = getOrCreateChannel(p, r)
             channel.outputs += ((p, r))
-        }
-    }
 
     override def allocateRegisters(linker:ISELinker): Unit =
-    {
         val list = Seq.newBuilder[Point]
         for pos <- points do
             if !pointToChannelMap.contains(pos) && !busPointToChannelsMap.contains(pos) then
@@ -369,8 +304,8 @@ class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
             linker.getLogger.logWarning(res, "wire has no associated channel")
 
 
-        for ch <- channels do {
-            if ch.inputs.isEmpty || ch.outputs.isEmpty then {
+        for ch <- channels do
+            if ch.inputs.isEmpty || ch.outputs.isEmpty then
                 val points = ch.points.filter(!busWires.contains(_))
 
                 if ch.outputs.isEmpty then
@@ -378,64 +313,47 @@ class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
 
                 if ch.inputs.isEmpty then
                     linker.getLogger.logWarning(points.map(_._1).toSeq, "wirenet channel has no inputs")
-            }
             ch.allocateRegisters(linker)
-        }
-    }
 
     override def declareOperations(linker:ISELinker): Unit =
-    {
         for ch <- channels do
             ch.declareOperations(linker)
-    }
 
-    override def getInputRegister(p:Point, r:Int) = pointToChannelMap.get((p, r)) match {
+    override def getInputRegister(p:Point, r:Int) = pointToChannelMap.get((p, r)) match
         case Some(ch) => ch.getInputRegID(p, r)
         case _ => REG_ZERO
-    }
 
-    override def getOutputRegister(p:Point, r:Int) = pointToChannelMap.get((p, r)) match {
+    override def getOutputRegister(p:Point, r:Int) = pointToChannelMap.get((p, r)) match
         case Some(ch) => ch.getOutputRegID
         case _ => REG_ZERO
-    }
-}
 
 private case class NetSearchNode(pos:Point, mask:Int)
-{
+:
     def -->(r:Int, m:Int):NetSearchNode = NetSearchNode(pos.offset(r), m)
 
-    override def equals(that:Any) = that match {
+    override def equals(that:Any) = that match
         case n:NetSearchNode => n.pos == pos && n.mask == mask
         case _ => false
-    }
-}
 
 private object CSearchNode2
-{
+:
     def startNodes(pos:Point, colourMask:Int, propMask:Int):Seq[CSearchNode2] =
-    {
         val b = Seq.newBuilder[CSearchNode2]
         for r <- 0 until 4 do if (propMask&1<<r) != 0 then
             for i <- 0 until 16 do if (colourMask&1<<i) != 0 then
                 b += CSearchNode2(pos, i, r, propMask)
         b.result()
-    }
-}
 
 private case class CSearchNode2(pos:Point, colour:Int, r:Int, pmask:Int)
-{
+:
     def -->(towardsR:Int, colourMask:Int, propMask:Int):Seq[CSearchNode2] =
-    {
         val b = Seq.newBuilder[CSearchNode2]
         val p = pos.offset(towardsR)
         for r <- 0 until 4 do if (propMask&1<<r) != 0 then
             for i <- 0 until 16 do if (colourMask&1<<i) != 0 then
                 b += CSearchNode2(p, i, r, propMask)
         b.result()
-    }
 
-    override def equals(that:Any) = that match {
+    override def equals(that:Any) = that match
         case n:CSearchNode2 => n.pos == pos && n.colour == colour && n.pmask == pmask
         case _ => false
-    }
-}

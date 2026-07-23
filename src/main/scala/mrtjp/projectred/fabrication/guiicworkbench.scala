@@ -33,7 +33,7 @@ import scala.collection.immutable.ListMap
 import scala.collection.mutable.{ListBuffer as MListBuffer}
 
 class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
-{
+:
     var currentOp:TileEditorOp = scala.compiletime.uninitialized
 
     var showTooltips = true
@@ -52,22 +52,17 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
     private def isCircuitValid = editor.nonEmpty
 
     private def toGridPoint(p:Point) =
-    {
         val f = frame
         val rpos = p-position
         Point((rpos.x*editor.size.width*1.0/f.width).toInt.min(editor.size.width-1).max(0),
             (rpos.y*editor.size.height*1.0/f.height).toInt.min(editor.size.height-1).max(0))
-    }
 
     private def toCenteredGuiPoint(gridP:Point) =
-    {
         val dp = frame.size.vectorize/editor.size.vectorize
         Point(gridP.vectorize*dp+dp/2)
-    }
 
     override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
-    {
-        if isCircuitValid then {
+        if isCircuitValid then
             val f = frame
             val ccrs = CCRenderState.instance()
 
@@ -77,37 +72,29 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
             RenderICTileMap.renderOrtho(ccrs, editor.tileMapContainer, f.x, f.y, size.width*scale, size.height*scale, rframe)
 
             //then the overlay for the current editing tool
-            if currentOp != null then {
+            if currentOp != null then
                 if frame.contains(mouse) && rayTest(mouse) && !leftMouseDown then
                     currentOp.renderHover(ccrs, editor, toGridPoint(mouse), f.x, f.y, size.width*scale, size.height*scale)
                 else if leftMouseDown then
                     currentOp.renderDrag(ccrs, editor, mouseStart, toGridPoint(mouse), f.x, f.y, size.width*scale, size.height*scale)
-            }
 
             //draw compile warning/error symbols, and also highlight related errors of mouse targeted tile
             def drawFlags(list:Seq[(Seq[Point], String)], rgba:Int): Unit =
-            {
-                for (points, _) <- list do {
-                    for Point(x, y) <- points do {
+                for (points, _) <- list do
+                    for Point(x, y) <- points do
                         val t = orthoPartT(f.x, f.y, size.width*scale, size.height*scale, editor.size, x, y)
                         faceModels(dynamicIdx(0, true)).render(ccrs,
                             t, new UVScale(64) `with` new UVTranslation(330, 37) `with` new UVScale(1/512D),
                             ColourMultiplier.instance(rgba)
                         )
-                    }
-                }
-            }
 
             def drawMouseOverlay(points:Seq[Point], rgba:Int): Unit =
-            {
-                for Point(x, y) <- points do {
+                for Point(x, y) <- points do
                     val t = orthoPartT(f.x, f.y, size.width*scale, size.height*scale, editor.size, x, y)
                     faceModels(dynamicIdx(0, true)).render(ccrs,
                         t, new UVScale(64) `with` new UVTranslation(395, 37) `with` new UVScale(1/512D),
                         ColourMultiplier.instance(rgba)
                     )
-                }
-            }
 
             def alphaPhaseShift(scale:Double, offset:Double, amp:Double, phaseIdx:Int, total:Int):Int =
                 ((scale*(offset+amp*math.sin(mcInst.world.getTotalWorldTime/20.0 * 2*math.Pi + math.Pi + phaseIdx*math.Pi/total)))*255).toInt
@@ -135,18 +122,15 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
 
             finishRender(ccrs)
             disableBlend()
-        }
-    }
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
-    {
-        if isCircuitValid && !leftMouseDown && frame.contains(mouse) && rayTest(mouse) then {
+        if isCircuitValid && !leftMouseDown && frame.contains(mouse) && rayTest(mouse) then
             val point = toGridPoint(mouse)
             val part = editor.getTile(point)
-            if part != null && showTooltips then {
+            if part != null && showTooltips then
                 val data = new MListBuffer[String]
                 part.buildRolloverData(data)
-                if data.nonEmpty then {
+                if data.nonEmpty then
                     ClipNode.tempDisableScissoring()
                     translateToScreen()
                     val Point(mx, my) = parent.convertPointToScreen(mouse)
@@ -158,26 +142,20 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
                     val errors = editor.simEngineContainer.logger.getErrorsForPoint(point)
                     val rtf = editor.simEngineContainer.logger.getRuntimeFlagsForPoint(point)
 
-                    if warnings.nonEmpty then {
+                    if warnings.nonEmpty then
                         flags += s"$YELLOW$BOLD!" + s"$RESET warnings (${warnings.size})"
-                        for (_, message) <- warnings do {
+                        for (_, message) <- warnings do
                             flags += s"$GRAY" + " - " + message
-                        }
-                    }
 
-                    if errors.nonEmpty then {
+                    if errors.nonEmpty then
                         flags += s"$RED$BOLD" + "X" + s"$RESET errors (${errors.size})"
-                        for (_, message) <- errors do {
+                        for (_, message) <- errors do
                             flags += s"$GRAY" + " - " + message
-                        }
-                    }
 
-                    if rtf.nonEmpty then {
+                    if rtf.nonEmpty then
                         flags += s"$DARK_PURPLE$BOLD" + "$" + s"$RESET runtime flags (${rtf.size})"
-                        for (_, message) <- rtf do {
+                        for (_, message) <- rtf do
                             flags += s"$GRAY" + " - " + message
-                        }
-                    }
 
                     if flags.nonEmpty then
                         GuiDraw.drawMultiLineTip(ItemStack.EMPTY, mx+12, my-32-(flags.size*(getFontRenderer.FONT_HEIGHT+1)), flags.asJava)
@@ -185,14 +163,9 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
                     GlStateManager.disableLighting()
                     translateFromScreen()
                     ClipNode.tempEnableScissoring()
-                }
-            }
-        }
-    }
 
     override def mouseClicked_Impl(p:Point, button:Int, consumed:Boolean):Boolean =
-    {
-        if isCircuitValid && !consumed && rayTest(p) then button match {
+        if isCircuitValid && !consumed && rayTest(p) then button match
             case 0 =>
                 leftMouseDown = true
                 mouseStart = toGridPoint(p)
@@ -200,63 +173,49 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
             case 1 =>
                 rightMouseDown = true
                 val gridP = toGridPoint(p)
-                editor.getTile(gridP) match {
+                editor.getTile(gridP) match
                     case gp:IGuiICTile =>
                         val currentlyOpen = children.collect{case cg:ICTileGui => cg}
-                        if !currentlyOpen.exists(_.part == gp) then {
+                        if !currentlyOpen.exists(_.part == gp) then
                             val gui = gp.createGui
                             gui.position = convertPointFrom(Point(4, 4)*(currentlyOpen.size+1), parent)
                             gui.linePointerCalc = () => toCenteredGuiPoint(gridP)
                             addChild(gui)
                             gui.pushZTo(currentlyOpen.size*0.1)
-                        }
                     case _ =>
-                }
                 return true
             case _ if button == mcInst.gameSettings.keyBindPickBlock.getKeyCode =>
                 doPickOp()
                 return true
             case _ =>
-        }
         false
-    }
 
     override def mouseReleased_Impl(p:Point, button:Int, consumed:Boolean) =
-    {
-        if leftMouseDown then {
+        if leftMouseDown then
             leftMouseDown = false
             val mouseEnd = toGridPoint(p)
             val opUsed = currentOp != null && editor.sendOpUse(currentOp, mouseStart, mouseEnd)
-            if !opUsed && mouseEnd == mouseStart then {
+            if !opUsed && mouseEnd == mouseStart then
                 val part = editor.getTile(mouseEnd)
                 if part != null then part.onClicked()
-            }
-        }
-        if rightMouseDown then {
+        if rightMouseDown then
             rightMouseDown = false
             val mouseEnd = toGridPoint(p)
-            if mouseEnd == mouseStart then {
+            if mouseEnd == mouseStart then
                 val part = editor.getTile(mouseEnd)
                 if part != null then part.onActivated()
-            }
-        }
         false
-    }
 
     override def mouseScrolled_Impl(p:Point, dir:Int, consumed:Boolean) =
-    {
-        if !consumed && rayTest(p) then {
+        if !consumed && rayTest(p) then
             if dir > 0 then rescaleAt(p, math.min(scale+0.1, 3.0))
             else if dir < 0 then rescaleAt(p, math.max(scale-0.1, 0.5))
             true
-        }
         else false
-    }
 
     override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
-    {
         import Keyboard.*
-        if !consumed then keycode match {
+        if !consumed then keycode match
             case KEY_ESCAPE if leftMouseDown =>
                 leftMouseDown = false
                 true
@@ -270,12 +229,9 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
                 opPickDelegate(TileEditorOpDefs.Erase.getOp)
                 true
             case _ => false
-        }
         else false
-    }
 
     def doPickOp(): Unit =
-    {
         val root = getRoot
         val i = Mouse.getX*root.width/root.mc.displayWidth
         val j = root.height-Mouse.getY*root.height/root.mc.displayHeight-1
@@ -283,27 +239,21 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
 
         val pos = parent.convertPointFromScreen(absPos)
         if rayTest(pos) then
-        {
             val part = editor.getTile(toGridPoint(pos))
             opPickDelegate(if part != null then part.getPickOp else null)
-        }
-    }
 
     def incScale(): Unit ={rescaleAt(frame.midPoint, math.min(scale+0.2, 3.0))}
     def decScale(): Unit ={rescaleAt(frame.midPoint, math.max(scale-0.2, 0.5))}
 
     def rescaleAt(point:Point, newScale:Double): Unit =
-    {
         val p = parent.convertPointTo(point, this).vectorize
         val newP = (p/scale)*newScale
         val dp = newP-p
         scale = newScale
         position -= Point(dp)
-    }
-}
 
 class ICToolsetNode extends TNode
-{
+:
     var opSet = Seq.empty[TileEditorOp]
     var title = ""
     var buttonSize = Size(16, 16)
@@ -318,14 +268,12 @@ class ICToolsetNode extends TNode
     private var groupButton:ButtonNode = null
 
     def setup(): Unit =
-    {
-        for op <- opSet do {
+        for op <- opSet do
             val b = createButtonFor(op)
             b.size = buttonSize
             b.hidden = true
             addChild(b)
             buttonOpMap += b -> op
-        }
 
         val delta = opSet.size*(buttonSize.width+buttonGap)
         val firstPoint = Point(-delta/2+buttonSize.width/2, -buttonSize.height-buttonGap)
@@ -334,20 +282,16 @@ class ICToolsetNode extends TNode
 
         leadingButton = buttonOpMap.head._1
 
-        groupButton = new IconButtonNode {
-            override def drawButton(mouseover:Boolean) = {
+        groupButton = new IconButtonNode:
+            override def drawButton(mouseover:Boolean) =
                 val op = buttonOpMap(leadingButton)
                 op.renderImage(CCRenderState.instance(), position.x+2, position.y+2, size.width-4, size.height-4)
-            }
-        }
         groupButton.size = buttonSize
         groupButton.tooltipBuilder = {_ += buttonOpMap(leadingButton).getOpName}
         groupButton.clickDelegate = {() => leadingButton.clickDelegate() }
         addChild(groupButton)
-    }
 
     private def buttonClicked(op:TileEditorOp, button:ButtonNode): Unit =
-    {
         setFocused()
         opSelectDelegate(op)
         parent.children.collect {
@@ -356,69 +300,49 @@ class ICToolsetNode extends TNode
         leadingButton.mouseoverLock = false
         leadingButton = button
         leadingButton.mouseoverLock = true
-    }
 
     def setUnfocused(): Unit =
-    {
         if focused then hideSubTools()
         focused = false
         groupButton.mouseoverLock = false
-    }
 
     def setFocused(): Unit =
-    {
         if !focused then unhideSubTools()
         focused = true
         groupButton.mouseoverLock = true
-    }
 
     private def unhideSubTools(): Unit =
-    {
         if buttonOpMap.size > 1 then for b <- buttonOpMap.keys do
             b.hidden = false
-    }
 
     private def hideSubTools(): Unit =
-    {
         if buttonOpMap.size > 1 then for b <- buttonOpMap.keys do
             b.hidden = true
-    }
 
     private def createButtonFor(op:TileEditorOp) =
-    {
-        val b = new IconButtonNode {
-            override def drawButton(mouseover:Boolean): Unit = {
+        val b = new IconButtonNode:
+            override def drawButton(mouseover:Boolean): Unit =
                 op.renderImage(CCRenderState.instance(), position.x+2, position.y+2, size.width-4, size.height-4)
-            }
-        }
         b.tooltipBuilder = {_ += op.getOpName}
         b.clickDelegate = {() => buttonClicked(op, b)}
         b
-    }
 
     def pickOp(op:TileEditorOp): Unit =
-    {
         setUnfocused()
-        buttonOpMap.find(_._2 == op) match {
+        buttonOpMap.find(_._2 == op) match
             case Some((b, _)) => b.clickDelegate()
             case _ =>
-        }
-    }
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
-    {
-        if title.nonEmpty && groupButton.rayTest(parent.convertPointTo(mouse, this)) then {
+        if title.nonEmpty && groupButton.rayTest(parent.convertPointTo(mouse, this)) then
             import ChatFormatting.*
             translateToScreen()
             val Point(mx, my) = parent.convertPointToScreen(mouse)
             GuiDraw.drawMultiLineTip(mx+12, my-32, Seq(AQUA.toString+ITALIC.toString+title).asJava)
             translateFromScreen()
-        }
-    }
-}
 
 class RenameICNode(oldName:String) extends TNode
-{
+:
     def this() = this("")
 
     val size = Size(100, 60)
@@ -428,15 +352,13 @@ class RenameICNode(oldName:String) extends TNode
 
     private var textbox:SimpleTextboxNode = scala.compiletime.uninitialized
 
-    def getName = {
+    def getName =
         val t = textbox.text
         if t.isEmpty then "untitled" else t
-    }
 
     override def traceHit(absPoint:Point) = true //overtake the screen
 
     override def onAddedToParent_Impl(): Unit =
-    {
         val close = new MCButtonNode
         close.size = Size(8, 8)
         close.position = Point(4, 4)
@@ -459,22 +381,17 @@ class RenameICNode(oldName:String) extends TNode
         textbox.phantom = "untitled"
         textbox.text = oldName
         addChild(textbox)
-    }
 
     override def frameUpdate_Impl(mouse:Point, rframe:Float): Unit =
-    {
         if !parent.asInstanceOf[GuiICWorkbench].tile.hasBP then
             removeFromParent()
-    }
 
     override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
-    {
         GuiDraw.drawGradientRect(0, 0, parent.frame.width, parent.frame.height, -1072689136, -804253680)
         GuiLib.drawGuiBox(position.x, position.y, size.width, size.height, 0)
-    }
 
-    override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) = {
-        if !consumed then keycode match {
+    override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
+        if !consumed then keycode match
             case Keyboard.KEY_ESCAPE =>
                 removeFromParent()
                 true
@@ -483,13 +400,10 @@ class RenameICNode(oldName:String) extends TNode
                 completionDelegate()
                 true
             case _ => false
-        }
         else false
-    }
-}
 
 class NewICNode extends TNode
-{
+:
     val size = Size(100, 120)
     override def frame = Rect(position, size)
 
@@ -507,10 +421,8 @@ class NewICNode extends TNode
     var hoverColour = EnumColour.BLUE.argb
 
     def getName =
-    {
         val t = textbox.text
         if t.isEmpty then "untitled" else t
-    }
 
     private var textbox:SimpleTextboxNode = scala.compiletime.uninitialized
     private var sizerMap:Map[(Int, Int), Rect] = scala.compiletime.uninitialized
@@ -518,7 +430,6 @@ class NewICNode extends TNode
     private def sizerPos = position+Point(size/2-sizerRenderSize/2)+sizerRenderOffset
 
     private def calcSizerRects =
-    {
         val p = sizerPos
         val d = sizerRenderSize/maxBoardSize
 
@@ -528,23 +439,17 @@ class NewICNode extends TNode
 
         var rects = Map[(Int, Int), Rect]()
         for ((px, py), (x, y)) <- zcol do
-        {
             val rect = Rect(Point(px, py)+sizerRenderGap/2, d-sizerRenderGap/2)
             rects += (x, y) -> rect
-        }
         rects
-    }
 
     private def getMouseoverPos(mouse:Point) = sizerMap.find(_._2 `contains` mouse) match
-    {
         case Some(((x, y), r)) => Point(x, y)
         case None => null
-    }
 
     override def traceHit(absPoint:Point) = true
 
     override def onAddedToParent_Impl(): Unit =
-    {
         sizerMap = calcSizerRects
 
         val close = new MCButtonNode
@@ -568,21 +473,17 @@ class NewICNode extends TNode
         textbox.position = Point(size/2-textbox.size/2)+Point(0, 24)
         textbox.phantom = "untitled"
         addChild(textbox)
-    }
 
     override def frameUpdate_Impl(mouse:Point, rframe:Float): Unit =
-    {
         if !parent.asInstanceOf[GuiICWorkbench].tile.hasBP then
             removeFromParent()
-    }
 
     override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
-    {
         GuiDraw.drawGradientRect(0, 0, parent.frame.width, parent.frame.height, -1072689136, -804253680)
         GuiLib.drawGuiBox(position.x, position.y, size.width, size.height, 0)
 
         val mousePos = getMouseoverPos(mouse)
-        for ((x, y), rect) <- sizerMap do {
+        for ((x, y), rect) <- sizerMap do
             GuiDraw.drawRect(rect.x, rect.y, rect.width, rect.height, outsideColour)
 
             if x <= selectedBoardSize.width-1 && y <= selectedBoardSize.height-1 then
@@ -590,38 +491,27 @@ class NewICNode extends TNode
 
             if mousePos != null && x == mousePos.x && y == mousePos.y then
                 GuiDraw.drawRect(rect.midX-2, rect.midY-2, 4, 4, hoverColour)
-        }
-    }
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
-    {
-        if rayTest(mouse) then {
+        if rayTest(mouse) then
             val mousePos = getMouseoverPos(mouse)
-            if mousePos != null then {
+            if mousePos != null then
                 translateToScreen()
                 val Point(mx, my) = parent.convertPointToScreen(mouse)
                 import scala.jdk.CollectionConverters.*
                 GuiDraw.drawMultiLineTip(mx+12, my-12, Seq(s"${(mousePos.x+1)*16} x ${(mousePos.y+1)*16}").asJava)
                 translateFromScreen()
-            }
-        }
-    }
 
     override def mouseClicked_Impl(p:Point, button:Int, consumed:Boolean):Boolean =
-    {
-        if !consumed then {
+        if !consumed then
             val mousePos = getMouseoverPos(p)
-            if mousePos != null then {
+            if mousePos != null then
                 selectedBoardSize = Size(mousePos+1)
                 return true
-            }
-        }
         false
-    }
 
     override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
-    {
-        if !consumed then keycode match {
+        if !consumed then keycode match
             case Keyboard.KEY_ESCAPE =>
                 removeFromParent()
                 true
@@ -630,51 +520,41 @@ class NewICNode extends TNode
                 completionDelegate()
                 true
             case _ => false
-        }
         else false
-    }
-}
 
 class InfoNode extends TNode
-{
+:
     val size = Size(18, 18)
     override def frame = Rect(position, size)
 
     private def getTile = parent.asInstanceOf[GuiICWorkbench].tile
 
     override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiICWorkbench.background)
 
         if !getTile.hasBP || getTile.getIC.isEmpty then
             Gui.drawModalRectWithCustomSizedTexture(position.x, position.y, 330, 0, size.width, size.height, 512, 512)
-    }
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
-    {
         val text =
             if !getTile.hasBP then
                 "Lay down a blueprint on the workbench."
             else if getTile.getIC.isEmpty then
                 "Blueprint is empty. Redraw it."
             else ""
-        if text.nonEmpty && rayTest(mouse) then {
+        if text.nonEmpty && rayTest(mouse) then
             translateToScreen()
             val Point(mx, my) = parent.convertPointToScreen(mouse)
             import scala.jdk.CollectionConverters.*
             GuiDraw.drawMultiLineTip(mx+12, my-12, Seq(text).asJava)
             translateFromScreen()
-        }
-    }
-}
 
 class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
-{
+:
     var pref:TileMapEditorNode = null
     var toolSets = Seq[ICToolsetNode]()
 
     override def onAddedToParent_Impl(): Unit =
-    {
         val clip = new ClipNode
         clip.position = Point(7, 18)
         clip.size = Size(252, 197)
@@ -697,14 +577,10 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
 
         val toolbar = new TNode {}
 
-        {
             import TileEditorOpDefs.*
             def addToolsetRange(name:String, from:OpDef, to:OpDef): Unit =
-            {
                 addToolset(name, (from.getID to to.getID).map(TileEditorOpDefs(_)))
-            }
             def addToolset(name:String, opset:Seq[OpDef]): Unit =
-            {
                 val toolset = new ICToolsetNode
                 toolset.position = Point(17, 0)*toolbar.children.size
                 toolset.title = name
@@ -713,7 +589,6 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
                 toolset.opSelectDelegate = {op => pref.currentOp = op }
                 toolbar.addChild(toolset)
                 toolSets :+= toolset
-            }
 
             addToolset("", Seq(Erase))
             addToolset("Debug", Seq(/*Torch,*/ Lever, Button))
@@ -726,7 +601,6 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
             addToolset("Latches", Seq(SRLatchGate, ToggleLatchGate, TransparentLatchGate))
             addToolset("Cells", Seq(NullCellGate))//, InvertCellGate, BufferCellGate))
             addToolset("Misc", Seq(RandomizerGate, CounterGate, SynchronizerGate))//, DecRandomizerGate))
-        }
 
         addChild(toolbar)
         toolbar.position = Point(size.width/2-toolbar.calculateAccumulatedFrame.width/2, 235)
@@ -758,7 +632,7 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
         reqNew.size = Size(44, 12)
         reqNew.text = "redraw"
         reqNew.clickDelegate = {() =>
-            if tile.hasBP then {
+            if tile.hasBP then
                 val nic = new NewICNode
                 nic.position = Point(size/2)-Point(nic.size/2)
                 nic.completionDelegate = {() =>
@@ -769,7 +643,6 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
                 }
                 addChild(nic)
                 nic.pushZTo(5)
-            }
         }
         addChild(reqNew)
 
@@ -778,7 +651,7 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
         rename.size = Size(44, 12)
         rename.text = "rename"
         rename.clickDelegate = {() =>
-            if tile.hasBP then {
+            if tile.hasBP then
                 val rn = new RenameICNode(tile.editor.tileMapContainer.name)
                 rn.position = Point(size/2)-Point(rn.size/2)
                 rn.completionDelegate = {() =>
@@ -787,7 +660,6 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
                 }
                 addChild(rn)
                 rn.pushZTo(5)
-            }
         }
         addChild(rename)
 
@@ -795,10 +667,8 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
         info.position = Point(241, 18)
         info.zPosition = 1
         addChild(info)
-    }
 
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         color(1, 1, 1, 1)
 
         TextureUtils.changeTexture(GuiICWorkbench.background)
@@ -812,24 +682,18 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
 
         GuiDraw.drawStringC("scale", 273, 193, 42, 14, EnumColour.GRAY.argb, false)
         GuiDraw.drawStringC(BigDecimal(pref.scale, new MathContext(2)).toString(), 279, 207, 30, 10, EnumColour.GRAY.argb, false)
-    }
-}
 
 object GuiICWorkbench extends TGuiFactory
-{
+:
     val background = new ResourceLocation("projectred", "textures/gui/ic_workbench.png")
 
     override def getID = FabricationProxy.icWorkbenchGui
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
-        player.world.getTileEntity(data.readPos()) match {
+        player.world.getTileEntity(data.readPos()) match
             case t:TileICWorkbench =>
                 t.editor.readDesc(data)
                 t.editor.worldTimeOffset = player.world.getTotalWorldTime-data.readLong()
                 new GuiICWorkbench(t)
             case _ => null
-        }
-    }
-}

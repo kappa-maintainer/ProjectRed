@@ -11,11 +11,10 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumHand
 
 class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
-{
+:
     var filt = new SimpleInventory(16, "filt", 1)
-    {
+    :
         override def markDirty(): Unit ={buildItemSet()}
-    }
     var filtExclude = true
 
     var allowRoute = true
@@ -23,17 +22,14 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
     var allowCrafting = true
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         filt.saveInv(tag)
         tag.setBoolean("excl", filtExclude)
         tag.setBoolean("route", allowRoute)
         tag.setBoolean("broad", allowBroadcast)
         tag.setBoolean("craft", allowCrafting)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         filt.loadInv(tag)
         buildItemSet()
@@ -41,49 +37,37 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
         allowRoute = tag.getBoolean("route")
         allowBroadcast = tag.getBoolean("broad")
         allowCrafting = tag.getBoolean("craft")
-    }
 
     def sendOptUpdate(): Unit =
-    {
         writeInfo(getWriteStreamOf(7))
-    }
 
     private def writeInfo(out:MCDataOutput): Unit =
-    {
         out.writeBoolean(filtExclude).writeBoolean(allowRoute)
             .writeBoolean(allowBroadcast).writeBoolean(allowCrafting)
-    }
 
     override def read(packet:MCDataInput, key:Int) = key match
-    {
         case 7 =>
             filtExclude = packet.readBoolean()
             allowRoute = packet.readBoolean()
             allowBroadcast = packet.readBoolean()
             allowCrafting = packet.readBoolean()
         case _ => super.read(packet, key)
-    }
 
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
-    {
         if super.activate(player, hit, item, hand) then return true
-        if !player.isSneaking then {
+        if !player.isSneaking then
             openGui(player)
             true
-        }
         else false
-    }
 
     private def openGui(player:EntityPlayer): Unit =
-    {
         if world.isRemote then return
         GuiFirewallPipe.open(player, createContainer(player), p =>
         {
             p.writePos(pos)
             writeInfo(p)
         })
-    }
 
     def createContainer(player:EntityPlayer) =
         new ContainerFirewallPipe(this, player)
@@ -97,38 +81,22 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
 
     var itemset = Set[ItemKey]()
     def buildItemSet(): Unit =
-    {
         itemset = Set[ItemKey]()
         for i <- 0 until filt.getSizeInventory do
-        {
             val inslot = filt.getStackInSlot(i)
             if !inslot.isEmpty then itemset += ItemKey.get(inslot)
-        }
-    }
-}
 
 class ContainerFirewallPipe(pipe:RoutedFirewallPipe, player:EntityPlayer) extends NodeContainer
-{
-    {
-        for ((x, y), i) <- GuiLib.createSlotGrid(26, 17, 4, 4, 0, 0).zipWithIndex do
-        {
-            val s = new Slot3(pipe.filt, i, x, y)
-            s.phantomSlot = true
-            addSlotToContainer(s)
-        }
-        addPlayerInv(player, 8, 102)
-    }
+:
+    for ((x, y), i) <- GuiLib.createSlotGrid(26, 17, 4, 4, 0, 0).zipWithIndex do
+        val s = new Slot3(pipe.filt, i, x, y)
+        s.phantomSlot = true
+        addSlotToContainer(s)
+    addPlayerInv(player, 8, 102)
 
-    override def doMerge(stack:ItemStack, from:Int):Boolean =
-    {
+    override def doMerge(stack:ItemStack, from:Int): Boolean =
         if 16 to 24 contains from then //hotbar
-        {
             if tryMergeItemStack(stack, 16, 25, false) then return true
-        }
         else if 25 to 52 contains from then //inv
-        {
             if tryMergeItemStack(stack, 25, 53, false) then return true
-        }
         false
-    }
-}

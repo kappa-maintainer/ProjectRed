@@ -19,11 +19,10 @@ import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class IlluminationProxy_server extends IProxy with IPartFactory
-{
+:
     val lights = Seq(LightFactoryLantern, LightFactoryFixture, LightFactoryFallout, LightFactoryCage)
 
     override def preinit(): Unit =
-    {
         blockLamp = new BlockLamp
         blockLamp.setTranslationKey("projectred.illumination.lamp")
         ForgeRegistries.BLOCKS.register(blockLamp.setRegistryName("lamp"))
@@ -46,29 +45,22 @@ class IlluminationProxy_server extends IProxy with IPartFactory
         lights.foreach(_.register())
 
         MultiPartRegistry.registerParts(this, Array(LightButtonPart.typeID, FLightButtonPart.typeID))
-    }
 
     override def init(): Unit =
-    {
         LightMicroMaterial.register()
-    }
 
     override def postinit(): Unit ={}
 
     override def createPart(name:ResourceLocation, client:Boolean) = name match
-    {
         case LightButtonPart.typeID => new LightButtonPart
         case FLightButtonPart.typeID => new FLightButtonPart
         case _ => null
-    }
-}
 
 class IlluminationProxy_client extends IlluminationProxy_server
-{
+:
 
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
 
         ModelLoader.setCustomStateMapper(blockLamp, new StateMap.Builder().ignore(MultiTileBlock.TILE_INDEX).build())
@@ -88,19 +80,15 @@ class IlluminationProxy_client extends IlluminationProxy_server
 
         ModelRegistryHelper.registerItemRenderer(itemPartIllumarButton, ButtonItemRenderer)
         ModelRegistryHelper.registerItemRenderer(itemPartIllumarFButton, FButtonItemRenderer)
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
 //        MinecraftForgeClient.registerItemRenderer(itemPartIllumarButton, RenderButton)
 //        MinecraftForgeClient.registerItemRenderer(itemPartIllumarFButton, RenderFButton)
 
         ClientRegistry.bindTileEntitySpecialRenderer(classOf[TileLamp], LampRenderer)
-    }
 
     var getLightValue = (meta:Int, brightness:Int) => brightness
-}
 
 object IlluminationProxy extends IlluminationProxy_client

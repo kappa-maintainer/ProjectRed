@@ -11,40 +11,34 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-relocation", useMetadata = true, modLanguage = "scala")
 object ProjectRedRelocation
-{
+:
     ProjectRedAPI.relocationAPI = APIImpl_Relocation
 
     var blockMovingRow:BlockMovingRow = scala.compiletime.uninitialized
     var blockFrame:BlockFrame = scala.compiletime.uninitialized
 
-    var tabRelocation: CreativeTabs = new CreativeTabs("projectred.relocation") {
+    var tabRelocation: CreativeTabs = new CreativeTabs("projectred.relocation"):
         override def createIcon = new ItemStack(blockFrame)
-    }
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         RelocationProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         APIImpl_Relocation.isPreInit = false
         RelocationConfig.loadConfig()
         RelocationProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         RelocationProxy.postinit()
-    }
-}
 
 class RelocationConfigGui(parent:GuiScreen) extends SpecialConfigGui(parent, "projectred-relocation", RelocationConfig.config)
 
 class GuiConfigFactory extends TModGuiFactory
-{
+:
     override def createConfigGui(parentScreen:GuiScreen):GuiScreen = new RelocationConfigGui(parentScreen)
-}
 
 object RelocationConfig extends ModConfig("projectred-relocation")
 {
@@ -62,7 +56,7 @@ object RelocationConfig extends ModConfig("projectred-relocation")
 
     override def getFileName = "ProjectRedRelocation"
 
-    override protected def initValues(): Unit = {
+    override protected def initValues(): Unit =
         val general = BaseCategory("General", "Basic settings")
         moveLimit = general.put("moveLimit", moveLimit, "Maximum amount of blocks that can be moved at once.")
 
@@ -74,10 +68,8 @@ object RelocationConfig extends ModConfig("projectred-relocation")
         setMap = sets.put("latch registry", setMap.toIndexedSeq).toArray
         setMap = sets.put("latch registry", StickRegistry.parseAndAddLatchSets(setMap.toIndexedSeq).toIndexedSeq, force = true).toArray
 
-    }
 
     def buildMoverDesc: String =
-    {
         var s =
             """Used to configure which registered Tile Mover is used for a block. Key-Value pairs are defined using
               |the syntax key -> value.
@@ -94,14 +86,12 @@ object RelocationConfig extends ModConfig("projectred-relocation")
         for (k, v) <- MovingTileRegistry.moverDescMap do
             s += "    '" + k + "' - " + v + "\n"
 
-        if MovingTileRegistry.mandatoryMovers.nonEmpty then {
+        if MovingTileRegistry.mandatoryMovers.nonEmpty then
             s += "\nMovers locked via API:\n"
             for (k, v) <- MovingTileRegistry.mandatoryMovers do
                 s += "    " + k + " -> " + v + "\n"
-        }
 
         s
-    }
 
     def buildLatchSetsDesc:String =
         """Used to define which pairs of blocks will be stuck together.

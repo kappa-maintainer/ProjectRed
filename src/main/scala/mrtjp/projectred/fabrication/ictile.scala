@@ -16,7 +16,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import scala.collection.mutable.ListBuffer
 
 object ICTileDefs extends Enum
-{
+:
     type EnumVal = ICTileDef
 
 //    val Torch = CircuitPartDef(() => new TorchICPart)
@@ -33,47 +33,36 @@ object ICTileDefs extends Enum
     val ArrayGate = ICTileDef(() => new ArrayGateICTile)
 
     case class ICTileDef(factory:() => ICTile) extends Value
-    {
+    :
         def id = ordinal
         override def name = s"$id"
 
         def createPart = factory.apply()
-    }
-}
 
 object ICTile
-{
+:
     def createTile(id: Int): ICTile = ICTileDefs(id).createPart
-}
 
 abstract class ICTile extends ISETile
-{
+:
     var editor:ICTileMapEditor = null
     var tileMap:ICTileMapContainer = null
     var pos:Point = null
 
     def bindEditor(ic:ICTileMapEditor): Unit =
-    {
         editor = ic
         bindTileMap(ic.tileMapContainer)
-    }
 
     def bindTileMap(tm:ICTileMapContainer): Unit =
-    {
         tileMap = tm
-    }
 
     def bindPos(p:Point): Unit =
-    {
         pos = p
-    }
 
     def unbind(): Unit =
-    {
         editor = null
         tileMap = null
         pos = null
-    }
 
     def id = getPartType.id
 
@@ -87,10 +76,9 @@ abstract class ICTile extends ISETile
 
     def writeStreamOf(key:Int):MCDataOutput = editor.network.getTileStream(pos).writeByte(key)
     def read(in:MCDataInput): Unit = { read(in, in.readUByte()) }
-    def read(in:MCDataInput, key:Int) = key match {
+    def read(in:MCDataInput, key:Int) = key match
         case 0 => readDesc(in)
         case _ =>
-    }
 
     def sendDescUpdate(): Unit = { writeDesc(writeStreamOf(0)) }
 
@@ -116,24 +104,18 @@ abstract class ICTile extends ISETile
     def getPickOp:TileEditorOp = null
     @SideOnly(Side.CLIENT)
     def buildRolloverData(buffer:ListBuffer[String]): Unit =
-    {
         buffer += getPartName
-    }
 
     @SideOnly(Side.CLIENT)
     def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit ={}
-}
 
 trait TClientNetICTile extends ICTile
-{
+:
     def readClientPacket(in:MCDataInput): Unit 
 
     @SideOnly(Side.CLIENT)
     def sendClientPacket(writer:MCDataOutput => Unit = {_ => }): Unit =
-    {
         editor.sendClientPacket(this, writer)
-    }
-}
 
 trait IGuiICTile extends TClientNetICTile
 {

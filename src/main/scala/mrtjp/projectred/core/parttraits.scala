@@ -5,44 +5,35 @@ import codechicken.lib.vec.{Rotation, Vector3}
 import codechicken.multipart.{TFacePart, TMultiPart, TSlottedPart}
 
 trait TSwitchPacket extends TMultiPart
-{
+:
     override final def read(packet:MCDataInput): Unit =
-    {
         read(packet, packet.readUByte())
-    }
 
     def read(packet:MCDataInput, key:Int) = key match
-    {
         case 0 => readDesc(packet)
         case _ =>
-    }
 
     def getWriteStreamOf(key:Int):MCDataOutput = getWriteStream.writeByte(key)
 
     override def sendDescUpdate() = writeDesc(getWriteStreamOf(0))
-}
 
 trait TFaceOrient extends TMultiPart with TFacePart
-{
+:
     var orientation:Byte = 0
 
     def side = orientation>>2
 
     def setSide(s:Int): Unit =
-    {
         val oldOrient = orientation
         orientation = (orientation&0x3|s<<2).toByte
         if oldOrient != orientation then onOrientationChanged(oldOrient)
-    }
 
     def rotation = orientation&0x3
 
     def setRotation(r:Int): Unit =
-    {
         val oldOrient = orientation
         orientation = (orientation&0xFC|r).toByte
         if oldOrient != orientation then onOrientationChanged(oldOrient)
-    }
 
     def rotationT = Rotation.sideOrientation(side, rotation).at(Vector3.center)
 
@@ -62,13 +53,11 @@ trait TFaceOrient extends TMultiPart with TFacePart
     def toAbsoluteMask(mask:Int) = TFaceOrient.shiftMask(mask, toAbsolute(0))
 
     override def getSlotMask = 1<<side
-}
 
 object TFaceOrient
-{
+:
     def shiftMask(mask:Int, r:Int) = (mask& ~0xF)|(mask<<r|mask>>4-r)&0xF
     def flipMaskZ(mask:Int) = mask&5|mask<<2&8|mask>>2&2
-}
 
 trait TCenterOrient extends TMultiPart with TSlottedPart
 {

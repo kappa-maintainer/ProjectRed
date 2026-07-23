@@ -37,7 +37,7 @@ import org.lwjgl.opengl.GL11
 import scala.jdk.CollectionConverters.*
 
 class BlockFrame extends Block(Material.WOOD) with IFrame
-{
+:
     setResistance(5.0F)
     setHardness(2.0F)
     setSoundType(SoundType.WOOD)
@@ -57,39 +57,34 @@ class BlockFrame extends Block(Material.WOOD) with IFrame
 
     @SideOnly(Side.CLIENT)
     override def getRenderType(state:IBlockState) = FrameRenderer.renderType
-}
 
 class ItemBlockFrame(block:Block) extends ItemBlock(block)
-{
+:
     def getHitDepth(vhit: Vector3, side: Int): Double =
         vhit.copy.scalarProject(Rotation.axes(side)) + (side % 2 ^ 1)
 
     override def onItemUse(player:EntityPlayer, world:World, bpos:BlockPos, hand:EnumHand, facing:EnumFacing, hitX:Float, hitY:Float, hitZ:Float):EnumActionResult =
-    {
         val stack = player.getHeldItem(hand)
         var pos = new BlockPos(bpos)
         val side = facing.getIndex
         val vhit = new Vector3(hitX, hitY, hitZ)
         val d = getHitDepth(vhit, side)
 
-        def place(): EnumActionResult = {
+        def place(): EnumActionResult =
             if TileMultipart.getOrConvertTile(world, pos) == null then //Only place multipart frames if a multipart tile already exists
                 return EnumActionResult.FAIL
 
             val part = newPart(stack, player, world, pos, side, vhit)
             if part == null || !TileMultipart.canPlacePart(world, pos, part) then return EnumActionResult.FAIL
 
-            if !world.isRemote then {
+            if !world.isRemote then
                 TileMultipart.addPart(world, pos, part)
                 val sound = getPlacementSound(stack)
-                if sound != null then {
+                if sound != null then
                     world.playSound(null, bpos, sound.getPlaceSound,
                         SoundCategory.BLOCKS, (sound.getVolume + 1.0F) / 2.0F, sound.getPitch * 0.8F)
-                }
-            }
             if !player.capabilities.isCreativeMode then stack.shrink(1)
             EnumActionResult.SUCCESS
-        }
 
         if d < 1 && place() == EnumActionResult.SUCCESS then return EnumActionResult.SUCCESS
 
@@ -98,7 +93,6 @@ class ItemBlockFrame(block:Block) extends ItemBlock(block)
 
         pos = pos.offset(facing)
         place()
-    }
 
     def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3) =
         MultiPartRegistry.loadPart(FramePart.partType, null)
@@ -106,11 +100,10 @@ class ItemBlockFrame(block:Block) extends ItemBlock(block)
     def getPlacementSound(item:ItemStack) = SoundType.WOOD
 
     override def canPlaceBlockOnSide(worldIn:World, pos:BlockPos, side:EnumFacing, player:EntityPlayer, stack:ItemStack) = true
-}
 
 @SideOnly(Side.CLIENT)
 object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRenderer
-{
+:
     import FrameModelGen.*
 
     val renderType = BlockRenderingRegistry.createRenderType("projectred-relocation:frame")
@@ -119,20 +112,16 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
     private var iconT:IconTransformation = scala.compiletime.uninitialized
 
     def init(): Unit =
-    {
         BlockRenderingRegistry.registerRenderer(renderType, this)
         ModelRegistryHelper.registerItemRenderer(Item.getItemFromBlock(ProjectRedRelocation.blockFrame), this)
-    }
 
     override def renderItem(stack:ItemStack, transformType:ItemCameraTransforms.TransformType): Unit =
-    {
         val ccrs = CCRenderState.instance()
         ccrs.reset()
         ccrs.pullLightmap()
         ccrs.startDrawing(0x07, DefaultVertexFormats.ITEM)
         getOrGenerateModel(0).render(ccrs, iconT)
         ccrs.draw()
-    }
 
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
@@ -141,7 +130,6 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
     override def isGui3d = true
 
     override def renderBlock(world:IBlockAccess, pos:BlockPos, state:IBlockState, buffer:BufferBuilder) =
-    {
         val ccrs = CCRenderState.instance()
         ccrs.reset()
         ccrs.bind(buffer)
@@ -150,33 +138,25 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
         ccrs.setBrightness(world, pos)
         render(ccrs, Vector3.fromBlockPos(pos), 0)
         true
-    }
 
     override def handleRenderBlockDamage(world:IBlockAccess, pos:BlockPos, state:IBlockState, sprite:TextureAtlasSprite, buffer:BufferBuilder): Unit =
-    {
         val ccrs = CCRenderState.instance()
         ccrs.reset()
         ccrs.bind(buffer)
 
         getOrGenerateModel(0).render(ccrs, new Translation(pos), new IconTransformation(sprite))
-    }
 
     override def renderBrightness(state:IBlockState, brightness:Float): Unit ={}
 
     override def registerTextures(map:TextureMap): Unit ={}
 
     override def registerIcons(textureMap:TextureMap): Unit =
-    {
         icon = textureMap.registerSprite(new ResourceLocation("projectred:blocks/mechanical/frame"))
 
         iconT = new IconTransformation(icon)
-    }
 
     def render(ccrs:CCRenderState, pos:Vector3, mask:Int): Unit =
-    {
         getOrGenerateModel(mask).render(ccrs, pos.translation, iconT)
-    }
-}
 
 object FrameModelGen
 {
@@ -187,31 +167,24 @@ object FrameModelGen
     private val models = new Array[CCModel](64)
 
     def getOrGenerateModel(mask:Int) =
-    {
         var m = models(mask&0x3F)
-        if m == null then {
+        if m == null then
             m = generateModel(mask)
             models(mask&0x3F) = m
-        }
         m
-    }
 
     private def generateModel(mask:Int) =
-    {
         var m = modelParts("frame").copy
 
         for s <- 0 until 6 do if (mask & 1 << s) == 0 then
             m = combine(Seq(m, modelParts("cross_" + s)).asJava)
 
         finishModel(m)
-    }
 
     private def finishModel(m:CCModel) =
-    {
         m.shrinkUVs(0.0005)
         m.computeNormals()
         m.computeLighting(LightModel.standardLightModel)
-    }
 
     def raytrace(pos:BlockPos, mask:Int, start:Vec3d, end:Vec3d) =
         ModelRayTracer.raytraceModel(pos.getX, pos.getY, pos.getZ, start, end, getOrGenerateModel(mask))

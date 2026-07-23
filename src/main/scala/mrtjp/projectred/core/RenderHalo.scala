@@ -13,33 +13,27 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import org.lwjgl.opengl.GL11.*
 
 object RenderHalo
-{
+:
     private var renderList = Vector[LightCache]()
     private val renderEntityPos = new Vector3
     private val vec = new Vector3
 
     private class LightCache(val pos:BlockPos, val color:Int, val cube:Cuboid6) extends Ordered[LightCache]
-    {
+    :
         def this(x:Int, y:Int, z:Int, c:Int, cube:Cuboid6) = this(new BlockPos(x, y, z), c, cube)
 
         private def renderDist = vec.set(pos.getX, pos.getY, pos.getZ).subtract(renderEntityPos).magSquared
 
         override def compare(o:LightCache) =
-        {
             val ra = renderDist
             val rb = o.renderDist
             if ra == rb then 0 else if ra < rb then 1 else -1
-        }
-    }
 
     def addLight(pos:BlockPos, color:Int, box:Cuboid6): Unit =
-    {
         renderList :+= new LightCache(pos, color, box)
-    }
 
     @SubscribeEvent
     def onRenderWorldLast(event:RenderWorldLastEvent): Unit =
-    {
         if renderList.isEmpty then return
         val w = Minecraft.getMinecraft.world
         val entity = Minecraft.getMinecraft.getRenderViewEntity
@@ -60,19 +54,16 @@ object RenderHalo
         val max = if Configurator.lightHaloMax < 0 then renderList.size else Configurator.lightHaloMax
 
         var i = 0
-        while i < max && it.hasNext do {
+        while i < max && it.hasNext do
             val cc = it.next()
             renderHalo(w, cc)
             i += 1
-        }
         renderList = Vector()
 
         restoreRenderState()
         popMatrix()
-    }
 
     def prepareRenderState(): Unit =
-    {
         enableBlend()
         blendFunc(GL_SRC_ALPHA, GL_ONE)
         disableTexture2D()
@@ -83,10 +74,8 @@ object RenderHalo
         val rs = CCRenderState.instance()
         rs.reset()
         rs.startDrawing(GL_QUADS, DefaultVertexFormats.ITEM)
-    }
 
     def restoreRenderState(): Unit =
-    {
         CCRenderState.instance().draw()
         depthMask(true)
         color(1, 1, 1, 1)
@@ -95,24 +84,18 @@ object RenderHalo
         enableTexture2D()
         blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         disableBlend()
-    }
 
     private def renderHalo(world:World, cc:LightCache): Unit =
-    {
         CCRenderState.instance().setBrightness(world, cc.pos)
         // Make sure to use camera coordinates for the halo transformation.
         val entity = Minecraft.getMinecraft.getRenderViewEntity
         renderHalo(cc.cube, cc.color,
             new Translation(cc.pos.getX-entity.posX, cc.pos.getY-entity.posY, cc.pos.getZ-entity.posZ))
-    }
 
     def renderHalo(cuboid:Cuboid6, colour:Int, t:Transformation): Unit =
-    {
         val rs = CCRenderState.instance()
         rs.reset()
         rs.setPipeline(t)
         rs.baseColour = EnumColour.values()(colour).rgba
         rs.alphaOverride = 128
         BlockRenderer.renderCuboid(rs, cuboid, 0)
-    }
-}

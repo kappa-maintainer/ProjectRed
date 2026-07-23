@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-exploration", useMetadata = true, modLanguage = "scala")
 object ProjectRedExploration
-{
+:
     /** Blocks **/
     var blockOres:BlockOre = scala.compiletime.uninitialized
     var blockDecorativeStone:BlockDecorativeStone = scala.compiletime.uninitialized
@@ -72,23 +72,18 @@ object ProjectRedExploration
     var itemPeridotBoots:ItemGemArmor = scala.compiletime.uninitialized
 
     val tabExploration:CreativeTabs = new CreativeTabs("projectred.exploration")
-    {
+    :
         override def createIcon = new ItemStack(Blocks.GRASS)
-    }
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         SimpleGenHandler.init()
         ExplorationProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         ExplorationProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         ExplorationProxy.postinit()
-    }
-}

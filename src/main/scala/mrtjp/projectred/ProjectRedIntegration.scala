@@ -7,27 +7,22 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-integration", useMetadata = true, modLanguage = "scala")
 object ProjectRedIntegration
-{
+:
     /** Multipart items **/
     var itemPartGate:ItemPartGate = scala.compiletime.uninitialized
 
     val tabIntegration = new CreativeTabs("projectred.integration")
-    {
+    :
         override def createIcon = GateDefinition.OR.makeStack
-    }
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         IntegrationProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         IntegrationProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         IntegrationProxy.postinit()
-    }
-}

@@ -22,7 +22,7 @@ import scala.collection.immutable.ListMap
 import scala.util.matching.Regex
 
 object MovingTileRegistry extends ITileMover
-{
+:
     val rKeyVal:Regex = raw"([^\s]+.+[^\s]+)\s*->\s*([^\s]+.+[^\s]+)".r
     val rName:Regex = raw"([^\s]+.+[^\s]+)".r
     val rNameMetaM:Regex = raw"([^\s]+.+[^\s]+)m(\d+)".r
@@ -41,37 +41,29 @@ object MovingTileRegistry extends ITileMover
     def parseKV(kv:Seq[String]):Seq[(String, String)] =
         kv.map { case rKeyVal(k, v) => (k, v); case s => throw new MatchError(s"Illegal [k -> v] pair: $s") }
 
-    def parseBlockMeta(b:String):Option[IBlockState] = b match {
+    def parseBlockMeta(b:String):Option[IBlockState] = b match
         case rNameMetaM(name, meta) => Option(Block.getBlockFromName(name)).map(_.getStateFromMeta(meta.toInt))
         case rName(name) => Option(Block.getBlockFromName(name)).map(_.getDefaultState)
         case _ => throw new MatchError(s"Illegal set part: $b")
-    }
 
     def parseAndSetMovers(kv:Seq[String]):Array[String] =
-    {
         var moverMap = ListMap(parseKV(kv)*)
         for (k, v) <- preferredMovers do if !moverMap.contains(k) then moverMap += k -> v
         for pair <- mandatoryMovers do moverMap += pair
         moverMap.foreach(h => setMover(h._1, h._2))
         moverMap.map(p => p._1 + " -> " + p._2).toArray
-    }
 
     def setMover(that:String, m:String): Unit =
-    {
         if !moverNameMap.contains(m) then return
         val h = moverNameMap(m)
-        that match {
+        that match
             case "default" => defaultMover = h
             case rMod(mod) if Loader.isModLoaded(mod) => modMap += mod -> h
             case _ => parseBlockMeta(that).foreach(blockMetaMap += _ -> h) // TODO: Throw error when this is None
-        }
-    }
 
     def registerTileMover(name:String, desc:String, m:ITileMover): Unit =
-    {
         moverDescMap += name -> desc
         moverNameMap += name -> m
-    }
 
     private def getHandler(state:IBlockState):ITileMover =
         blockMetaMap.getOrElse(state, blockMetaMap.getOrElse(state.getBlock.getDefaultState,
@@ -90,41 +82,34 @@ object MovingTileRegistry extends ITileMover
     def canRunOverBlock(w:World, pos:BlockPos):Boolean =
         w.isBlockLoaded(pos) &&
                 (w.isAirBlock(pos) || WorldLib.isBlockSoft(w, pos, w.getBlockState(pos)))
-}
 
 object CoordPushTileMover extends ITileMover
-{
+:
     override def canMove(w:World, pos:BlockPos) = true
 
     override def move(w:World, pos:BlockPos, side:EnumFacing): Unit =
-    {
         val (state, te) = (w.getBlockState(pos), uncheckedGetTileEntity(w, pos))
         val pos2 = pos.offset(side)
-        if te != null then {
+        if te != null then
             te.invalidate()
             uncheckedRemoveTileEntity(w, pos)
-        }
         uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
         uncheckedSetBlock(w, pos2, state)
-        if te != null then {
+        if te != null then
             te.setPos(pos2)
             te.validate()
             uncheckedSetTileEntity(w, pos2, te)
-        }
-    }
 
     override def postMove(w:World, pos:BlockPos): Unit ={}
-}
 
 object SaveLoadTileMover extends ITileMover
-{
+:
     override def canMove(w:World, pos:BlockPos) = true
 
     override def move(w:World, pos:BlockPos, side:EnumFacing): Unit =
-    {
         val (state, te) = (w.getBlockState(pos), uncheckedGetTileEntity(w, pos))
         val pos2 = pos.offset(side)
-        val tag = if te != null then {
+        val tag = if te != null then
             val tag = new NBTTagCompound
             te.writeToNBT(tag)
             tag.setInteger("x", pos2.getX)
@@ -133,20 +118,15 @@ object SaveLoadTileMover extends ITileMover
             te.onChunkUnload()
             w.removeTileEntity(pos)
             tag
-        }
         else null
         uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
         uncheckedSetBlock(w, pos2, state)
-        if tag != null then {
-            TileEntity.create(w, tag) match {
+        if tag != null then
+            TileEntity.create(w, tag) match
                 case te:TileEntity => w.getChunk(pos2).addTileEntity(te)
                 case null =>
-            }
-        }
-    }
 
     override def postMove(w:World, pos:BlockPos): Unit ={}
-}
 
 object StaticTileMover extends ITileMover
 {

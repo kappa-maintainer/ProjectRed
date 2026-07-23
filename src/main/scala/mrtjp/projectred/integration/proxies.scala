@@ -20,9 +20,8 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class IntegrationProxy_server extends IProxy with IPartFactory
-{
+:
     override def preinit(): Unit =
-    {
         itemPartGate = new ItemPartGate
         itemPartGate.setTranslationKey("projectred.integration.gate")
         ForgeRegistries.ITEMS.register(itemPartGate.setRegistryName("gate"))
@@ -32,50 +31,39 @@ class IntegrationProxy_server extends IProxy with IPartFactory
             typeSimpleGate, typeComplexGate, typeArrayGate,
             typeBundledGate, typeNeighborGate
         ))
-    }
 
     override def init(): Unit =
-    {
         PacketCustom.assignHandler(IntegrationSPH.channel, IntegrationSPH)
-    }
 
     override def postinit(): Unit ={}
 
     override def createPart(name:ResourceLocation, client:Boolean) = name match
-    {
         case GateDefinition.typeSimpleGate => new ComboGatePart
         case GateDefinition.typeComplexGate => new SequentialGatePart
         case GateDefinition.typeArrayGate => new ArrayGatePart
         case GateDefinition.typeBundledGate => new BundledGatePart
         case GateDefinition.typeNeighborGate => new SequentialGatePartT
         case _ => null
-    }
-}
 
 class IntegrationProxy_client extends IntegrationProxy_server
-{
+:
     val timerGui = 10
     val counterGui = 11
 
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
 
         ModelRegistryHelper.registerItemRenderer(itemPartGate, GateItemRenderer)
         TextureUtils.addIconRegister(RenderGate)
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
 
         PacketCustom.assignHandler(IntegrationCPH.channel, IntegrationCPH)
 
         GuiHandler.register(GuiTimer, timerGui)
         GuiHandler.register(GuiCounter, counterGui)
-    }
-}
 
 object IntegrationProxy extends IntegrationProxy_client

@@ -10,7 +10,7 @@ import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import net.minecraft.client.gui.GuiScreen
 
 object Configurator extends ModConfig("projectred-core")
-{
+:
     /** Constants **/
     var modName = "Project Red"
 
@@ -76,7 +76,6 @@ object Configurator extends ModConfig("projectred-core")
     override def getFileName = "ProjectRed"
 
     override protected def initValues(): Unit =
-    {
         val general = new BaseCategory("General Settings", "Contains basic settings for the mod.")
 
         logicGateSounds = general.put("Logic Sounds", logicGateSounds, "If set to false, logic gates will not make sounds.")
@@ -145,13 +144,10 @@ object Configurator extends ModConfig("projectred-core")
 //        compat_TExpansion = compat.put("Thermal Expansion: Machine Recipes", compat_TExpansion, "This adds recipes to machines.")
 //        compat_ColoredLights = compat.put("ColoredLights Compat", compat_ColoredLights, "This makes things emit colored light. CLC is in beta state and may cause minor rendering glitches.")
 //        compat_MFRDeepStorage = compat.put("MFR: Deep Storage", compat_MFRDeepStorage, "This allows pipes to recoginze MFR Deep storage units correctly.")
-    }
-}
 
 class ProjectRedConfigGui(parent:GuiScreen) extends SpecialConfigGui(parent, "projectred-core", Configurator.config)
 class GuiConfigFactory extends TModGuiFactory
-{
+:
     override def createConfigGui(parentScreen: GuiScreen) = new ProjectRedConfigGui(parentScreen)
-}
 
 class ConfigConditionalFactory extends AbstractForgeConfigConditionalFactory(Configurator.config)

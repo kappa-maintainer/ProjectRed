@@ -12,9 +12,8 @@ import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class TransmissionProxy_server extends IProxy with IPartFactory
-{
+:
     override def preinit(): Unit =
-    {
         itemPartWire = new ItemPartWire
         itemPartWire.setTranslationKey("projectred.transmission.wire")
         ForgeRegistries.ITEMS.register(itemPartWire.setRegistryName("wire"))
@@ -31,14 +30,12 @@ class TransmissionProxy_server extends IProxy with IPartFactory
         ))
 
         WireDef.initOreDict()
-    }
 
     override def init(): Unit ={}
 
     override def postinit(): Unit ={}
 
     override def createPart(name:ResourceLocation, client:Boolean):TMultiPart = name match
-    {
         case WireDef.typeRedAlloy => new RedAlloyWirePart
         case WireDef.typeInsulated => new InsulatedRedAlloyPart
         case WireDef.typeBundled => new BundledCablePart
@@ -48,20 +45,15 @@ class TransmissionProxy_server extends IProxy with IPartFactory
         case WireDef.typeLowLoad => new LowLoadPowerLine
         case WireDef.typeFramedLowLoad => new FramedLowLoadPowerLine
         case _ => null
-    }
-}
 
 class TransmissionProxy_client extends TransmissionProxy_server
-{
+:
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
         ModelRegistryHelper.registerItemRenderer(itemPartWire, WireItemRenderer)
         ModelRegistryHelper.registerItemRenderer(itemPartFramedWire, FramedWireItemRenderer)
         TextureUtils.addIconRegister(RenderWire)
         MicroMaterialRegistry.registerHighlightRenderer(RenderFramedWire)
-    }
-}
 
 object TransmissionProxy extends TransmissionProxy_client

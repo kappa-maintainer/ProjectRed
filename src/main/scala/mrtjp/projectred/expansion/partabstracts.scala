@@ -20,47 +20,33 @@ import net.minecraft.util.math.BlockPos
 import scala.jdk.CollectionConverters.*
 
 trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOcclusionPart with TFaceConnectable with TSwitchPacket with TIconHitEffectsPart with TFacePowerPart
-{
+:
     def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int): Unit =
-    {
         setSide(side^1)
         setRotation((Rotation.getSidedRotation(player, side)+2)%4)
-    }
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         tag.setByte("orient", orientation)
         tag.setInteger("connMap", connMap)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         orientation = tag.getByte("orient")
         connMap = if tag.getBoolean("nolegacy") then tag.getInteger("connMap") else tag.getShort("connMap")|0xF000
-    }
 
     override def writeDesc(packet:MCDataOutput): Unit =
-    {
         packet.writeByte(orientation)
-    }
 
     override def readDesc(packet:MCDataInput): Unit =
-    {
         orientation = packet.readByte()
-    }
 
     override def read(packet:MCDataInput, key:Int) = key match
-    {
         case 1 =>
             orientation = packet.readByte()
             tile.markRender()
         case _ => super.read(packet, key)
-    }
 
     def sendOrientUpdate(): Unit =
-    {
         getWriteStreamOf(1).writeByte(orientation)
-    }
 
     override def setRenderFlag(part:IConnectable) = false
 
@@ -69,56 +55,39 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
     override def canConnectCorner(r:Int) = false
 
     override def onPartChanged(part:TMultiPart): Unit =
-    {
         if !world.isRemote then
             if updateOutward() then
                 onMaskChanged()
-    }
 
     override def onNeighborChanged(): Unit =
-    {
-        if !world.isRemote then {
+        if !world.isRemote then
             if dropIfCantStay() then return
             if updateExternalConns() then
                 onMaskChanged()
-        }
-    }
 
     override def onAdded(): Unit =
-    {
         super.onAdded()
         if !world.isRemote then
             if updateInward() then
                 onMaskChanged()
-    }
 
     override def onRemoved(): Unit =
-    {
         super.onRemoved()
         if !world.isRemote then notifyAllExternals()
-    }
 
     def canStay =
-    {
         val pos = tile.getPos.offset(EnumFacing.VALUES(side))
         PRLib.canPlaceGateOnSide(world, pos, side^1)
-    }
 
     def dropIfCantStay() =
-    {
         if !canStay then
-        {
             drop()
             true
-        }
         else false
-    }
 
     def drop(): Unit =
-    {
         TileMultipart.dropItem(getItem, world, Vector3.fromTileCenter(tile))
         tile.remPart(this)
-    }
 
     def getItem:ItemStack
 
@@ -131,21 +100,14 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
     override def solid(side:Int) = false
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, held:ItemStack, hand:EnumHand):Boolean =
-    {
         if !held.isEmpty && doesRotate && held.getItem.isInstanceOf[IScrewdriver] && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held) then
-        {
             if !world.isRemote then
-            {
                 rotate()
                 held.getItem.asInstanceOf[IScrewdriver].damageScrewdriver(player, held)
-            }
             return true
-        }
         false
-    }
 
     def rotate(): Unit =
-    {
         setRotation((rotation+1)%4)
         if updateInward() then
             onMaskChanged()
@@ -153,7 +115,5 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
         tile.notifyPartChange(this)
         sendOrientUpdate()
         notifyExternals(0xF)
-    }
 
     def doesRotate = true
-}

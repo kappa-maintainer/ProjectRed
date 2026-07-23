@@ -38,23 +38,18 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import scala.jdk.CollectionConverters.*
 
 class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoadMachine with ITickable
-{
+:
     val cond = new PowerConductor(this, 0 until 4)
-    {
+    :
         override def capacitance = 4.0
-    }
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         cond.save(tag)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         cond.load(tag)
-    }
     override def connWorld = world
 
     override def getType = SolarPanelPart.typeID
@@ -69,41 +64,29 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
     override def doesRotate = false
 
     override def canConnectPart(part:IConnectable, r:Int) = part match
-    {
         case t:ILowLoadMachine => true
         case t:ILowLoadPowerLine => true
         case _ => false
-    }
 
     override def update(): Unit =
-    {
         if !world.isRemote then
-        {
             cond.update()
             if cond.voltage() < 100.0 then
-            {
                 val I = 2.5*heightMultiplier*timeOfDayMultiplier*sideMultiplier*rainMultiplier*visibilityMultiplier
                 cond.applyCurrent(I)
-            }
-        }
-    }
 
     def heightMultiplier = 0.90+0.10*pos.getY/256.0
 
     def timeOfDayMultiplier =
-    {
         val t = world.getWorldTime%24000
         if t > 12000 then 0.0
         else 0.50+0.50*math.sin(math.Pi*t/12000.0)
-    }
 
     def sideMultiplier = side match
-    {
         case 0 => 1.0
         case 1 => 0.0
         case 2|3 => 0.4
         case 4|5 => 0.3
-    }
 
     def rainMultiplier = 1.0-world.rainingStrength
 
@@ -115,15 +98,11 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
 
     @SideOnly(Side.CLIENT)
     override def renderStatic(position:Vector3, layer:BlockRenderLayer, ccrs: CCRenderState) =
-    {
         if layer == BlockRenderLayer.SOLID then
-        {
             ccrs.setBrightness(world, pos)
             RenderSolarPanel.render(ccrs, side, position)
             true
-        }
         else false
-    }
 
     @SideOnly(Side.CLIENT)
     override def getBrokenIcon(side:Int) =
@@ -131,10 +110,9 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
 
     @SideOnly(Side.CLIENT)
     override def getBreakingIcon(hit: CuboidRayTraceResult): TextureAtlasSprite = null
-}
 
 object SolarPanelPart
-{
+:
     val typeID = new ResourceLocation("projectred-expansion:solar_panel")
 
     var oBoxes = Array.ofDim[Cuboid6](6, 2)
@@ -142,32 +120,26 @@ object SolarPanelPart
     oBoxes(0)(0) = new Cuboid6(1 / 8D, 0, 0, 7 / 8D, 1 / 8D, 1)
     oBoxes(0)(1) = new Cuboid6(0, 0, 1 / 8D, 1, 1 / 8D, 7 / 8D)
     for s <- 1 until 6 do
-    {
         val t = Rotation.sideRotations(s).at(Vector3.center)
         oBoxes(s)(0) = oBoxes(0)(0).copy.apply(t)
         oBoxes(s)(1) = oBoxes(0)(1).copy.apply(t)
-    }
-}
 
 class ItemSolarPanel extends ItemCore with TItemMultiPart
-{
+:
     setCreativeTab(ProjectRedExpansion.tabExpansion)
 
     override def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3):TMultiPart =
-    {
         val onPos = pos.offset(EnumFacing.VALUES(side^1))
         if !PRLib.canPlaceGateOnSide(world, onPos, side) then return null
 
         val solar = MultiPartRegistry.loadPart(SolarPanelPart.typeID, null).asInstanceOf[SolarPanelPart]
         if solar != null then solar.preparePlacement(player, pos, side, item.getItemDamage)
         solar
-    }
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
-}
 
 object RenderSolarPanel extends IItemRenderer with IIconRegister
-{
+:
     var side:TextureAtlasSprite = scala.compiletime.uninitialized
     var top:TextureAtlasSprite = scala.compiletime.uninitialized
     var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
@@ -175,45 +147,35 @@ object RenderSolarPanel extends IItemRenderer with IIconRegister
     var iconT:UVTransformation = scala.compiletime.uninitialized
 
     val models =
-    {
         val array = new Array[CCModel](6)
         val m = CCModel.quadModel(24)
         m.generateBlock(0,  new Cuboid6(0, 0, 0, 1, 2/16D, 1).expand(-0.0005), 0)
         for s <- 0 until 6 do
-        {
             val m2 = m.copy.apply(Rotation.sideRotations(s) `at` Vector3.center)
             m2.computeNormals()
             m2.shrinkUVs(0.0005)
             m2.computeLighting(LightModel.standardLightModel)
             array(s) = m2
-        }
         array
-    }
 
     def render(ccrs:CCRenderState, side:Int, pos:Vector3): Unit =
-    {
         models(side).render(ccrs, iconT, pos.translation)
-    }
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         side = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/solar/side"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/solar/top"))
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/solar/bottom"))
         iconT = new MultiIconTransformation(bottom, top, side, side, side, side)
-    }
 
-    override def renderItem(item: ItemStack, transformType: TransformType) = {
+    override def renderItem(item: ItemStack, transformType: TransformType) =
         val ccrs = CCRenderState.instance()
         ccrs.reset()
         ccrs.pullLightmap()
         ccrs.startDrawing(0x07, DefaultVertexFormats.ITEM)
         models(0).render(ccrs, iconT)
         ccrs.draw()
-    }
 
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
     override def isAmbientOcclusion: Boolean = true
 
     override def isGui3d: Boolean = true
-}

@@ -26,7 +26,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.input.Keyboard
 
 class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory with ISidedInventory with TGuiMachine with TInventoryCapablilityTile
-{
+:
     var planSlot = 0
 
     private var recipeNeedsRefresh = true
@@ -36,31 +36,23 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
     private var cycleTimer2 = getPoweredCycleTimer
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         saveInv(tag)
         tag.setInteger("cyt1", cycleTimer1)
         tag.setInteger("cyt2", cycleTimer2)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         loadInv(tag)
         cycleTimer1 = tag.getInteger("cyt1")
         cycleTimer2 = tag.getInteger("cyt2")
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 2 => cyclePlanSlot()
         case _ => super.read(in, key)
-    }
 
     def sendCyclePlanSlot(): Unit =
-    {
         writeStream(2).sendToServer()
-    }
 
     def getUnpoweredCycleTimer = 40
     def getPoweredCycleTimer = 10
@@ -87,169 +79,123 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
     override def getSlotsForFace(side:EnumFacing) = (9 until 27).toArray
 
     override def updateServer(): Unit =
-    {
         super.updateServer()
 
-        if cond.canWork then {
+        if cond.canWork then
             cycleTimer2 -= 1
             if cycleTimer2%(getPoweredCycleTimer/getCraftsPerPowerCycle) == 0 then
                 if tryCraft() then cond.drawPower(1000)
-            if cycleTimer2 <= 0 then {
+            if cycleTimer2 <= 0 then
                 cycleTimer2 = getPoweredCycleTimer
                 cyclePlanSlot()
                 cond.drawPower(100)
-            }
-        } else {
+        else
             cycleTimer1 -= 1
-            if cycleTimer1 <= 0 then {
+            if cycleTimer1 <= 0 then
                 cycleTimer1 = getUnpoweredCycleTimer
                 tryCraft()
-            }
-        }
-    }
 
     def cyclePlanSlot(): Unit =
-    {
         val start = planSlot
         while { planSlot = (planSlot+1)%9
         ; planSlot != start && getStackInSlot(planSlot).isEmpty} do ()
         if planSlot != start then refreshRecipe()
-    }
 
     def refreshRecipe(): Unit =
-    {
         craftHelper.clear()
 
         val plan = getStackInSlot(planSlot)
-        if !plan.isEmpty && ItemPlan.hasRecipeInside(plan) then {
+        if !plan.isEmpty && ItemPlan.hasRecipeInside(plan) then
             val inputs = ItemPlan.loadPlanInputs(plan)
 
             craftHelper.loadInputs(inputs)
             craftHelper.findRecipeFromInputs(world)
-        }
-    }
 
     override def markDirty(): Unit =
-    {
         super.markDirty()
         recipeNeedsRefresh = true
-    }
 
     def tryCraft():Boolean =
-    {
-        if recipeNeedsRefresh then {
+        if recipeNeedsRefresh then
             refreshRecipe()
             recipeNeedsRefresh = false
-        }
 
-        if craftHelper.recipe != null then {
+        if craftHelper.recipe != null then
             craftHelper.loadStorage((9 until 27).map(getStackInSlot).toArray, true)
-            if craftHelper.consumeAndCraftToStorage(world, 64) then {
+            if craftHelper.consumeAndCraftToStorage(world, 64) then
                 craftHelper.unloadStorage(this, {_ + 9})
                 return true
-            }
-        }
 
         false
-    }
 
     override def onBlockRemoval(): Unit =
-    {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
-    }
 
     override def openGui(player:EntityPlayer): Unit =
-    {
         GuiAutoCrafter.open(player, createContainer(player), _.writePos(getPos))
-    }
 
     override def createContainer(player: EntityPlayer): ContainerAutoCrafter = new ContainerAutoCrafter(player, this)
-}
 
 class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends ContainerPoweredMachine(tile)
-{
-    {
-        for ((x, y), i) <- GuiLib.createSlotGrid(98, 22, 3, 3, 0, 0).zipWithIndex do
-        {
-            val s = new Slot3(tile, i, x, y)
-            s.canPlaceDelegate = {s =>
-                s.getItem.isInstanceOf[ItemPlan] && ItemPlan.hasRecipeInside(s)
-            }
-            addSlotToContainer(s)
+:
+    for ((x, y), i) <- GuiLib.createSlotGrid(98, 22, 3, 3, 0, 0).zipWithIndex do
+        val s = new Slot3(tile, i, x, y)
+        s.canPlaceDelegate = {s =>
+            s.getItem.isInstanceOf[ItemPlan] && ItemPlan.hasRecipeInside(s)
         }
+        addSlotToContainer(s)
 
-        for ((x, y), i) <- GuiLib.createSlotGrid(8, 80, 9, 2, 0, 0).zipWithIndex do
-            addSlotToContainer(new Slot3(tile, i+9, x, y))
+    for ((x, y), i) <- GuiLib.createSlotGrid(8, 80, 9, 2, 0, 0).zipWithIndex do
+        addSlotToContainer(new Slot3(tile, i+9, x, y))
 
-        addPlayerInv(player, 8, 130)
-    }
+    addPlayerInv(player, 8, 130)
 
     var slot = -1
 
     override def detectAndSendChanges(): Unit =
-    {
         super.detectAndSendChanges()
         import scala.jdk.CollectionConverters.*
         for i <- listeners.asScala do
-        {
             val ic = i
 
             if slot != tile.planSlot then ic.sendWindowProperty(this, 3, tile.planSlot)
             slot = tile.planSlot
-        }
-    }
 
     override def updateProgressBar(id:Int, bar:Int) = id match
-    {
         case 3 => tile.planSlot = bar
         case _ => super.updateProgressBar(id, bar)
-    }
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
-    {
         if 0 until 9 contains from then //plan slots
-        {
             if tryMergeItemStack(stack, 36, 63, false) then return true //to player inv
             if tryMergeItemStack(stack, 27, 36, false) then return true //to hotbar
-        }
         else if 9 until 27 contains from then //storage
-        {
             if stack.getItem.isInstanceOf[ItemPlan] then
                 if tryMergeItemStack(stack, 0, 9, false) then return true //merge to plan
 
             if tryMergeItemStack(stack, 27, 36, true) then return true //to hotbar reversed
             if tryMergeItemStack(stack, 36, 63, true) then return true //to player inv reversed
-        }
         else if 27 until 63 contains from then //player inventory
-        {
-            if stack.getItem.isInstanceOf[ItemPlan] then {
+            if stack.getItem.isInstanceOf[ItemPlan] then
                 if tryMergeItemStack(stack, 0, 9, false) then return true //merge to plan
-            } else
+            else
                 if tryMergeItemStack(stack, 9, 27, false) then return true //merge to storage
-        }
 
         false
-    }
-}
 
 class GuiAutoCrafter(tile:TileAutoCrafter, c:ContainerAutoCrafter) extends NodeGui(c, 176, 212)
-{
-    {
-        val cycle = new IconButtonNode {
-            override def drawButton(mouseover:Boolean): Unit = {
-                TextureUtils.changeTexture(GuiAutoCrafter.background)
-                drawTexturedModalRect(position.x, position.y, 176, 0, 14, 14)
-            }
-        }
-        cycle.position = Point(59, 41)
-        cycle.size = Size(14, 14)
-        cycle.clickDelegate = {() => tile.sendCyclePlanSlot()}
-        addChild(cycle)
-    }
+:
+    val cycle: IconButtonNode = new IconButtonNode:
+        override def drawButton(mouseover: Boolean): Unit =
+            TextureUtils.changeTexture(GuiAutoCrafter.background)
+            drawTexturedModalRect(position.x, position.y, 176, 0, 14, 14)
+    cycle.position = Point(59, 41)
+    cycle.size = Size(14, 14)
+    cycle.clickDelegate = {() => tile.sendCyclePlanSlot()}
+    addChild(cycle)
 
     override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiAutoCrafter.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
@@ -267,10 +213,8 @@ class GuiAutoCrafter(tile:TileAutoCrafter, c:ContainerAutoCrafter) extends NodeG
 
         GuiDraw.drawString("Auto Crafting Bench", 8, 6, EnumColour.GRAY.argb, false)
         GuiDraw.drawString("Inventory", 8, 120, EnumColour.GRAY.argb, false)
-    }
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
-    {
         if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then
             GuiProjectBench.drawPlanOutputOverlay(c.slots)
 
@@ -278,28 +222,21 @@ class GuiAutoCrafter(tile:TileAutoCrafter, c:ContainerAutoCrafter) extends NodeG
 
         val Point(sx, sy) = Point(18, 18).multiply(tile.planSlot%3, tile.planSlot/3).add(98, 22).subtract(3)
         GuiDraw.drawTexturedModalRect(sx, sy, 193, 0, 22, 22)
-    }
-}
 
 object GuiAutoCrafter extends TGuiFactory
-{
+:
     val background = new ResourceLocation("projectred", "textures/gui/auto_bench.png")
 
     override def getID = ExpansionProxy.autoCrafterGui
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
         player.world.getTileEntity(data.readPos()) match
-        {
             case t:TileAutoCrafter => new GuiAutoCrafter(t, t.createContainer(player))
             case _ => null
-        }
-    }
-}
 
 object RenderAutoCrafter extends SimpleBlockRenderer
-{
+:
     import org.apache.commons.lang3.tuple.Triple
 
     var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
@@ -314,19 +251,14 @@ object RenderAutoCrafter extends SimpleBlockRenderer
     override def shouldCull() = true
 
     def getIcon(side:Int, meta:Int) = side match
-    {
         case 0 => bottom
         case 1 => top
         case _ => side1
-    }
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/autobench/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/autobench/top"))
         side1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/autobench/side1"))
         side2 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/autobench/side2"))
 
         iconT = new MultiIconTransformation(bottom, top, side1, side1, side2, side2)
-    }
-}

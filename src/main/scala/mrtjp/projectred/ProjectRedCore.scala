@@ -9,7 +9,7 @@ import org.apache.logging.log4j.{LogManager, Logger}
 
 @Mod(modid = "projectred-core", useMetadata = true, modLanguage = "scala", guiFactory = "mrtjp.projectred.core.GuiConfigFactory")
 object ProjectRedCore
-{
+:
     val log: Logger = LogManager.getFormatterLogger("ProjectRed")
 
     /** Items **/
@@ -18,26 +18,21 @@ object ProjectRedCore
     var itemScrewdriver:ItemScrewdriver = scala.compiletime.uninitialized
     var itemMultimeter:ItemMultimeter = scala.compiletime.uninitialized
 
-    val tabCore: CreativeTabs = new CreativeTabs("projectred.core") {
+    val tabCore: CreativeTabs = new CreativeTabs("projectred.core"):
         override def createIcon = new ItemStack(itemScrewdriver)
-    }
 
     @Mod.EventHandler
-    def preInit(event: FMLPreInitializationEvent): Unit = {
+    def preInit(event: FMLPreInitializationEvent): Unit =
         Configurator.loadConfig()
         CoreProxy.preinit()
-    }
 
     @Mod.EventHandler
-    def init(event: FMLInitializationEvent): Unit = {
+    def init(event: FMLInitializationEvent): Unit =
         CoreProxy.init()
-    }
 
     @Mod.EventHandler
-    def postInit(event: FMLPostInitializationEvent): Unit = {
+    def postInit(event: FMLPostInitializationEvent): Unit =
         CoreProxy.postinit()
-    }
 
     @Mod.EventHandler
     def onServerStarting(event: FMLServerStartingEvent): Unit = {}
-}

@@ -16,51 +16,40 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.input.Keyboard
 
 class GuiInterfacePipe(container:Container, pipe:RoutedInterfacePipePart) extends NodeGui(container, 176, 200)
-{
+:
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiInterfacePipe.backgroundImage)
         drawTexturedModalRect(0, 0, 0, 0, xSize, ySize)
         GuiLib.drawPlayerInvBackground(8, 118)
-    }
 
     override def drawFront_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiInterfacePipe.backgroundImage)
         val oldZ = zLevel
         zLevel = 300
 
         for i <- 0 until 4 do
-        {
             val x = 19
             val y = 10+i*26
             val u = 178
             val v = if inventorySlots.getSlot(i).getStack.isEmpty then 107 else 85
             drawTexturedModalRect(x, y, u, v, 25, 20)
-        }
         zLevel = oldZ
-    }
-}
 
 object GuiInterfacePipe extends TGuiFactory
-{
+:
     val backgroundImage = new ResourceLocation("projectred", "textures/gui/interface_pipe.png")
 
     override def getID = TransportationProxy.guiIDInterfacePipe
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
-        BlockMultipart.getPart(player.world, data.readPos(), 6) match {
+        BlockMultipart.getPart(player.world, data.readPos(), 6) match
             case pipe:RoutedInterfacePipePart =>
                 new GuiInterfacePipe(pipe.createContainer(player), pipe)
             case _ => null
-        }
-    }
-}
 
 class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
-{
+:
     var clip:ClipNode = null
     var pan:PanNode = null
     var list:ItemListNode = null
@@ -74,121 +63,113 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
     var pull:CheckBoxNode = null
     var craft:CheckBoxNode = null
     var partials:CheckBoxNode = null
+    
+    clip = new ClipNode
+    clip.position = Point(18, 18)
+    clip.size = Size(220, 117)
+    addChild(clip)
 
-    {
-        clip = new ClipNode
-        clip.position = Point(18, 18)
-        clip.size = Size(220, 117)
-        addChild(clip)
+    pan = new PanNode
+    pan.size = Size(220, 117)
+    pan.scrollBarThickness = 16
+    pan.scrollModifier = Vec2(0, 1)
+    pan.scrollBarHorizontal = false
+    pan.panDelegate = {() => refreshList()}
+    clip.addChild(pan)
 
-        pan = new PanNode
-        pan.size = Size(220, 117)
-        pan.scrollBarThickness = 16
-        pan.scrollModifier = Vec2(0, 1)
-        pan.scrollBarHorizontal = false
-        pan.panDelegate = {() => refreshList()}
-        clip.addChild(pan)
-
-        list = new ItemListNode
-        list.zPosition = -0.01
-        list.itemSize = Size(16, 16)
-        list.gridWidth = 12
-        list.displayNodeFactory = {stack =>
-            val d = new ItemDisplayNode
-            d.zPosition = -0.01
-            d.backgroundColour = if stack.key == selectedItem then
-                EnumColour.LIME.argb(0x44) else 0
-            d.clickDelegate = {() =>
-                selectedItem = stack.key
-                refreshList()
-            }
-            d
+    list = new ItemListNode
+    list.zPosition = -0.01
+    list.itemSize = Size(16, 16)
+    list.gridWidth = 12
+    list.displayNodeFactory = {stack =>
+        val d = new ItemDisplayNode
+        d.zPosition = -0.01
+        d.backgroundColour = if stack.key == selectedItem then
+            EnumColour.LIME.argb(0x44) else 0
+        d.clickDelegate = {() =>
+            selectedItem = stack.key
+            refreshList()
         }
-        pan.addChild(list)
+        d
+    }
+    pan.addChild(list)
 
-        textFilter = new SimpleTextboxNode
-        textFilter.position = Point(54, 139)
-        textFilter.size = Size(148, 16)
-        textFilter.phantom = "search"
-        textFilter.textChangedDelegate = {() => refreshList()}
-        addChild(textFilter)
+    textFilter = new SimpleTextboxNode
+    textFilter.position = Point(54, 139)
+    textFilter.size = Size(148, 16)
+    textFilter.phantom = "search"
+    textFilter.textChangedDelegate = {() => refreshList()}
+    addChild(textFilter)
 
-        textCount = new SimpleTextboxNode
-        {
+    textCount = new SimpleTextboxNode
+    :
             override def mouseScrolled_Impl(p:Point, dir:Int, consumed:Boolean) =
-            {
                 if !consumed && rayTest(p) then
-                {
                     if dir > 0 then countUp()
                     else if dir < 0 then countDown()
                     true
-                }
                 else false
-            }
-        }
-        textCount.position = Point(102, 158)
-        textCount.size = Size(50, 16)
-        textCount.text = "1"
-        textCount.phantom = "1"
-        textCount.allowedcharacters = "0123456789"
-        textCount.focusChangeDelegate = {() =>
-            if !textCount.focused then
-                if textCount.text.isEmpty || Integer.parseInt(textCount.text) < 1 then
-                    textCount.text = "1"
-        }
-        addChild(textCount)
-
-        pull = CheckBoxNode.centered(210, 148)
-        pull.state = true
-        pull.clickDelegate = {() => askForListRefresh()}
-        addChild(pull)
-
-        craft = CheckBoxNode.centered(210, 163)
-        craft.state = true
-        craft.clickDelegate = {() => askForListRefresh()}
-        addChild(craft)
-
-        partials = CheckBoxNode.centered(210, 178)
-        addChild(partials)
-
-        val ref = new MCButtonNode
-        ref.position = Point(10, 158)
-        ref.size = Size(50, 14)
-        ref.text = "Refresh"
-        ref.clickDelegate = {() => askForListRefresh()}
-        addChild(ref)
-
-        val req = new MCButtonNode
-        req.position = Point(10, 173)
-        req.size = Size(50, 14)
-        req.text = "Submit"
-        req.clickDelegate = {() => sendItemRequest()}
-        addChild(req)
-
-        val down = new MCButtonNode
-        down.position = Point(81, 158)
-        down.size = Size(16, 16)
-        down.text = "-"
-        down.clickDelegate = {() => countDown()}
-        addChild(down)
-
-        val up = new MCButtonNode
-        up.position = Point(156, 158)
-        up.size = Size(16, 16)
-        up.text = "+"
-        up.clickDelegate = {() => countUp()}
-        addChild(up)
-
-        val all = new MCButtonNode
-        all.position = Point(176, 158)
-        all.size = Size(24, 16)
-        all.text = "All"
-        all.clickDelegate = {() => if selectedItem != null then textCount.text = String.valueOf(Math.max(1, itemMap(selectedItem)))}
-        addChild(all)
+    textCount.position = Point(102, 158)
+    textCount.size = Size(50, 16)
+    textCount.text = "1"
+    textCount.phantom = "1"
+    textCount.allowedcharacters = "0123456789"
+    textCount.focusChangeDelegate = {() =>
+        if !textCount.focused then
+            if textCount.text.isEmpty || Integer.parseInt(textCount.text) < 1 then
+                textCount.text = "1"
     }
+    addChild(textCount)
+
+    pull = CheckBoxNode.centered(210, 148)
+    pull.state = true
+    pull.clickDelegate = {() => askForListRefresh()}
+    addChild(pull)
+
+    craft = CheckBoxNode.centered(210, 163)
+    craft.state = true
+    craft.clickDelegate = {() => askForListRefresh()}
+    addChild(craft)
+
+    partials = CheckBoxNode.centered(210, 178)
+    addChild(partials)
+
+    val ref = new MCButtonNode
+    ref.position = Point(10, 158)
+    ref.size = Size(50, 14)
+    ref.text = "Refresh"
+    ref.clickDelegate = {() => askForListRefresh()}
+    addChild(ref)
+
+    val req = new MCButtonNode
+    req.position = Point(10, 173)
+    req.size = Size(50, 14)
+    req.text = "Submit"
+    req.clickDelegate = {() => sendItemRequest()}
+    addChild(req)
+
+    val down = new MCButtonNode
+    down.position = Point(81, 158)
+    down.size = Size(16, 16)
+    down.text = "-"
+    down.clickDelegate = {() => countDown()}
+    addChild(down)
+
+    val up = new MCButtonNode
+    up.position = Point(156, 158)
+    up.size = Size(16, 16)
+    up.text = "+"
+    up.clickDelegate = {() => countUp()}
+    addChild(up)
+
+    val all = new MCButtonNode
+    all.position = Point(176, 158)
+    all.size = Size(24, 16)
+    all.text = "All"
+    all.clickDelegate = {() => if selectedItem != null then textCount.text = String.valueOf(Math.max(1, itemMap(selectedItem)))}
+    addChild(all)
 
     def refreshList(): Unit =
-    {
         list.items = itemMap.map(p => ItemKeyStack.get(p._1, p._2)).toSeq.filter(filterAllows).sorted
         list.reset()
 
@@ -196,38 +177,26 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
             selectedItem = null
 
         def filterAllows(stack:ItemKeyStack):Boolean =
-        {
             def stringMatch(name:String, filter:String):Boolean =
-            {
                 filter.split(" ").forall(name.contains)
-            }
 
             if stringMatch(stack.key.getName.toLowerCase, textFilter.text) then true
             else false
-        }
-    }
 
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiRequester.backgroundImage)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
-    }
 
     override def drawFront_Impl(mouse:Point, frame:Float): Unit =
-    {
         GuiDraw.drawString("Pull", 218, 144, EnumColour.GRAY.rgb, false)
         GuiDraw.drawString("Craft", 218, 159, EnumColour.GRAY.rgb, false)
         GuiDraw.drawString("Partial", 218, 174, EnumColour.GRAY.rgb, false)
-    }
 
     override def onAddedToParent_Impl(): Unit =
-    {
         askForListRefresh()
         list.cullFrame = convertRectToScreen(Rect(Point(18, 18), Size(220, 117)))
-    }
 
     private def sendItemRequest(): Unit =
-    {
         val count = textCount.text
         if count.isEmpty then return
 
@@ -236,7 +205,6 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
 
         val request = selectedItem
         if request != null then
-        {
             val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.gui_Request_submit)
             packet.writePos(pipe.getPipe.pos)
             packet.writeBoolean(pull.state)
@@ -244,20 +212,15 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
             packet.writeBoolean(partials.state)
             packet.writeItemStack(request.makeStack(amount))
             packet.sendToServer()
-        }
-    }
 
     private def askForListRefresh(): Unit =
-    {
         val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.gui_Request_listRefresh)
         packet.writePos(pipe.getPipe.pos)
         packet.writeBoolean(pull.state)
         packet.writeBoolean(craft.state)
         packet.sendToServer()
-    }
 
     private def countUp(): Unit =
-    {
         var current = 0
         val s = textCount.text
         if s != null && !s.isEmpty then current = Integer.parseInt(s)
@@ -267,10 +230,8 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
             else current+1
 
         if newCount < 999999999 then textCount.text = ""+newCount
-    }
 
     private def countDown(): Unit =
-    {
         val s = textCount.text
         val current = if s.nonEmpty then Integer.parseInt(s) else 1
 
@@ -279,54 +240,37 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
             else current-1) max 1
 
         textCount.text = ""+newCount
-    }
 
     def receiveContentList(content:Map[ItemKey, Int]): Unit =
-    {
         itemMap = content
         refreshList()
-    }
 
     override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
-    {
         if !consumed && keycode == Keyboard.KEY_RETURN then
-        {
             textFilter.setFocused(true)
             if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) then
                 textFilter.setText("")
             true
-        }
         else false
-    }
 
     override def mouseScrolled_Impl(p:Point, dir:Int, consumed:Boolean) =
-    {
         if !consumed && clip.frame.contains(convertPointFromScreen(p)) then
-        {
             if dir > 0 then pan.panChildren(Vec2.down*3)
             else if dir < 0 then pan.panChildren(Vec2.up*3)
             true
-        }
         else false
-    }
-}
 
 object GuiRequester
-{
+:
     val backgroundImage = new ResourceLocation("projectred", "textures/gui/request_pipe.png")
-}
 
 class GuiFirewallPipe(pipe:RoutedFirewallPipe, c:Container) extends NodeGui(c, 176, 184)
-{
-    {
-        val excl = new IconButtonNode
-        {
-            override def drawButton(mouseover:Boolean): Unit =
-            {
-                TextureUtils.changeTexture(GuiLib.guiExtras)
-                GuiDraw.drawTexturedModalRect(position.x, position.y, if pipe.filtExclude then 1 else 17, 102, 14, 14)
-            }
-        }
+:
+    val excl: IconButtonNode = new IconButtonNode
+    :
+        override def drawButton(mouseover: Boolean): Unit =
+            TextureUtils.changeTexture(GuiLib.guiExtras)
+            GuiDraw.drawTexturedModalRect(position.x, position.y, if pipe.filtExclude then 1 else 17, 102, 14, 14)
         excl.position = Point(113, 45)
         excl.size = Size(14, 14)
         excl.tooltipBuilder = {_ += ("Items are "+
@@ -335,51 +279,39 @@ class GuiFirewallPipe(pipe:RoutedFirewallPipe, c:Container) extends NodeGui(c, 1
         addChild(excl)
 
         def makeButton(x:Int, y:Int, f: => Boolean, desc:String, id:Int): Unit =
-        {
             val b = new IconButtonNode
-            {
+            :
                 override def drawButton(mouseover:Boolean): Unit =
-                {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
                     GuiDraw.drawTexturedModalRect(x, y, if f then 33 else 49, 134, 14, 14)
-                }
-            }
             b.position = Point(x, y)
             b.size = Size(14, 14)
             b.tooltipBuilder = {_ += desc}
             b.clickDelegate = {() => sendMessage(id)}
             addChild(b)
-        }
 
         makeButton(150, 28, pipe.allowRoute, "Push routing", 1)
         makeButton(150, 45, pipe.allowBroadcast, "Pulling", 2)
         makeButton(150, 62, pipe.allowCrafting, "Crafting", 3)
-    }
 
     def sendMessage(id:Int): Unit =
-    {
         new PacketCustom(TransportationCPH.channel, TransportationCPH.gui_FirewallPipe_action)
             .writePos(pipe.pos).writeByte(id).sendToServer()
-    }
 
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiFirewallPipe.backgroundImage)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
         GuiDraw.drawString("Firewall Pipe", 8, 6, EnumColour.GRAY.argb, false)
-    }
-}
 
 object GuiFirewallPipe extends TGuiFactory
-{
+:
     val backgroundImage = new ResourceLocation("projectred", "textures/gui/firewall_pipe.png")
 
     override def getID = TransportationProxy.guiIDFirewallPipe
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
-        BlockMultipart.getPart(player.world, data.readPos(), 6) match {
+        BlockMultipart.getPart(player.world, data.readPos(), 6) match
             case pipe:RoutedFirewallPipe =>
                 pipe.filtExclude = data.readBoolean()
                 pipe.allowRoute = data.readBoolean()
@@ -389,6 +321,3 @@ object GuiFirewallPipe extends TGuiFactory
             case _ =>
                 for i <- 0 until 4 do data.readBoolean()
                 null
-        }
-    }
-}

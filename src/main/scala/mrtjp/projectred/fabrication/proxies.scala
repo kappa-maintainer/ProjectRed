@@ -4,7 +4,7 @@
  * All rights reserved.
  */
 package mrtjp.projectred.fabrication
-import java.lang.{Character as JC}
+import java.lang.Character as JC
 
 import codechicken.lib.model.ModelRegistryHelper
 import codechicken.lib.model.bakery.CCBakeryModel
@@ -31,9 +31,8 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class FabricationProxy_server extends IProxy with IPartFactory
-{
+:
     override def preinit(): Unit =
-    {
         icBlock = new BlockICMachine(icMachineBakery)
         icBlock.setTranslationKey("projectred.fabrication.icMachine")
         ForgeRegistries.BLOCKS.register(icBlock.setRegistryName("ic_machine"))
@@ -51,74 +50,64 @@ class FabricationProxy_server extends IProxy with IPartFactory
 
         MultiPartRegistry.registerParts(this, Array(GateDefinition.typeICGate))
         MinecraftForge.EVENT_BUS.register(FabricationRecipes)
-    }
 
     override def init(): Unit ={}
 
     override def postinit(): Unit =
-    {
         //hook into gate part to add tooltip info
         ProjectRedIntegration.itemPartGate.infoBuilderFunc = {(stack, list) =>
-            if stack.getItemDamage == GateDefinition.ICGate.meta then {
+            if stack.getItemDamage == GateDefinition.ICGate.meta then
                 import com.mojang.realmsclient.gui.ChatFormatting.*
-                if !ItemICBlueprint.hasICInside(stack) then {
+                if !ItemICBlueprint.hasICInside(stack) then
                     list.add(RED.toString + "INVALID: Craft by surrounding Printed IC with Circuit Plates")
-                } else {
+                else
                     list.add(GRAY.toString+ItemICBlueprint.getICName(stack))
-                }
-            }
         }
-    }
 
     /**
-      * Create a new instance of the part with the specified type name identifier
-      *
-      * @param client If the part instance is for the client or the server
-      */
-    override def createPart(name:ResourceLocation, client:Boolean) = name match
-    {
+     * Create a new instance of the part with the specified type name identifier
+     *
+     * @param client If the part instance is for the client or the server
+     */
+    override def createPart(name: ResourceLocation, client: Boolean): ICGatePart = name match
         case GateDefinition.typeICGate => new ICGatePart
         case _ => null
-    }
-}
 
 class FabricationProxy_client extends FabricationProxy_server
-{
+:
     val icWorkbenchGui = 12
     val icPrinterGui = 13
 
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
 
         import BlockICMachine.*
 
-        icMachineBakery.registerSubBakery(0, RenderICWorkbench, new IBlockStateKeyGenerator {
-            override def generateKey(state: IExtendedBlockState):String = {
+        icMachineBakery.registerSubBakery(0, RenderICWorkbench, new IBlockStateKeyGenerator
+        :
+            override def generateKey(state: IExtendedBlockState): String =
                 val hasBP = state.getValue(UNLISTED_HAS_BP_PROPERTY)
                 state.getBlock.getRegistryName.toString + s",bp=$hasBP"
-            }
-        })
+        )
 
-        icMachineBakery.registerSubBakery(1, RenderICPrinter, new IBlockStateKeyGenerator {
-            override def generateKey(state:IExtendedBlockState) = {
+        icMachineBakery.registerSubBakery(1, RenderICPrinter, new IBlockStateKeyGenerator
+        :
+            override def generateKey(state: IExtendedBlockState): String =
                 val rot = state.getValue(UNLISTED_ROTATION_PROPERTY)
                 state.getBlock.getRegistryName.toString + s",rot=$rot"
-            }
-        })
+            )
 
-        {
-            val model = new CCBakeryModel()
-            val regLoc = icBlock.getRegistryName
-            val normalLoc = new ModelResourceLocation(regLoc, "normal")
-            val wrappedLoc = new ModelResourceLocation(regLoc, "printer_wrapped")
-            ModelLoader.setCustomStateMapper(icBlock, new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
-            ModelLoader.setCustomMeshDefinition(Item.getItemFromBlock(icBlock), stack => if stack.getMetadata == 1 then wrappedLoc else normalLoc)
-            ModelRegistryHelper.register(normalLoc, model)
-            ModelRegistryHelper.register(wrappedLoc, RenderICPrinterItem)
-            TextureUtils.addIconRegister(icMachineBakery.registerKeyGens(icBlock))
-        }
+        
+        val model = new CCBakeryModel()
+        val regLoc = icBlock.getRegistryName
+        val normalLoc = new ModelResourceLocation(regLoc, "normal")
+        val wrappedLoc = new ModelResourceLocation(regLoc, "printer_wrapped")
+        ModelLoader.setCustomStateMapper(icBlock, new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
+        ModelLoader.setCustomMeshDefinition(Item.getItemFromBlock(icBlock), stack => if stack.getMetadata == 1 then wrappedLoc else normalLoc)
+        ModelRegistryHelper.register(normalLoc, model)
+        ModelRegistryHelper.register(wrappedLoc, RenderICPrinterItem)
+        TextureUtils.addIconRegister(icMachineBakery.registerKeyGens(icBlock))
 
         registerModelType(itemICBlueprint, "projectred:fabrication/items", "ic_blueprint")
         MapRenderRegistry.registerMapRenderer(itemICBlueprint, ItemRenderICBlueprint)
@@ -132,27 +121,19 @@ class FabricationProxy_client extends FabricationProxy_server
         GuiHandler.register(GuiICPrinter, icPrinterGui)
 
         RenderGate.hotswap(new RenderICGate, GateDefinition.ICGate.ordinal)
-    }
 
     @SideOnly(Side.CLIENT)
     def registerModelType(item:Item, jsonLocation:String, typeValue:String): Unit =
-    {
         registerModelType(item, 0, jsonLocation, typeValue)
-    }
 
     @SideOnly(Side.CLIENT)
     def registerModelType(item:Item, meta:Int, jsonLocation:String, typeValue:String): Unit =
-    {
         val modelLoc = new ModelResourceLocation(jsonLocation, "type=" + typeValue)
         ModelLoader.setCustomModelResourceLocation(item, meta, modelLoc)
-    }
 
     @SideOnly(Side.CLIENT)
     def registerModelType(item:Item, jsonLocation:String, names:Array[String], typeValue:ItemStack => String): Unit =
-    {
         MCModelBakery.registerItemVariants(item, names.map { n => new ModelResourceLocation(jsonLocation, s"type=$n") }*)
         ModelLoader.setCustomMeshDefinition(item, (s: ItemStack) => new ModelResourceLocation(jsonLocation, "type=" + typeValue(s)))
-    }
-}
 
 object FabricationProxy extends FabricationProxy_client

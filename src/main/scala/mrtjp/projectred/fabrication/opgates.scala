@@ -14,7 +14,7 @@ import mrtjp.projectred.fabrication.ICComponentStore.*
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 abstract class OpGateCommons(meta:Int) extends TileEditorOp
-{
+:
     def canPlace(editor:ICTileMapEditor, point:Point):Boolean
     def findRot(editor:ICTileMapEditor, start:Point, end:Point):Int
 
@@ -22,26 +22,20 @@ abstract class OpGateCommons(meta:Int) extends TileEditorOp
         canPlace(editor, start) && editor.getTile(start) == null
 
     override def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput): Unit =
-    {
         out.writeByte(start.x).writeByte(start.y)
         out.writeByte(findRot(editor, start, end))
-    }
 
     override def readOp(editor:ICTileMapEditor, in:MCDataInput): Unit =
-    {
         val point = Point(in.readByte(), in.readByte())
         val r = in.readUByte()
 
-        if editor.getTile(point) == null && canPlace(editor, point) then {
+        if editor.getTile(point) == null && canPlace(editor, point) then
             val part = ICTile.createTile(ICGateDefinition(meta).gateType).asInstanceOf[GateICTile]
             part.preparePlacement(r, meta)
             editor.setTile(point, part)
-        }
-    }
 
     @SideOnly(Side.CLIENT)
     override def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit =
-    {
         if editor.getTile(point) != null then return
 
         val t = orthoPartT(x, y, xSize, ySize, editor.size, point.x, point.y)
@@ -49,11 +43,9 @@ abstract class OpGateCommons(meta:Int) extends TileEditorOp
 
         renderHolo(x, y, xSize,  ySize, editor.size, point,
             if canPlace(editor, point) then 0x33FFFFFF else 0x33FF0000)
-    }
 
     @SideOnly(Side.CLIENT)
     override def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit =
-    {
         if editor.getTile(start) != null then return
 
         val t = orthoPartT(x, y, xSize, ySize, editor.size, start.x, start.y)
@@ -61,41 +53,31 @@ abstract class OpGateCommons(meta:Int) extends TileEditorOp
 
         renderHolo(x, y, xSize,  ySize, editor.size, start,
             if canPlace(editor, start) then 0x44FFFFFF else 0x44FF0000)
-    }
 
     @SideOnly(Side.CLIENT)
     override def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double): Unit =
-    {
         val t = orthoGridT(width, height) `with` new Translation(x, y, 0)
         doRender(ccrs, t, 0)
-    }
 
     @SideOnly(Side.CLIENT)
     def doRender(ccrs:CCRenderState, t:Transformation, rot:Int): Unit =
-    {
         RenderGateTile.renderInv(ccrs, Rotation.quarterRotations(rot).at(Vector3.center) `with` t, meta)
-    }
 
     @SideOnly(Side.CLIENT)
     override def getOpName = ICGateDefinition(meta).unlocal
-}
 
 class OpGate(meta:Int) extends OpGateCommons(meta)
-{
+:
     override def findRot(editor:ICTileMapEditor, start:Point, end:Point) =
-    {
-        (end-start).vectorize.axialProject.normalize match {
+        (end-start).vectorize.axialProject.normalize match
             case Vec2( 0,-1) => 0
             case Vec2( 1, 0) => 1
             case Vec2( 0, 1) => 2
             case Vec2(-1, 0) => 3
             case _ => 0
-        }
-    }
 
     override def canPlace(editor:ICTileMapEditor, point:Point) =
         !isOnBorder(editor.size, point)
-}
 
 class OpIOGate(meta:Int) extends OpGateCommons(meta)
 {
@@ -103,15 +85,12 @@ class OpIOGate(meta:Int) extends OpGateCommons(meta)
         isOnBorder(editor.size, point) && !isOnCorner(editor.size, point)
 
     override def findRot(editor:ICTileMapEditor, start:Point, end:Point) =
-    {
         val wm = editor.size.width-1
         val hm = editor.size.height-1
-        start match {
+        start match
             case Point(_, 0)    => 0
             case Point(`wm`, _) => 1
             case Point(_, `hm`) => 2
             case Point(0, _)    => 3
             case _              => 0
-        }
-    }
 }

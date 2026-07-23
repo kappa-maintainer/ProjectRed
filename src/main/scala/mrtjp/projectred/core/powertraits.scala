@@ -10,7 +10,7 @@ import scala.collection.mutable.{Set as MSet}
  * Interface for things that wish to conduct/use electricity.
  */
 trait IPowerConnectable extends IConnectable
-{
+:
     /**
      * Getter for the local conductor
      * @param dir Side of the required conductor, this
@@ -39,7 +39,6 @@ trait IPowerConnectable extends IConnectable
      * @return The world this TPowerConnectable is in. Should be not null.
      */
     def connWorld:World
-}
 
 /**
  * Object held by conducting power tiles, self managed through
@@ -50,7 +49,7 @@ trait IPowerConnectable extends IConnectable
  *            this can make.
  */
 class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
-{
+:
     val flows = new Array[Double](ids.max+1)
 
     var Vloc = 0.0D //local electric potential
@@ -73,27 +72,22 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
      * @return The electric potential, in Volts (V)
      */
     def voltage() =
-    {
         val tick = parent.connWorld.getTotalWorldTime
-        if (tick & 0xFFFF) != time then {
+        if (tick & 0xFFFF) != time then
             time = (tick & 0xFFFF).asInstanceOf[Int]
             //calculate voltage
             Iloc = 0.5D * Iflow
             Iflow = 0.0D
             Vloc += 0.05D * Vflow * capacitance
             Vflow = 0.0D
-        }
         Vloc
-    }
 
     /**
      * @return The current(I), in Amps (A)
      */
     def current =
-    {
         voltage()
         Iloc
-    }
 
     /**
      * @return The power(P), in Watts (W)
@@ -101,44 +95,34 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
     def power = voltage()*Iloc
 
     def applyCurrent(I:Double): Unit =
-    {
         voltage()
         Vflow += I
         Iflow += math.abs(I)
-    }
 
     def applyPower(P:Double): Unit =
-    {
         val Ptot = voltage()*Vloc + 0.1D*P*capacitance
         val dP = math.sqrt(Ptot)-Vloc
         applyCurrent(20.0D*dP/capacitance)
-    }
 
     def drawPower(P:Double): Unit =
-    {
         val Ptot = voltage()*Vloc - 0.1D*P*capacitance
         val dP = if Ptot < 0.0D then 0.0D else math.sqrt(Ptot)-Vloc
         applyCurrent(20.0D*dP/capacitance)
-    }
 
     def powerTotal = (voltage()*Vloc)/(0.1D*capacitance)
 
     def update(): Unit =
-    {
         voltage()
         for id <- ids do
             if !surge(parent.conductorOut(id), id) then flows(id) = 0.0D
 
         surgeIn.clear()
-    }
 
     def surge(cond:PowerConductor, id:Int) =
-    {
         if cond == null then false
         else if cond.parent == parent then false
         else if surgeIn.contains(cond) then true
         else
-        {
             val r = resistance+cond.resistance
             var I = flows(id)
             val V = Vloc-cond.voltage()
@@ -149,18 +133,13 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
             cond.applySurge(this, I)
 
             true
-        }
-    }
 
     var surgeIn = MSet[PowerConductor]()
     def applySurge(from:PowerConductor, Iin:Double): Unit =
-    {
         surgeIn += from
         applyCurrent(Iin)
-    }
 
     def save(tag:NBTTagCompound): Unit =
-    {
         for i <- 0 until flows.length do
             tag.setDouble("flow"+i, flows(i))
 
@@ -169,10 +148,8 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
         tag.setDouble("vf", Vflow)
         tag.setDouble("if", Iflow)
         tag.setInteger("tm", time)
-    }
 
     def load(tag:NBTTagCompound): Unit =
-    {
         for i <- 0 until flows.length do
             flows(i) = tag.getDouble("flow"+i)
 
@@ -181,11 +158,9 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
         Vflow = tag.getDouble("vf")
         Iflow = tag.getDouble("if")
         time = tag.getInteger("tm")
-    }
-}
 
 trait TPowerDrawPoint extends PowerConductor
-{
+:
     var charge = 0
     var flow = 0
 
@@ -197,27 +172,20 @@ trait TPowerDrawPoint extends PowerConductor
     def canWork = charge > 600
 
     abstract override def update(): Unit =
-    {
         super.update()
         charge = (voltage()*10.0D).asInstanceOf[Int]
         flow <<= 1
         if canWork then flow |= 1
-    }
 
     abstract override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setInteger("chg", charge)
         tag.setInteger("flow", flow)
-    }
 
     abstract override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         charge = tag.getInteger("chg")
         flow = tag.getInteger("flow")
-    }
-}
 
 /**
  * Interfaces used by low-load power wires and machines

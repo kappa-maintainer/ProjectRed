@@ -23,7 +23,7 @@ import net.minecraft.util.math.BlockPos
 import org.lwjgl.opengl.GL11
 
 object RenderGate extends IIconRegister
-{
+:
     var renderers = buildRenders()
 
     def buildRenders() = Seq[GateRenderer[?]](
@@ -66,30 +66,21 @@ object RenderGate extends IIconRegister
 
 
     override def registerIcons(map:TextureMap): Unit =
-    {
         ComponentStore.registerIcons(map)
         for r <- renderers do r.registerIcons(map)
-    }
 
     def renderStatic(gate:GatePart, pos:Vector3, ccrs:CCRenderState): Unit =
-    {
         val r = renderers(gate.subID).asInstanceOf[GateRenderer[GatePart]]
         r.prepare(gate)
         r.renderStatic(pos.translation(), gate.orientation&0xFF, ccrs)
-    }
 
     def renderDynamic(gate:GatePart, pos:Vector3, frame:Float, ccrs:CCRenderState): Unit =
-    {
         val r = renderers(gate.subID).asInstanceOf[GateRenderer[GatePart]]
         if r.hasSpecials then
-        {
             r.prepareDynamic(gate, frame)
             r.renderDynamic(gate.rotationT.`with`(pos.translation()), ccrs)
-        }
-    }
 
     def renderInv(stack:ItemStack, t:Transformation, id:Int, ccrs:CCRenderState): Unit =
-    {
         val r = renderers(id)
         TextureUtils.bindBlockTexture()
         r.prepareInv(stack)
@@ -97,23 +88,17 @@ object RenderGate extends IIconRegister
         r.renderStatic(t, 0, ccrs)
         ccrs.draw()
         if r.hasSpecials then r.renderDynamic(t, ccrs)
-    }
 
     def spawnParticles(gate:GatePart, rand:Random): Unit =
-    {
         renderers(gate.subID).asInstanceOf[GateRenderer[GatePart]].spawnParticles(gate, rand)
-    }
 
     def hotswap(r:GateRenderer[?], meta:Int): Unit =
-    {
         val ar = renderers.toArray
         ar(meta) = r
         renderers = ar.toSeq
-    }
-}
 
 abstract class GateRenderer[T <: GatePart]
-{
+:
     var reflect = false
 
     def coreModels:Seq[ComponentModel]
@@ -124,19 +109,13 @@ abstract class GateRenderer[T <: GatePart]
     private def allModels = coreModels++allSwitchModels
 
     def registerIcons(map:TextureMap): Unit =
-    {
         for m <- allModels do if m != null then m.registerIcons(map)
-    }
 
     def renderModels(t:Transformation, orient:Int, ccrs:CCRenderState): Unit =
-    {
         for m <- enabledModels do m.renderModel(t, orient, ccrs)
-    }
 
     def renderStatic(t:Transformation, orient:Int, ccrs:CCRenderState): Unit =
-    {
         renderModels(t, if reflect then orient+24 else orient, ccrs)
-    }
 
     def hasSpecials = false
     def renderDynamic(t: Transformation, ccrs: CCRenderState): Unit ={}
@@ -147,39 +126,30 @@ abstract class GateRenderer[T <: GatePart]
     def prepareDynamic(gate:T, frame:Float): Unit ={}
 
     def spawnParticles(gate:T, rand:Random): Unit =
-    {
         prepare(gate)
         val torches = enabledModels.collect
-          {
+          :
             case t:TRedstoneTorchModel if t.on => t
-        }
 
         for t <- torches do if rand.nextInt(torches.length) == 0 then
-        {
             val pos = new Vector3(rand.nextFloat, rand.nextFloat, rand.nextFloat).add(-0.5).multiply(0.05, 0.1, 0.05)
             pos.add(t.getLightPos)
             pos.apply(gate.rotationT).add(gate.pos)
             gate.world.spawnParticle(EnumParticleTypes.REDSTONE, pos.x, pos.y, pos.z, 0, 0, 0)
-        }
-    }
-}
 
 object GateRenderer
-{
-    val blank = new GateRenderer[GatePart]{
+:
+    val blank = new GateRenderer[GatePart]:
         override def coreModels = Seq()
-    }
-}
 
 class RenderOR extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("or", 4)
     val torches = Seq(new RedstoneTorchModel(8, 9, 6), new RedstoneTorchModel(8, 2.5, 8))
 
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         wires(2).on = false
@@ -189,10 +159,8 @@ class RenderOR extends GateRenderer[ComboGatePart]
         wires(3).disabled = false
         torches(0).on = true
         torches(1).on = false
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x10) == 0
         wires(1).on = (gate.state&2) != 0
         wires(2).on = (gate.state&4) != 0
@@ -202,18 +170,15 @@ class RenderOR extends GateRenderer[ComboGatePart]
         wires(3).disabled = (gate.shape&4) != 0
         torches(0).on = (gate.state&0xE) == 0
         torches(1).on = !wires(0).on
-    }
-}
 
 class RenderNOR extends GateRenderer[ComboGatePart]
-{
+:
     var wires = generateWireModels("nor", 4)
     var torch = new RedstoneTorchModel(8, 9, 6)
 
     override val coreModels = wires:+torch:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         wires(2).on = false
@@ -222,10 +187,8 @@ class RenderNOR extends GateRenderer[ComboGatePart]
         wires(2).disabled = false
         wires(3).disabled = false
         torch.on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x11) != 0
         wires(1).on = (gate.state&2) != 0
         wires(2).on = (gate.state&4) != 0
@@ -234,18 +197,15 @@ class RenderNOR extends GateRenderer[ComboGatePart]
         wires(2).disabled = (gate.shape&2) != 0
         wires(3).disabled = (gate.shape&4) != 0
         torch.on = (gate.state&0xE) == 0
-    }
-}
 
 class RenderNOT extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("not", 4)
     val torch = new RedstoneTorchModel(8, 8, 6)
 
     override val coreModels = wires:+torch:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = true
         wires(2).on = false
@@ -254,10 +214,8 @@ class RenderNOT extends GateRenderer[ComboGatePart]
         wires(1).disabled = false
         wires(3).disabled = false
         torch.on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x11) != 0
         wires(1).on = (gate.state&0x22) != 0
         wires(2).on = (gate.state&4) != 0
@@ -266,11 +224,9 @@ class RenderNOT extends GateRenderer[ComboGatePart]
         wires(1).disabled = (gate.shape&1) != 0
         wires(3).disabled = (gate.shape&4) != 0
         torch.on = (gate.state&0xF0) != 0
-    }
-}
 
 class RenderAND extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("and", 4)
     val torches = Seq(new RedstoneTorchModel(4, 8, 6), new RedstoneTorchModel(12, 8, 6),
         new RedstoneTorchModel(8, 8, 6), new RedstoneTorchModel(8, 2, 8))
@@ -278,7 +234,6 @@ class RenderAND extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         wires(2).on = false
@@ -290,10 +245,8 @@ class RenderAND extends GateRenderer[ComboGatePart]
         torches(1).on = true
         torches(2).on = true
         torches(3).on = false
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x11) == 0
         wires(3).on = (gate.state&2) != 0
         wires(1).on = (gate.state&4) != 0
@@ -305,11 +258,9 @@ class RenderAND extends GateRenderer[ComboGatePart]
         torches(0).on = !wires(2).on && !wires(2).disabled
         torches(1).on = !wires(3).on && !wires(3).disabled
         torches(3).on = !wires(0).on
-    }
-}
 
 class RenderNAND extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("nand", 4)
     val torches = Seq(new RedstoneTorchModel(4, 8, 6), new RedstoneTorchModel(12, 8, 6),
         new RedstoneTorchModel(8, 8, 6))
@@ -317,7 +268,6 @@ class RenderNAND extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         wires(2).on = false
@@ -328,10 +278,8 @@ class RenderNAND extends GateRenderer[ComboGatePart]
         torches(0).on = true
         torches(1).on = true
         torches(2).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x11) != 0
         wires(3).on = (gate.state&2) != 0
         wires(1).on = (gate.state&4) != 0
@@ -342,11 +290,9 @@ class RenderNAND extends GateRenderer[ComboGatePart]
         torches(0).on = !wires(2).on && !wires(2).disabled
         torches(1).on = !wires(3).on && !wires(3).disabled
         torches(2).on = !wires(1).on && !wires(1).disabled
-    }
-}
 
 class RenderXOR extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("xor", 4)
     val torches = Seq(new RedstoneTorchModel(4.5, 8, 6), new RedstoneTorchModel(11.5, 8, 6),
         new RedstoneTorchModel(8, 12, 6))
@@ -354,7 +300,6 @@ class RenderXOR extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(3).on = false
         wires(2).on = false
@@ -362,10 +307,8 @@ class RenderXOR extends GateRenderer[ComboGatePart]
         torches(0).on = false
         torches(1).on = false
         torches(2).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x11) != 0
         wires(3).on = (gate.state&2) != 0
         wires(2).on = (gate.state&8) != 0
@@ -373,11 +316,9 @@ class RenderXOR extends GateRenderer[ComboGatePart]
         torches(0).on = !wires(2).on && !wires(1).on
         torches(1).on = !wires(3).on && !wires(1).on
         torches(2).on = wires(1).on
-    }
-}
 
 class RenderXNOR extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("xnor", 5)
     val torches = Seq(new RedstoneTorchModel(8, 2, 8), new RedstoneTorchModel(4.5, 8, 6),
         new RedstoneTorchModel(11.5, 8, 6), new RedstoneTorchModel(8, 12, 6))
@@ -385,7 +326,6 @@ class RenderXNOR extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(3).on = false
         wires(2).on = false
@@ -394,10 +334,8 @@ class RenderXNOR extends GateRenderer[ComboGatePart]
         torches(1).on = false
         torches(2).on = false
         torches(3).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&2) != 0 && (gate.state&8) == 0
         wires(1).on = (gate.state&8) != 0 && (gate.state&2) == 0
         wires(2).on = (gate.state&8) != 0
@@ -407,18 +345,15 @@ class RenderXNOR extends GateRenderer[ComboGatePart]
         torches(1).on = !wires(4).on && (gate.state&8) == 0
         torches(2).on = !wires(4).on && (gate.state&2) == 0
         torches(3).on = (gate.state&2) == 0 && (gate.state&8) == 0
-    }
-}
 
 class RenderBuffer extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("buffer", 4)
     val torches = Seq(new RedstoneTorchModel(8, 3.5, 8), new RedstoneTorchModel(8, 9, 6))
 
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         wires(2).on = false
@@ -427,10 +362,8 @@ class RenderBuffer extends GateRenderer[ComboGatePart]
         wires(3).disabled = false
         torches(0).on = false
         torches(1).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&4) == 0
         wires(1).on = (gate.state&0x22) != 0
         wires(2).on = (gate.state&0x44) != 0
@@ -439,11 +372,9 @@ class RenderBuffer extends GateRenderer[ComboGatePart]
         wires(3).disabled = (gate.shape&2) != 0
         torches(0).on = (gate.state&4) != 0
         torches(1).on = (gate.state&4) == 0
-    }
-}
 
 class RenderMultiplexer extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("multiplexer", 6)
     val torches = Seq(new RedstoneTorchModel(8, 2, 8), new RedstoneTorchModel(9, 10.5, 6),
         new RedstoneTorchModel(4.5, 8, 6), new RedstoneTorchModel(11.5, 8, 6))
@@ -451,7 +382,6 @@ class RenderMultiplexer extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(1).on = true
         wires(2).on = true
@@ -462,10 +392,8 @@ class RenderMultiplexer extends GateRenderer[ComboGatePart]
         torches(1).on = true
         torches(2).on = false
         torches(3).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(2).on = (gate.state&4) == 0
         wires(3).on = (gate.state&4) != 0
         wires(4).on = (gate.state&8) != 0
@@ -476,11 +404,9 @@ class RenderMultiplexer extends GateRenderer[ComboGatePart]
         torches(3).on = (gate.state&4) == 0 && !wires(5).on
         wires(0).on = torches(2).on
         wires(1).on = torches(3).on
-    }
-}
 
 class RenderPulse extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("pulse", 3)
     val torches = Seq(new RedstoneTorchModel(4, 9.5, 6), new RedstoneTorchModel(11, 9.5, 6),
         new RedstoneTorchModel(8, 3.5, 8))
@@ -488,28 +414,23 @@ class RenderPulse extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         wires(2).on = false
         torches(0).on = true
         torches(1).on = false
         torches(2).on = false
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&4) == 0
         wires(1).on = (gate.state&4) != 0
         wires(2).on = (gate.state&0x14) == 4
         torches(0).on = wires(0).on
         torches(1).on = wires(1).on
         torches(2).on = (gate.state&0x10) != 0
-    }
-}
 
 class RenderRepeater extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("repeater", 2)
     val endTorch = new RedstoneTorchModel(8, 2, 6)
     val varTorches = Seq(new RedstoneTorchModel(12.5, 12, 6), new RedstoneTorchModel(12.5, 11, 6),
@@ -525,33 +446,27 @@ class RenderRepeater extends GateRenderer[ComboGatePart]
     override def allSwitchModels = varTorches
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = false
         endTorch.on = false
         shape = 0
         varTorches(0).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x10) == 0
         wires(1).on = (gate.state&4) != 0
         endTorch.on = (gate.state&0x10) != 0
         shape = gate.shape
         varTorches(shape).on = (gate.state&4) == 0
-    }
-}
 
 class RenderRandomizer extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("rand", 7)
     val chips = Seq(new YellowChipModel(8, 5.5), new YellowChipModel(11.5, 11.5), new YellowChipModel(4.5, 11.5))
 
     override val coreModels = wires++chips:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(1).on = false
         wires(2).on = false
@@ -568,10 +483,8 @@ class RenderRandomizer extends GateRenderer[ComboGatePart]
         chips(0).on = false
         chips(1).on = false
         chips(2).on = false
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(2).on = (gate.state&4) != 0
         wires(0).on = (gate.state&0x11) != 0
         wires(1).on = (gate.state&0x22) != 0
@@ -588,11 +501,9 @@ class RenderRandomizer extends GateRenderer[ComboGatePart]
         chips(0).on = (gate.state&0x10) != 0
         chips(1).on = (gate.state&0x20) != 0
         chips(2).on = (gate.state&0x80) != 0
-    }
-}
 
 class RenderSRLatch extends GateRenderer[SequentialGatePart]
-{
+:
     val wires1 = generateWireModels("rslatch", 2)
     val wires2 = generateWireModels("rslatch2", 4)
     val torches1 = Seq(new RedstoneTorchModel(8, 3, 6), new RedstoneTorchModel(8, 13, 6))
@@ -604,42 +515,33 @@ class RenderSRLatch extends GateRenderer[SequentialGatePart]
     override val allSwitchModels = wires1++wires2++torches1++torches2
 
     override def prepareInv(): Unit =
-    {
         reflect = false
         shape = 0
         wires1(0).on = false
         wires1(1).on = true
         torches1(0).on = false
         torches1(1).on = true
-    }
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         reflect = (gate.shape&1) != 0
         shape = gate.shape>>1
         var state = gate.state
         if reflect then state = flipMaskZ(state>>4)<<4|flipMaskZ(state)
         if shape == 0 then
-        {
             wires1(0).on = (state&0x88) != 0
             wires1(1).on = (state&0x22) != 0
             torches1(0).on = (state&0x10) != 0
             torches1(1).on = (state&0x40) != 0
-        }
         else
-        {
             wires2(1).on = (state&2) != 0
             wires2(3).on = (state&8) != 0
             torches2(0).on = (state&0x10) != 0
             torches2(1).on = (state&0x40) != 0
             wires2(0).on = torches2(1).on
             wires2(2).on = torches2(0).on
-        }
-    }
-}
 
 class RenderToggleLatch extends GateRenderer[SequentialGatePart]
-{
+:
     val wires = generateWireModels("toglatch", 2)
     val torches = Seq(new RedstoneTorchModel(4, 4, 6), new RedstoneTorchModel(4, 12, 6))
     val lever = new LeverModel(11, 8)
@@ -647,26 +549,21 @@ class RenderToggleLatch extends GateRenderer[SequentialGatePart]
     override val coreModels = wires++torches++Seq(lever, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(1).on = false
         torches(0).on = true
         torches(1).on = false
         lever.state = 0
-    }
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         wires(0).on = (gate.state&8) != 0
         wires(1).on = (gate.state&2) != 0
         torches(0).on = (gate.state&0x10) != 0
         torches(1).on = (gate.state&0x40) != 0
         lever.state = if (gate.state&0x10) != 0 then 0 else 1
-    }
-}
 
 class RenderTransparentLatch extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("translatch", 5)
     val torches = Seq(new RedstoneTorchModel(4, 12.5, 6), new RedstoneTorchModel(4, 8, 6),
         new RedstoneTorchModel(8, 8, 6), new RedstoneTorchModel(8, 2, 8), new RedstoneTorchModel(14, 8, 8))
@@ -674,7 +571,6 @@ class RenderTransparentLatch extends GateRenderer[ComboGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         reflect = false
         wires(0).on = true
         wires(1).on = false
@@ -686,10 +582,8 @@ class RenderTransparentLatch extends GateRenderer[ComboGatePart]
         torches(2).on = true
         torches(3).on = false
         torches(4).on = false
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         reflect = gate.shape == 1
         val on = (gate.state&0x10) != 0
         wires(0).on = !on
@@ -702,49 +596,37 @@ class RenderTransparentLatch extends GateRenderer[ComboGatePart]
         torches(2).on = !wires(1).on && !wires(3).on
         torches(3).on = on
         torches(4).on = on
-    }
-}
 
 class RenderLightSensor extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("lightsensor", 1)
     val solar = new SolarModel(8, 5.5)
 
     override val coreModels = wires++Seq(solar, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         solar.state = 0
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0xF4) != 0
         solar.state = gate.shape
-    }
-}
 
 class RenderRainSensor extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("rainsensor", 1)
     val sensor = new RainSensorModel(8, 6)
 
     override val coreModels = wires++Seq(sensor, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         wires(0).on = (gate.state&0x44) != 0
-    }
-}
 
 class RenderTimer extends GateRenderer[SequentialGatePart]
-{
+:
     val wires = generateWireModels("time", 3)
     val torches = Seq(new RedstoneTorchModel(8, 3, 6), new RedstoneTorchModel(8, 8, 12))
     val pointer = new PointerModel(8, 8, 8)
@@ -752,40 +634,31 @@ class RenderTimer extends GateRenderer[SequentialGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(1).on = false
         wires(2).on = false
         torches(0).on = false
         pointer.angle = 0
-    }
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         torches(0).on = (gate.state&0x10) != 0
         wires(0).on = (gate.state&0x88) != 0
         wires(1).on = (gate.state&0x22) != 0
         wires(2).on = (gate.state&4) != 0
-    }
 
     override def hasSpecials = true
 
     override def prepareDynamic(part:SequentialGatePart, frame:Float): Unit =
-    {
         pointer.angle = part.getLogic[TTimerGateLogic].interpPointer(frame)*MathHelper.pi*2
-    }
 
     override def renderDynamic(t:Transformation, ccrs:CCRenderState): Unit =
-    {
         ccrs.startDrawing(GL11.GL_QUADS, DefaultVertexFormats.ITEM)
         ccrs.pullLightmap()
         pointer.renderModel(t, 0, ccrs)
         ccrs.draw()
-    }
-}
 
 class RenderSequencer extends GateRenderer[SequentialGatePart]
-{
+:
     val torches = Seq(new RedstoneTorchModel(8, 8, 12), new RedstoneTorchModel(8, 3, 6),
         new RedstoneTorchModel(13, 8, 6), new RedstoneTorchModel(8, 13, 6), new RedstoneTorchModel(3, 8, 6))
     val pointer = new PointerModel(8, 8, 8)
@@ -795,42 +668,33 @@ class RenderSequencer extends GateRenderer[SequentialGatePart]
     override val coreModels = torches:+new BaseComponentModel
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         torches(1).on = (gate.state&0x10) != 0
         torches(2).on = (gate.state&0x20) != 0
         torches(3).on = (gate.state&0x40) != 0
         torches(4).on = (gate.state&0x80) != 0
-    }
 
     override def prepareInv(): Unit =
-    {
         torches(1).on = true
         torches(2).on = false
         torches(3).on = false
         torches(4).on = false
         pointer.angle = 0
-    }
 
     override def prepareDynamic(gate:SequentialGatePart, frame:Float): Unit =
-    {
         val max = gate.getLogic[Sequencer].pointer_max*4
         pointer.angle = (gate.world.getWorldTime%max+frame)/max*2*MathHelper.pi
         if gate.shape == 1 then pointer.angle = -pointer.angle
-    }
 
     override def hasSpecials = true
 
     override def renderDynamic(t:Transformation, ccrs:CCRenderState): Unit =
-    {
         ccrs.startDrawing(GL11.GL_QUADS, DefaultVertexFormats.ITEM)
         ccrs.pullLightmap()
         pointer.renderModel(t, 0, ccrs)
         ccrs.draw()
-    }
-}
 
 class RenderCounter extends GateRenderer[SequentialGatePart]
-{
+:
     val wires = generateWireModels("count", 2)
     val torches = Seq(new RedstoneTorchModel(11, 8, 12), new RedstoneTorchModel(8, 3, 6),
         new RedstoneTorchModel(8, 13, 6))
@@ -841,45 +705,36 @@ class RenderCounter extends GateRenderer[SequentialGatePart]
     override val coreModels = wires++torches:+new BaseComponentModel
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         reflect = gate.shape == 1
         wires(0).on = (gate.state&8) != 0
         wires(1).on = (gate.state&2) != 0
         torches(1).on = (gate.state&0x10) != 0
         torches(2).on = (gate.state&0x40) != 0
-    }
 
     override def prepareInv(): Unit =
-    {
         reflect = false
         wires(0).on = false
         wires(1).on = false
         torches(1).on = false
         torches(2).on = true
         pointer.angle = 220*MathHelper.torad
-    }
 
     override def prepareDynamic(gate:SequentialGatePart, frame:Float): Unit =
-    {
         val max = gate.getLogic[Counter].max
         val value = gate.getLogic[Counter].value
         pointer.angle = (value/max.toDouble*(340-220)+210)*MathHelper.torad
         reflect = gate.shape == 1
-    }
 
     override def hasSpecials = true
 
     override def renderDynamic(t:Transformation, ccrs:CCRenderState): Unit =
-    {
         ccrs.startDrawing(GL11.GL_QUADS, DefaultVertexFormats.ITEM)
         ccrs.pullLightmap()
         pointer.renderModel(t, if reflect then 1 else 0, ccrs)
         ccrs.draw()
-    }
-}
 
 class RenderStateCell extends GateRenderer[SequentialGatePart]
-{
+:
     val wires = generateWireModels("statecell", 5)
     val torches = Seq(new RedstoneTorchModel(10, 3.5, 6), new RedstoneTorchModel(13, 8, 12))
     val chip = new RedChipModel(6.5, 10)
@@ -888,7 +743,6 @@ class RenderStateCell extends GateRenderer[SequentialGatePart]
     override val coreModels = wires++torches++Seq(chip, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         reflect = false
         wires(0).on = false
         wires(1).on = false
@@ -899,10 +753,8 @@ class RenderStateCell extends GateRenderer[SequentialGatePart]
         torches(1).on = true
         chip.on = false
         pointer.angle = -MathHelper.pi/2
-    }
 
     override def prepare(part:SequentialGatePart): Unit =
-    {
         reflect = part.shape == 1
         val logic = part.getLogic[StateCell]
         var state = part.state
@@ -916,27 +768,21 @@ class RenderStateCell extends GateRenderer[SequentialGatePart]
         torches(0).on = (state&0x10) != 0
         torches(1).on = logic.pointer_start >= 0
         chip.on = logic.state2 != 0
-    }
 
     override def hasSpecials = true
 
     override def prepareDynamic(part:SequentialGatePart, frame:Float): Unit =
-    {
         reflect = part.shape == 1
         pointer.angle = part.getLogic[StateCell].interpPointer(frame)-MathHelper.pi/2
-    }
 
     override def renderDynamic(t:Transformation, ccrs:CCRenderState): Unit =
-    {
         ccrs.startDrawing(GL11.GL_QUADS, DefaultVertexFormats.ITEM)
         ccrs.pullLightmap()
         pointer.renderModel(t, if reflect then 1 else 0, ccrs)
         ccrs.draw()
-    }
-}
 
 class RenderSynchronizer extends GateRenderer[SequentialGatePart]
-{
+:
     val wires = generateWireModels("sync", 6)
     val torch = new RedstoneTorchModel(8, 3, 6)
     val chips = Seq(new RedChipModel(4.5, 9), new RedChipModel(11.5, 9))
@@ -944,7 +790,6 @@ class RenderSynchronizer extends GateRenderer[SequentialGatePart]
     override val coreModels = wires++chips++Seq(torch, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = true
         wires(1).on = true
         wires(2).on = false
@@ -954,10 +799,8 @@ class RenderSynchronizer extends GateRenderer[SequentialGatePart]
         chips(0).on = false
         chips(1).on = false
         torch.on = false
-    }
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         val logic = gate.getLogic[Synchronizer]
         wires(0).on = !logic.left
         wires(1).on = !logic.right
@@ -968,11 +811,9 @@ class RenderSynchronizer extends GateRenderer[SequentialGatePart]
         chips(0).on = logic.left
         chips(1).on = logic.right
         torch.on = (gate.state&0x10) != 0
-    }
-}
 
 class RenderBusXcvr extends GateRenderer[BundledGatePart]
-{
+:
     val wires = generateWireModels("busxcvr", 2)
     val panels = Seq(new SigLightPanelModel(4, 8, false), new SigLightPanelModel(12, 8, true))
     val cable = new BusXcvrCableModel
@@ -980,16 +821,13 @@ class RenderBusXcvr extends GateRenderer[BundledGatePart]
     override val coreModels = wires++panels++Seq(cable, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         reflect = false
         wires(0).on = false
         wires(1).on = false
         panels(0).signal = 0
         panels(1).signal = 0
-    }
 
     override def prepare(gate:BundledGatePart): Unit =
-    {
         reflect = gate.shape != 0
         var state = gate.state
         if reflect then state = flipMaskZ(state)
@@ -1000,11 +838,9 @@ class RenderBusXcvr extends GateRenderer[BundledGatePart]
         val packed = logic.packClientData
         panels(0).signal = packed>>>16
         panels(1).signal = packed&0xFFFF
-    }
-}
 
 class RenderComparator extends GateRenderer[SequentialGatePart]
-{
+:
     val wires = generateWireModels("comparator", 4)
     val torch = new RedstoneTorchModel(8, 2, 6)
     val chips = Seq(new MinusChipModel(5, 8), new PlusChipModel(11, 8))
@@ -1012,7 +848,6 @@ class RenderComparator extends GateRenderer[SequentialGatePart]
     override val coreModels = wires++Seq(torch, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         reflect = false
         wires(0).on = true
         wires(1).on = false
@@ -1021,10 +856,8 @@ class RenderComparator extends GateRenderer[SequentialGatePart]
         chips(0).on = false
         chips(1).on = false
         torch.on = false
-    }
 
     override def prepare(gate:SequentialGatePart): Unit =
-    {
         reflect = gate.shape != 0
         wires(0).on = (gate.state&0x10) == 0
         wires(1).on = (gate.state&2) != 0
@@ -1034,23 +867,17 @@ class RenderComparator extends GateRenderer[SequentialGatePart]
         chips(1).on = (gate.state&1) != 0 && gate.shape != 1
         torch.on = (gate.state&0x10) != 0
         if gate.shape != 0 then
-        {
             val a = wires(1).on
             val b = wires(3).on
             wires(3).on = a
             wires(1).on = b
-        }
-    }
 
     override def renderModels(t: Transformation, orient:Int, ccrs:CCRenderState): Unit =
-    {
         super.renderModels(t, orient, ccrs)
         chips.foreach(_.renderModel(t, orient%24, ccrs))
-    }
-}
 
 class RenderBusRandomizer extends GateRenderer[BundledGatePart]
-{
+:
     val cable = new BusRandCableModel
     val panel = new SigLightPanelModel(8, 8, true)
     val wires1 = generateWireModels("busrand1", 2)
@@ -1067,7 +894,6 @@ class RenderBusRandomizer extends GateRenderer[BundledGatePart]
     override def allSwitchModels = wires1++wires2
 
     override def prepareInv(): Unit =
-    {
         shape = 0
         panel.signal = 0
         panel.disableMask = 0
@@ -1076,10 +902,8 @@ class RenderBusRandomizer extends GateRenderer[BundledGatePart]
         wires2(0).on = false
         wires1(1).on = false
         wires2(1).on = false
-    }
 
     override def prepare(part:BundledGatePart): Unit =
-    {
         shape = part.shape
         val logic = part.getLogic[BusRandomizer]
         panel.signal = logic.output
@@ -1089,11 +913,9 @@ class RenderBusRandomizer extends GateRenderer[BundledGatePart]
         wires2(0).on = (part.state&2) != 0
         wires1(1).on = (part.state&8) != 0
         wires2(1).on = (part.state&8) != 0
-    }
-}
 
 class RenderBusConverter extends GateRenderer[BundledGatePart]
-{
+:
     val wires = generateWireModels("busconv", 3)
     val cable = new BusConvCableModel
     val bar = new SignalBarModel(8, 8)
@@ -1101,27 +923,22 @@ class RenderBusConverter extends GateRenderer[BundledGatePart]
     override val coreModels = wires++Seq(cable, bar, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(1).on = false
         wires(2).on = false
         bar.signal = 0
         bar.inverted = false
-    }
 
     override def prepare(gate:BundledGatePart): Unit =
-    {
         val logic = gate.getLogic[BusConverter]
         wires(0).on = (gate.state&0x20) != 0
         wires(1).on = (gate.state&0x80) != 0
         wires(2).on = (logic.rsIn|logic.rsOut) != 0
         bar.inverted = gate.shape != 0
         bar.signal = logic.rsIn|logic.rsOut
-    }
-}
 
 class RenderBusInputPanel extends GateRenderer[BundledGatePart]
-{
+:
     val wires = generateWireModels("businput", 1)
     val buttons = new InputPanelButtonsModel
     val cable = new BusInputPanelCableModel
@@ -1129,64 +946,49 @@ class RenderBusInputPanel extends GateRenderer[BundledGatePart]
     override val coreModels = wires++Seq(buttons, cable, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         buttons.pressMask = 0
         buttons.pos = BlockPos.ORIGIN
         buttons.orientationT = new RedundantTransformation
-    }
 
     override def prepare(gate:BundledGatePart): Unit =
-    {
         wires(0).on = (gate.state&1) != 0
         buttons.pressMask = gate.getLogic[BusInputPanel].pressMask
-    }
 
     override def hasSpecials = true
 
     override def prepareDynamic(gate:BundledGatePart, frame:Float): Unit =
-    {
         buttons.pressMask = gate.getLogic[BusInputPanel].pressMask
         buttons.pos = gate.pos
         buttons.orientationT = gate.rotationT
-    }
 
     override def renderDynamic(t: Transformation, ccrs: CCRenderState): Unit =
-    {
         buttons.renderLights()
-    }
-}
 
 abstract class RenderArrayCell extends GateRenderer[ArrayGatePart]
-{
+:
     val topWire:CellTopWireModel
     val bottomWire:CellBottomWireModel
 
     override def prepareInv(): Unit =
-    {
         bottomWire.signal = 0
         topWire.signal = 0
         topWire.conn = 0
-    }
 
     override def prepare(gate:ArrayGatePart): Unit =
-    {
         val logic = gate.getLogic[ArrayGateLogicCrossing]
         bottomWire.signal = logic.signal1
         topWire.signal = logic.signal2
         topWire.conn = IGateWireRenderConnect.getConnsAtHeight(gate, 10.0D)
-    }
-}
 
 class RenderNullCell extends RenderArrayCell
-{
+:
     override val topWire:CellTopWireModel = new CellTopWireModel(nullCellWireTop)
     override val bottomWire:CellBottomWireModel = new CellBottomWireModel(nullCellWireBottom)
     override val coreModels = Seq(bottomWire, topWire, new CellFrameModel, new NullCellBaseModel)
-}
 
 class RenderInvertCell extends RenderArrayCell
-{
+:
     val wires = generateWireModels("invcell", 1)
     val torch = new RedstoneTorchModel(8, 8, 6)
 
@@ -1195,24 +997,19 @@ class RenderInvertCell extends RenderArrayCell
     override val coreModels = wires++Seq(torch, bottomWire, topWire, new CellFrameModel, new CellPlateModel, new ExtendedCellBaseModel)
 
     override def prepareInv(): Unit =
-    {
         super.prepareInv()
         topWire.signal = 255.toByte
         wires(0).on = false
         torch.on = true
-    }
 
     override def prepare(gate:ArrayGatePart): Unit =
-    {
         super.prepare(gate)
         val logic = gate.getLogic[ArrayGateLogicCrossing]
         torch.on = logic.signal1 == 0
         wires(0).on = logic.signal1 != 0
-    }
-}
 
 class RenderBufferCell extends RenderArrayCell
-{
+:
     val wires = generateWireModels("buffcell", 2)
     val torches = Seq(new RedstoneTorchModel(11, 13, 6), new RedstoneTorchModel(8, 8, 6))
 
@@ -1221,27 +1018,22 @@ class RenderBufferCell extends RenderArrayCell
     override val coreModels = wires++torches++Seq(topWire, bottomWire, new CellFrameModel, new CellPlateModel, new ExtendedCellBaseModel)
 
     override def prepareInv(): Unit =
-    {
         super.prepareInv()
         wires(0).on = false
         wires(1).on = true
         torches(0).on = true
         torches(1).on = false
-    }
 
     override def prepare(gate:ArrayGatePart): Unit =
-    {
         super.prepare(gate)
         val logic = gate.getLogic[ArrayGateLogicCrossing]
         torches(0).on = logic.signal1 == 0
         torches(1).on = logic.signal1 != 0
         wires(0).on = logic.signal1 != 0
         wires(1).on = logic.signal1 == 0
-    }
-}
 
 class RenderANDCell extends GateRenderer[ArrayGatePart]
-{
+:
     val wires = generateWireModels("andcell", 2)
     val torches = Seq(new RedstoneTorchModel(8, 13, 6), new RedstoneTorchModel(8, 2, 8), new FlippedRSTorchModel(8, 8))
     val topWire = new CellTopWireModel(nullCellWireTop)
@@ -1249,7 +1041,6 @@ class RenderANDCell extends GateRenderer[ArrayGatePart]
     override val coreModels = wires++torches++Seq(topWire, new CellFrameModel, new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         topWire.signal = 0
         topWire.conn = 0
         torches(0).on = true
@@ -1257,10 +1048,8 @@ class RenderANDCell extends GateRenderer[ArrayGatePart]
         torches(2).on = true
         wires(0).on = true
         wires(1).on = false
-    }
 
     override def prepare(gate:ArrayGatePart): Unit =
-    {
         val logic = gate.getLogic[ANDCell]
         topWire.signal = logic.signal
         topWire.conn = IGateWireRenderConnect.getConnsAtHeight(gate, 10.0D)
@@ -1269,11 +1058,9 @@ class RenderANDCell extends GateRenderer[ArrayGatePart]
         torches(2).on = logic.signal == 0
         wires(0).on = torches(0).on || torches(2).on
         wires(1).on = !torches(0).on
-    }
-}
 
 class RenderStackingLatch extends GateRenderer[ArrayGatePart]
-{
+:
     var wires = generateWireModels("stacklatch", 5)
     var clkwire = new CellBottomWireModel(stackLatchWireBottom)
     var torches = Seq(new RedstoneTorchModel(12.5, 12, 6), new RedstoneTorchModel(8, 12, 6),
@@ -1283,7 +1070,6 @@ class RenderStackingLatch extends GateRenderer[ArrayGatePart]
         new StackLatchStandModel(12.5, 5), new BaseComponentModel)
 
     override def prepareInv(): Unit =
-    {
         clkwire.signal = 0
         wires(0).on = true
         wires(1).on = false
@@ -1294,10 +1080,8 @@ class RenderStackingLatch extends GateRenderer[ArrayGatePart]
         torches(1).on = false
         torches(2).on = true
         torches(3).on = false
-    }
 
     override def prepare(gate:ArrayGatePart): Unit =
-    {
         val on = (gate.state&0x10) != 0
         val sig = gate.getLogic[StackingLatch].signal
         clkwire.signal = sig
@@ -1310,11 +1094,9 @@ class RenderStackingLatch extends GateRenderer[ArrayGatePart]
         torches(1).on = !wires(2).on && !wires(4).on
         torches(2).on = !wires(1).on && !wires(3).on
         torches(3).on = on
-    }
-}
 
 class RenderSegmentDisplay extends GateRenderer[BundledGatePart]
-{
+:
     val sevenSeg1 = new SevenSegModel(4.5, 8)
     val sevenSeg0 = new SevenSegModel(11.5, 8)
     val sixteenSeg = new SixteenSegModel(8, 8)
@@ -1325,16 +1107,13 @@ class RenderSegmentDisplay extends GateRenderer[BundledGatePart]
     override def allSwitchModels = Seq(sevenSeg0, sevenSeg1, sixteenSeg)
 
     override def prepareInv(): Unit =
-    {
         shape = 0
         sevenSeg1.signal = 64
         sevenSeg0.signal = 64
         sixteenSeg.signal = 0
         Seq(sevenSeg0, sevenSeg1, sixteenSeg).foreach(_.setColourOn(EnumColour.RED.ordinal.toByte))
-    }
 
     override def prepare(gate:BundledGatePart): Unit =
-    {
         shape = gate.shape
         val logic = gate.getLogic[SegmentDisplay]
         val sig1 = logic.bInH
@@ -1343,11 +1122,9 @@ class RenderSegmentDisplay extends GateRenderer[BundledGatePart]
         sevenSeg0.signal = sig0
         sixteenSeg.signal = sig1<<8|sig0
         Seq(sevenSeg0, sevenSeg1, sixteenSeg).foreach(_.setColourOn(logic.colour))
-    }
-}
 
 class RenderDecodingRand extends GateRenderer[ComboGatePart]
-{
+:
     val wires = generateWireModels("decrand", 6)
     val chips = Seq(new YellowChipModel(5, 13), new YellowChipModel(11, 13), new RedChipModel(5.5, 8))
     val torches = Seq(new RedstoneTorchModel(8, 2.5, 8), new RedstoneTorchModel(14, 8, 8), new RedstoneTorchModel(2, 8, 8), new RedstoneTorchModel(9, 8, 6))
@@ -1355,7 +1132,6 @@ class RenderDecodingRand extends GateRenderer[ComboGatePart]
     override val coreModels = wires++chips++torches:+new BaseComponentModel
 
     override def prepareInv(): Unit =
-    {
         wires(0).on = false
         wires(1).on = false
         wires(2).on = false
@@ -1371,10 +1147,8 @@ class RenderDecodingRand extends GateRenderer[ComboGatePart]
         chips(0).on = false
         chips(1).on = true
         chips(2).on = true
-    }
 
     override def prepare(gate:ComboGatePart): Unit =
-    {
         val state = gate.state
         wires(0).on = (state>>4) == 2
         wires(1).on = (state>>4) == 8
@@ -1391,5 +1165,3 @@ class RenderDecodingRand extends GateRenderer[ComboGatePart]
         chips(0).on = (state>>4) == 2
         chips(1).on = (state>>4) == 1 || (state>>4) == 2
         chips(2).on = true
-    }
-}

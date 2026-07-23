@@ -10,85 +10,61 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.items.CapabilityItemHandler
 
 trait TPressureSubsystem extends PayloadPipePart[PressurePayload]
-{
+:
     abstract override def canConnectPart(part:IConnectable, s:Int) = part match
-    {
         case ps:TPressureSubsystem => true
         case pd:TPressureDevice if pd.canConnectSide(s^1) => true
         case _ => super.canConnectPart(part, s)
-    }
 
     abstract override def discoverStraightOverride(s:Int) =
-    {
         world.getTileEntity(posOfStraight(s)) match
-        {
             case pd:TPressureDevice if pd.canConnectSide(s^1) => true
             case _ => super.discoverStraightOverride(s)
-        }
-    }
 
     override def passPayload(r:PressurePayload):Boolean =
-    {
         if passToPressureDevice(r) then return true
 
         super.passPayload(r)
-    }
 
     def passToPressureDevice(r:PressurePayload) = world.getTileEntity(posOfStraight(r.output)) match
-    {
         case pd:TPressureDevice => pd.acceptItem(r, r.output^1)
         case _ => false
-    }
 
     override def createNewPayload(id:Int) = new PressurePayload(id)
-}
 
 trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
-{
+:
     var lastFlow = 0
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setByte("flow", lastFlow.toByte)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         lastFlow = tag.getByte("flow")
-    }
 
     def openOuts = clientConnMap
 
     override def adjustSpeed(r:PressurePayload): Unit =
-    {
         r.speed = 0.05f
-    }
 
     def resolveOutputConflict(outs:Int):Int =
-    {
         import java.lang.Integer.{bitCount as count, numberOfTrailingZeros as trail}
 
         val out2 = outs&openOuts&0x3F
         if count(out2) == 1 then
-        {
             val dest = trail(out2)
             lastFlow = 1<<((dest+1)%6)
             return dest
-        }
         else if count(out2) > 1 then
-        {
             val strip = trail(lastFlow)
             val dest = (trail((out2<<6|out2)>>strip)+strip)%6
             lastFlow = 1<<((dest+1)%6)
             return dest
-        }
         trail(lastFlow)
-    }
 
     def hasDestination(r:PressurePayload, from:Int):Boolean =
-    {
         val dim = (~(1<<from))&openOuts
         if dim == 0 then return false
 
@@ -101,12 +77,9 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
         val result = PressurePathFinder.invDirs
         PressurePathFinder.clear()
         result != 0
-    }
 
     override def resolveDestination(r:PressurePayload): Unit =
-    {
         if Integer.bitCount(openOuts) > 2 || r.travelData == 0 then
-        {
             val dim = (~(1<<(r.input^1)))&openOuts
 
             PressurePathFinder.clear()
@@ -120,55 +93,41 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
             PressurePathFinder.clear()
 
             if invDirs != 0 then
-            {
                 r.output = resolveOutputConflict(invDirs)
                 r.travelData = PressurePriority.inventory
-            }
             else if backlogDirs != 0 then
-            {
                 r.output = resolveOutputConflict(backlogDirs)
                 r.travelData = PressurePriority.backlog
-            }
             else chooseRandomDestination(r)
-        }
         else chooseRandomDestination(r)
-    }
 
     override def injectPayload(r:PressurePayload, in:Int): Unit =
-    {
         super.injectPayload(r, in)
         if r.travelData == 0 then
             r.tickPayloadWander()
-    }
 
     abstract override def discoverStraightOverride(s:Int):Boolean =
-    {
         if super.discoverStraightOverride(s) then true
-        else world.getTileEntity(posOfStraight(s)) match {
+        else world.getTileEntity(posOfStraight(s)) match
             case sinv:ISidedInventory => sinv.getSlotsForFace(EnumFacing.values()(s^1)).nonEmpty
             case inv:IInventory => true
             case cap:ICapabilityProvider => cap.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.VALUES(s^1))
             case null => false
-        }
-    }
 
     override def colorExclude = colour == -1
     override def filteredColors = 1<<colour
-}
 
 trait TPressureDevice
-{
+:
     def canAcceptInput(item:ItemKey, side:Int):Boolean
     def canAcceptBacklog(item:ItemKey, side:Int):Boolean
 
     def canConnectSide(side:Int):Boolean
 
     def acceptItem(item:PressurePayload, side:Int):Boolean
-}
 
 class PressureTube extends PayloadPipePart[PressurePayload] with TRedstonePipe with TPressureTube
 
 class ResistanceTube extends PayloadPipePart[PressurePayload] with TRedstonePipe with TPressureTube
-{
+:
     override def getPathWeight = 256
-}

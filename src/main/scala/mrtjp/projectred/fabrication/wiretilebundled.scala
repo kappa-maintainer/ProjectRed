@@ -15,47 +15,36 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 trait IICBundledEmitter
 
 trait IBundledCableICPart extends IICBundledEmitter
-{
+:
     def getBundledColour:Int
-}
 
 class BundledCableICTile extends WireICTile with IBundledCableICPart
 {
     var colour:Byte = -1
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         tag.setByte("colour", colour)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         colour = tag.getByte("colour")
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         super.writeDesc(out)
         out.writeByte(colour)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         super.readDesc(in)
         colour = in.readByte()
-    }
 
     override def getPartType = ICTileDefs.BundledCable
 
     override def canConnectTile(part:ICTile, r:Int) = part match
-    {
         case b:IBundledCableICPart => b.getBundledColour == -1 || colour == -1 || b.getBundledColour == colour
         case ins:IInsulatedRedwireICPart => true
         case be:IICBundledEmitter => true
         case _ => false
-    }
 
     override def getBundledColour = colour
 
@@ -76,10 +65,8 @@ class BundledCableICTile extends WireICTile with IBundledCableICPart
 
     @SideOnly(Side.CLIENT)
     override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
-    {
         RenderTileBundledCable.prepairDynamic(this)
         RenderTileBundledCable.render(ccrs, t, ortho)
-    }
 
     @SideOnly(Side.CLIENT)
     override def getPartName = (if colour != -1 then EnumColour.values()(colour&0xFF).name+" " else "")+"Bundled cable"

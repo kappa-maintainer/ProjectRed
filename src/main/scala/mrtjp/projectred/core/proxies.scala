@@ -12,9 +12,8 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import net.minecraftforge.oredict.OreDictionary
 
 class CoreProxy_server extends IProxy
-{
+:
     def preinit(): Unit =
-    {
         MinecraftForge.EVENT_BUS.register(Configurator)
 
         /* Item Registration */
@@ -47,10 +46,8 @@ class CoreProxy_server extends IProxy
         OreDictionary.registerOre("ingotSilver", PartDefs.SILVERINGOT.makeStack)
         OreDictionary.registerOre("ingotElectrotineAlloy", PartDefs.ELECTROTINEINGOT.makeStack)
         OreDictionary.registerOre("dustElectrotine", PartDefs.ELECTROTINE.makeStack)
-    }
 
     def init(): Unit =
-    {
         PacketCustom.assignHandler(CoreSPH.channel, CoreSPH)
 
         /* Smelting */
@@ -69,16 +66,13 @@ class CoreProxy_server extends IProxy
         GameRegistry.addSmelting(ELECTROTINEIRONCOMPOUND.makeStack, ELECTROTINEINGOT.makeStack, 0)
         // Electrosilicon
         GameRegistry.addSmelting(ELECTROTINESILICONCOMPOUND.makeStack, ELECTROSILICON.makeStack, 0)
-    }
 
     def postinit(): Unit ={}
-}
 
 class CoreProxy_client extends CoreProxy_server
-{
+:
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
-    {
         super.preinit()
         //RecipeDumper.load()
 
@@ -86,21 +80,15 @@ class CoreProxy_client extends CoreProxy_server
         ModelLoader.setCustomModelResourceLocation(itemDrawPlate, 0, new ModelResourceLocation("projectred:base/tools", "type=draw_plate"))
         ModelLoader.setCustomModelResourceLocation(itemScrewdriver, 0, new ModelResourceLocation("projectred:base/tools", "type=screwdriver"))
         ModelLoader.setCustomModelResourceLocation(itemMultimeter, 0, new ModelResourceLocation("projectred:base/tools", "type=multimeter"))
-    }
 
     @SideOnly(Side.CLIENT)
     override def init(): Unit =
-    {
         super.init()
         PacketCustom.assignHandler(CoreCPH.channel, CoreCPH)
-    }
 
     @SideOnly(Side.CLIENT)
     override def postinit(): Unit =
-    {
         super.postinit()
         MinecraftForge.EVENT_BUS.register(RenderHalo)
-    }
-}
 
 object CoreProxy extends CoreProxy_client

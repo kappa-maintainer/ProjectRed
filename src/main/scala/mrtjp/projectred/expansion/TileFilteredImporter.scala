@@ -29,7 +29,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class TileFilteredImporter extends TileItemImporter with TInventory with ISidedInventory with TInventoryCapablilityTile
-{
+:
     var colour:Byte = -1
 
     override protected val storage = Array.fill(9)(ItemStack.EMPTY)//new Array[ItemStack](9)
@@ -45,157 +45,110 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
 
     //side = out, side^1 = in
     override def canAcceptInput(item:ItemKey, side:Int):Boolean =
-    {
         if !super.canAcceptInput(item, side) then return false
         canImport(item)
-    }
 
     override def canImport(item:ItemKey) =
-    {
         val map = InvWrapper.wrapInternal(this).getAllItemStacks
         map.isEmpty || map.contains(item)
-    }
 
     override def save(tag:NBTTagCompound): Unit =
-    {
         super.save(tag)
         saveInv(tag)
         tag.setByte("col", colour)
-    }
 
     override def load(tag:NBTTagCompound): Unit =
-    {
         super.load(tag)
         loadInv(tag)
         colour = tag.getByte("col")
-    }
 
     override def writeDesc(out:MCDataOutput): Unit =
-    {
         super.writeDesc(out)
         out.writeByte(colour)
-    }
 
     override def readDesc(in:MCDataInput): Unit =
-    {
         super.readDesc(in)
         colour = in.readByte()
-    }
 
     override def read(in:MCDataInput, key:Int) = key match
-    {
         case 6 => colour = in.readByte()
         case 7 =>
             if colour == 15 then colour = -1
             else colour = (colour+1).toByte
             sendColourUpdate()
         case _ => super.read(in, key)
-    }
 
     def sendColourUpdate(): Unit =
-    {
         writeStream(6).writeByte(colour).sendToChunk(this)
-    }
 
     def clientCycleColourUp(): Unit =
-    {
         writeStream(7).sendToServer()
-    }
 
     override def exportPipe(r:PressurePayload) =
-    {
         r.colour = colour
         super.exportPipe(r)
-    }
 
     override def onBlockActivated(player:EntityPlayer, actside:Int):Boolean =
-    {
         if super.onBlockActivated(player, actside) then return true
 
         if !world.isRemote then
             GuiFilteredImporter.open(player, createContainer(player), _.writePos(getPos))
         true
-    }
 
     def createContainer(player:EntityPlayer):Container =
-    {
         val cont = new NodeContainer
         var s = 0
         for (x, y) <- GuiLib.createSlotGrid(62, 18, 3, 3, 0, 0) do
-        {
             cont.addSlotToContainer(new Slot3(this, s, x, y))
             s += 1
-        }
         cont.addPlayerInv(player, 8, 86)
         cont
-    }
 
     override def markDirty(): Unit =
-    {
         super.markDirty()
-    }
 
     override def onBlockRemoval(): Unit =
-    {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
-    }
-}
 
 class GuiFilteredImporter(c:Container, tile:TileFilteredImporter) extends NodeGui(c, 176, 168)
-{
-    {
-        val color = new IconButtonNode
-        {
-            override def drawButton(mouseover:Boolean): Unit =
-            {
-                if tile.colour == -1 then
-                {
-                    TextureUtils.changeTexture(GuiLib.guiExtras)
-                    GuiDraw.drawTexturedModalRect(position.x, position.y, 40, 2, 11, 11)
-                }
-                else GuiDraw.drawRect(position.x+2, position.y+2, 8, 8, EnumColour.fromWoolMeta(tile.colour).argb)//TODO Maybe from dye id.
-            }
+:
+    val color: IconButtonNode = new IconButtonNode
+    :
+        override def drawButton(mouseover: Boolean): Unit =
+            if tile.colour == -1 then
+                TextureUtils.changeTexture(GuiLib.guiExtras)
+                GuiDraw.drawTexturedModalRect(position.x, position.y, 40, 2, 11, 11)
+            else GuiDraw.drawRect(position.x + 2, position.y + 2, 8, 8, EnumColour.fromWoolMeta(tile.colour).argb) //TODO Maybe from dye id.
 
-            override def onButtonClicked(): Unit =
-            {
-                tile.clientCycleColourUp()
-            }
-        }
-        color.position = Point(133, 37)
-        color.size = Size(13, 13)
-        addChild(color)
-    }
+        override def onButtonClicked(): Unit =
+            tile.clientCycleColourUp()
+    color.position = Point(133, 37)
+    color.size = Size(13, 13)
+    addChild(color)
 
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
-    {
         TextureUtils.changeTexture(GuiFilteredImporter.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, 176, 168)
         GuiDraw.drawString("Filtered Importer", 8, 6, EnumColour.GRAY.argb, false)
         GuiDraw.drawString("Inventory", 8, 75, EnumColour.GRAY.argb, false)
-    }
-}
 
 object GuiFilteredImporter extends TGuiFactory
-{
+:
     val background = new ResourceLocation("projectred", "textures/gui/filtered_importer.png")
     override def getID = ExpansionProxy.filteredImporterGui
 
     @SideOnly(Side.CLIENT)
     override def buildGui(player:EntityPlayer, data:MCDataInput) =
-    {
-        val t = player.world.getTileEntity(data.readPos()) match {
+        val t = player.world.getTileEntity(data.readPos()) match
             case tile: TileFilteredImporter => tile
             case _ => null
-        }
         if t != null then new GuiFilteredImporter(t.createContainer(player), t)
         else null
-    }
-}
 
 
 object RenderFilteredImporter extends SimpleBlockRenderer
-{
+:
     import java.lang.{Boolean as JBool, Integer as JInt}
 
     import org.apache.commons.lang3.tuple.Triple
@@ -210,7 +163,7 @@ object RenderFilteredImporter extends SimpleBlockRenderer
     var iconT1:UVTransformation = scala.compiletime.uninitialized
     var iconT2:UVTransformation = scala.compiletime.uninitialized
 
-    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
+    override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match
         case t:TActiveDevice => {
             var s = state
             s = s.withProperty(UNLISTED_SIDE_PROPERTY, t.side.asInstanceOf[JInt])
@@ -219,29 +172,24 @@ object RenderFilteredImporter extends SimpleBlockRenderer
             s.withProperty(UNLISTED_POWERED_PROPERTY, t.powered.asInstanceOf[JBool])
         }
         case _ => state
-    }
 
-    override def getWorldTransforms(state: IExtendedBlockState) = {
+    override def getWorldTransforms(state: IExtendedBlockState) =
         val side = state.getValue(UNLISTED_SIDE_PROPERTY)
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val active = state.getValue(UNLISTED_ACTIVE_PROPERTY).asInstanceOf[Boolean]
         val powered = state.getValue(UNLISTED_POWERED_PROPERTY).asInstanceOf[Boolean]
         Triple.of(side, rotation, if active || powered then iconT2 else iconT1)
-    }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = true
 
     def getIcon(s:Int, meta:Int) = s match
-    {
         case 0 => bottom
         case 1 => top1
         case _ => side1
-    }
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/fimporter/bottom"))
         top1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/fimporter/top1"))
         side1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/fimporter/side1"))
@@ -250,5 +198,3 @@ object RenderFilteredImporter extends SimpleBlockRenderer
 
         iconT1 = new MultiIconTransformation(bottom, top1, side1, side1, side1, side1)
         iconT2 = new MultiIconTransformation(bottom, top2, side2, side2, side2, side2)
-    }
-}

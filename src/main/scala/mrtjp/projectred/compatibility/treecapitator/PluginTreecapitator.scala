@@ -8,9 +8,8 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.common.event.FMLInterModComms
 
 object AfterWorldCheck
-{
+:
     def checkedInit(): Unit =
-    {
         val tpModCfg = new NBTTagCompound
         tpModCfg.setString("modID", "projectred-exploration")
         tpModCfg.setString("axeIDList", "%d; %d; %d".format(Item.getIdFromItem(ProjectRedExploration.itemPeridotAxe),
@@ -19,11 +18,9 @@ object AfterWorldCheck
         tpModCfg.setBoolean("useShiftedItemID", false)
 
         FMLInterModComms.sendMessage("TreeCapitator", "ThirdPartyModConfig", tpModCfg)
-    }
-}
 
 object PluginTreecapitator extends IPRPlugin
-{
+:
     override def getModIDs = Array("TreeCapitator", "projectred-exploration")
 
     override def isEnabled: Boolean = Configurator.compat_Treecapitator
@@ -31,11 +28,8 @@ object PluginTreecapitator extends IPRPlugin
     override def preInit(): Unit = {}
 
     override def init(): Unit =
-    {
         AfterWorldCheck.checkedInit()
-    }
 
     override def postInit(): Unit = {}
 
     override def desc() = "Treecapitator: gem axe compat"
-}

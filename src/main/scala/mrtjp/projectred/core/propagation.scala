@@ -13,21 +13,16 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper
 import scala.collection.immutable.HashSet
 
 object WirePropagator
-{
+:
     private val wiresProvidePower =
-    {
-        try {
+        try
             val c = ObfuscationReflectionHelper.findField(classOf[BlockRedstoneWire], "field_150181_a")
             c.setAccessible(true)
             c
-        }
         catch {case e:Exception => throw new RuntimeException(e)}
-    }
     def setDustProvidePower(b:Boolean): Unit =
-    {
         try {wiresProvidePower.setBoolean(Blocks.REDSTONE_WIRE, b)}
         catch {case t:Throwable =>}
-    }
 
     private val rwConnectable = {val b = new ThreadLocal[Boolean]; b.set(true); b}
     def redwiresConnectable = rwConnectable.get
@@ -36,60 +31,43 @@ object WirePropagator
     var redwiresProvidePower = true
 
     def reset(): Unit =
-    {
         setDustProvidePower(true)
         setRedwiresConnectable(true)
         redwiresProvidePower = true
-    }
 
     val reusableRuns = new JStack[PropagationRun]()
     var currentRun:PropagationRun = null
     var finishing:PropagationRun = null
 
     val notApart = new TMultiPart
-    {
+    :
         def getType = null
-    }
 
     def addNeighborChange(pos:BlockPos): Unit =
-    {
         currentRun.neighborChanges += pos
-    }
 
     def addPartChange(part:TMultiPart): Unit =
-    {
         currentRun.partChanges.put(part.tile, part)
-    }
 
     def logCalculation(): Unit =
-    {
         if finishing != null then finishing.recalcs += 1
-    }
 
     def propagateTo(part:IWirePart, from:TMultiPart, mode:Int): Unit =
-    {
         var p = currentRun
         if p == null then p = if reusableRuns.isEmpty then new PropagationRun else reusableRuns.pop
         p.add(part, from, mode)
-        if currentRun != p then {
+        if currentRun != p then
             if currentRun != null then throw new RuntimeException("Report this to ProjectRed developers")
             p.start(finishing, part.world)
-        }
-    }
 
     def propagateTo(part:IWirePart, mode:Int): Unit =
-    {
         propagateTo(part, notApart, mode)
-    }
 
     def propagateAnalogDrop(part:IWirePart): Unit =
-    {
         currentRun.addAnalogDrop(part)
-    }
-}
 
 class PropagationRun
-{
+:
     var world:World = null
     var parent:PropagationRun = null
     var lastCaller:TMultiPart = null
@@ -102,37 +80,32 @@ class PropagationRun
     var analogDrops = Seq.newBuilder[Propagation]
 
     def clear(): Unit =
-    {
         partChanges.clear()
         neighborChanges.clear()
         count = 0
         recalcs = 0
         lastCaller = null
         WirePropagator.reusableRuns.add(this)
-    }
 
     def finish(): Unit =
-    {
         WirePropagator.currentRun = null
         val res_NeighborChanges = neighborChanges.result()
 
-        if partChanges.isEmpty && res_NeighborChanges.isEmpty then {
+        if partChanges.isEmpty && res_NeighborChanges.isEmpty then
             WirePropagator.finishing = parent
             clear()
             return
-        }
 
         WirePropagator.finishing = this
 //        if (CommandDebug.WIRE_READING)
 //            println(count+" propogations, "+partChanges.size+" part changes, "+res_NeighborChanges.size+" block updates")
 
         import scala.jdk.CollectionConverters.*
-        for entry <- partChanges.asMap.entrySet.asScala do {
+        for entry <- partChanges.asMap.entrySet.asScala do
             val parts = entry.getValue
 
             for part <- parts.asScala do part.asInstanceOf[IWirePart].onSignalUpdate()
             entry.getKey.multiPartChange(parts)
-        }
 
         res_NeighborChanges.foreach(b => world.neighborChanged(b.toImmutable, MultipartProxy.block, b.toImmutable))
 
@@ -141,74 +114,56 @@ class PropagationRun
 //        if (CommandDebug.WIRE_READING) println(recalcs+" recalculations")
 
         clear()
-    }
 
     def start(parent:PropagationRun, world:World): Unit =
-    {
         this.world = world
         this.parent = parent
         WirePropagator.currentRun = this
         runLoop()
-    }
 
     private var pChange = false
     private var aChange = false
     private def runLoop(): Unit =
-    {
         var ptmp:Seq[Propagation] = null
         var atmp:Seq[Propagation] = null
 
         def fetch(): Unit =
-        {
             if pChange || ptmp == null then ptmp = propagationList.result()
             if aChange || atmp == null then atmp = analogDrops.result()
             pChange = false
             aChange = false
-        }
         fetch()
 
-        while { {
+        while {
             propagationList.clear(); pChange = true //we emptied it, probably changed it, but if we didnt, the loop will break anyway.
             ptmp.foreach(_.go())
 
             fetch() //Update results
 
-            if ptmp.isEmpty && atmp.nonEmpty then {
+            if ptmp.isEmpty && atmp.nonEmpty then
                 propagationList = analogDrops; ptmp = atmp; pChange = false //atmp is already up to date, so now ptmp is too.
                 analogDrops = Vector.newBuilder; aChange = true //atmp was nonempty, now it is
-            }
-        }
         ; ptmp.nonEmpty} do ()
         finish()
-    }
 
     def add(part:IWirePart, from:TMultiPart, mode:Int): Unit =
-    {
-        if from != lastCaller then {
+        if from != lastCaller then
             lastCaller = from
             count += 1
-        }
         propagationList += new Propagation(part, from, mode)
         pChange = true
-    }
 
     def addAnalogDrop(part:IWirePart): Unit =
-    {
         analogDrops += new Propagation(part, WirePropagator.notApart, IWirePart.RISING)
         aChange = true
-    }
-}
 
 class Propagation(part:IWirePart, from:TMultiPart, mode:Int)
-{
+:
     def go(): Unit =
-    {
         part.updateAndPropagate(from, mode)
-    }
-}
 
 object IWirePart
-{
+:
     /**
      * Standard operation procedure, no special propogation rules. The
      * propogator signal may not have increased.
@@ -230,13 +185,12 @@ object IWirePart
      * have been established and signal needs recalculating
      */
     final val FORCED = 3
-}
 
 /**
  * Trait that marks a propagation subject
  */
 trait IWirePart
-{
+:
     /**
      * Recalculates the signal of this wire and calls the appropriate
      * propogation methods in WirePropagator. DO NOT CALL THIS YOURSELF. Use
@@ -269,4 +223,3 @@ trait IWirePart
      * @return
      */
     def world:World
-}

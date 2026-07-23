@@ -13,18 +13,15 @@ import net.minecraft.item.ItemStack
 import org.lwjgl.opengl.GL11
 
 trait TWireItemRenderCommon extends IItemRenderer
-{
+:
     override def isAmbientOcclusion = true
     override def isGui3d = true
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
     override def renderItem(item:ItemStack, transformType: TransformType): Unit =
-    {
         renderWireInventory(item.getItemDamage, 0, 0, 0, 1)
-    }
 
     def renderWireInventory(meta:Int, x:Float, y:Float, z:Float, scale:Float): Unit =
-    {
         val wdef = WireDef.values(meta)
         if wdef == null then return
 
@@ -38,13 +35,11 @@ trait TWireItemRenderCommon extends IItemRenderer
             new IconTransformation(wdef.wireSprites(0)))
 
         ccrs.draw()
-    }
 
     def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit 
-}
 
 object WireItemRenderer extends TWireItemRenderCommon
-{
+:
 //    override def renderItem(rtype:ItemRenderType, item:ItemStack, data:AnyRef*)
 //    {
 //        val damage = item.getItemDamage
@@ -60,13 +55,10 @@ object WireItemRenderer extends TWireItemRenderCommon
 //    }
 
     override def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
-    {
         RenderWire.renderInv(thickness, renderHue, ccrs, ops*)
-    }
-}
 
 object FramedWireItemRenderer extends TWireItemRenderCommon
-{
+:
 //    override def renderItem(rtype:ItemRenderType, item:ItemStack, data:AnyRef*)
 //    {
 //        val damage = item.getItemDamage
@@ -82,7 +74,4 @@ object FramedWireItemRenderer extends TWireItemRenderCommon
 //    }
 
     override def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
-    {
         RenderFramedWire.renderInv(thickness, renderHue, ccrs, ops*)
-    }
-}

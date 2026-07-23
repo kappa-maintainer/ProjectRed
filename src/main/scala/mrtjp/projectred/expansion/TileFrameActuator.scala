@@ -16,7 +16,7 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.property.IExtendedBlockState
 
 class TileFrameActuator extends TileMachine with TMotorTile
-{
+:
     override def getBlock = ProjectRedExpansion.machine2
     override def doesRotate = false
     override def doesOrient = true
@@ -27,10 +27,9 @@ class TileFrameActuator extends TileMachine with TMotorTile
     override def getMoveDir = side^1
 
     override def drawPower(size:Int) = cond.drawPower(200+20*size)
-}
 
 object RenderFrameActuator extends SimpleBlockRenderer
-{
+:
     import java.lang.{Boolean as JBool, Integer as JInt}
 
     import mrtjp.projectred.expansion.BlockProperties.*
@@ -46,7 +45,7 @@ object RenderFrameActuator extends SimpleBlockRenderer
     var iconT2:UVTransformation = scala.compiletime.uninitialized
     var iconT3:UVTransformation = scala.compiletime.uninitialized
 
-    override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos) = world.getTileEntity(pos) match {
+    override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos) = world.getTileEntity(pos) match
         case t:TileFrameActuator =>
             var s = state
             s = s.withProperty(UNLISTED_SIDE_PROPERTY, t.side.asInstanceOf[Integer])
@@ -55,9 +54,8 @@ object RenderFrameActuator extends SimpleBlockRenderer
             s = s.withProperty(UNLISTED_CHARGED_PROPERTY, t.isCharged.asInstanceOf[JBool])
             s
         case _ => state
-    }
 
-    override def getWorldTransforms(state:IExtendedBlockState) = {
+    override def getWorldTransforms(state:IExtendedBlockState) =
         val side = state.getValue(UNLISTED_SIDE_PROPERTY)
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val isWorking = state.getValue(UNLISTED_WORKING_PROPERTY)
@@ -66,14 +64,12 @@ object RenderFrameActuator extends SimpleBlockRenderer
             if isWorking && isCharged then iconT3
             else if isCharged then iconT2
             else iconT1)
-    }
 
     override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = true
 
     override def registerIcons(reg:TextureMap): Unit =
-    {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/actuator/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/actuator/top"))
         sidea = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/actuator/sidea"))
@@ -83,5 +79,3 @@ object RenderFrameActuator extends SimpleBlockRenderer
         iconT1 = new MultiIconTransformation(bottom, top, sidea, sidea, sidea, sidea)
         iconT2 = new MultiIconTransformation(bottom, top, sideb, sideb, sideb, sideb)
         iconT3 = new MultiIconTransformation(bottom, top, sidec, sidec, sidec, sidec)
-    }
-}

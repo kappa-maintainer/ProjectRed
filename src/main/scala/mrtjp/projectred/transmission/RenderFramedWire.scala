@@ -17,7 +17,7 @@ import net.minecraft.util.math.RayTraceResult
 import org.lwjgl.opengl.GL11
 
 object RenderFramedWire extends IMicroHighlightRenderer
-{
+:
     private val frameModels = FWireFrameModelGen.generateModels
     private val wireModels = new Array[CCModel](64*3)
     private val jacketModels = new Array[FWireJacketModel](64*3)
@@ -26,62 +26,45 @@ object RenderFramedWire extends IMicroHighlightRenderer
     private def modelKey(w:FramedWirePart):Int = modelKey(w.getThickness, w.connMap)
 
     private def getOrGenerateWireModel(key:Int) =
-    {
         var m = wireModels(key)
         if m == null then wireModels(key) =
             {m = FWireModelGen.instance.generateWireModel(key); m}
         m
-    }
 
     private def getOrGenerateJacketedModel(key:Int) =
-    {
         var m = jacketModels(key)
         if m == null then jacketModels(key) =
             {m = FWireModelGen.instance.generateJacketedModel(key); m}
         m
-    }
 
     def render(w:FramedWirePart, pos:Vector3, ccrs:CCRenderState): Unit =
-    {
         val key = modelKey(w)
         val t = pos.translation()
         val uvt = new IconTransformation(w.getIcon)
         val m = ColourMultiplier.instance(w.renderHue)
 
         if w.hasMaterial then
-        {
             val jm = getOrGenerateJacketedModel(key)
             jm.renderWire(ccrs, t, uvt, m)
             jm.renderMaterial(pos, w.material, ccrs, false)
-        }
         else
-        {
             getOrGenerateWireModel(key).render(ccrs, t, uvt, m)
             renderWireFrame(key, ccrs, t, uvt)
-        }
-    }
 
     private def renderWireFrame(key:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
-    {
         frameModels(6).render(ccrs, ops*)
         for s <- 0 until 6 do if (key&1<<s) != 0 then frameModels(s).render(ccrs, ops*)
-    }
 
     def renderBreakingOverlay(icon:TextureAtlasSprite, wire:FramedWirePart, ccrs: CCRenderState): Unit =
-    {
         ccrs.setPipeline(new Translation(wire.pos), new IconTransformation(icon))
         import scala.jdk.CollectionConverters.*
         for box <- wire.getCollisionBoxes.asScala do BlockRenderer.renderCuboid(ccrs, box, 0)
-    }
 
     def renderInv(thickness:Int, hue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
-    {
         getOrGenerateWireModel(modelKey(thickness, 0x3F)).render(ccrs, ops :+ ColourMultiplier.instance(hue)*)
         renderWireFrame(modelKey(thickness, 0), ccrs, ops*)
-    }
 
     def renderCoverHighlight(part:FramedWirePart, material:Int, ccrs:CCRenderState): Unit =
-    {
         val pos = part.pos
 
         import net.minecraft.client.renderer.GlStateManager.*
@@ -108,43 +91,34 @@ object RenderFramedWire extends IMicroHighlightRenderer
         disableBlend()
         depthMask(true)
         popMatrix()
-    }
 
     override def renderHighlight(player:EntityPlayer, hit:RayTraceResult, mcrFactory:CommonMicroFactory, size:Int, material:Int) =
-    {
         val tile = BlockMultipart.getTile(player.world, hit.getBlockPos)
         if tile == null || mcrFactory.getFactoryID != 0 || size != 1 || player.isSneaking ||
                 MicroMaterialRegistry.getMaterial(material).isTransparent then false
-        else hit match {
-            case prt:PartRayTraceResult => tile.partList(prt.partIndex) match {
+        else hit match
+            case prt:PartRayTraceResult => tile.partList(prt.partIndex) match
                 case fpart:FramedWirePart if !fpart.hasMaterial || fpart.material != material =>
                     RenderFramedWire.renderCoverHighlight(fpart, material, CCRenderState.instance())
                     true
                 case _ => false
-            }
             case _ => false
-        }
-    }
-}
 
 private object FWireFrameModelGen
-{
+:
     private val w = 2/8D
     private val d = 1/16D-0.002
 
     private var frameModels:Array[CCModel] = null
 
     def generateModels =
-    {
         frameModels = new Array[CCModel](7)
         generateCenterModel()
         generateSideModels()
         finishModels()
         frameModels
-    }
 
     private def generateCenterModel(): Unit =
-    {
         val model = CCModel.quadModel(48)
         model.verts(0) = new Vertex5(0.5-w, 0.5-w, 0.5-w, 20, 8)
         model.verts(1) = new Vertex5(0.5+w, 0.5-w, 0.5-w, 28, 8)
@@ -156,10 +130,8 @@ private object FWireFrameModelGen
         model.verts(7) = new Vertex5(0.5-w, 0.5-w+d, 0.5-w, 20, 0)
         model.generateSidedParts(0, Vector3.center)
         frameModels(6) = model
-    }
 
     private def generateSideModels(): Unit =
-    {
         val model = CCModel.quadModel(36)
         model.verts(0) = new Vertex5(0.5-w, 0, 0.5+w, 16, 0)
         model.verts(1) = new Vertex5(0.5+w, 0, 0.5+w, 16, 8)
@@ -179,40 +151,28 @@ private object FWireFrameModelGen
         frameModels(0) = model
 
         for s <- 1 until 6 do
-        {
             frameModels(s) = model.copy.apply(Rotation.sideRotations(s).at(Vector3.center))
             if s%2 == 1 then
-            {
                 val verts = frameModels(s).verts
                 val t = new UVT(Rotation.quarterRotations(2).at(new Vector3(24, 0, 4)))
                 for i <- 0 until 32 do verts(i).apply(t)
-            }
-        }
-    }
 
     private def finishModels(): Unit =
-    {
         for m <- frameModels do
-        {
             m.apply(new UVScale(1/32D))
             m.shrinkUVs(0.0005)
             m.computeNormals
             m.computeLighting(LightModel.standardLightModel)
-        }
-    }
-}
 
 object FWireModelGen
-{
-    val instances = new ThreadLocal[FWireModelGen] {
+:
+    val instances = new ThreadLocal[FWireModelGen]:
         override def initialValue() = new FWireModelGen
-    }
 
     def instance = instances.get()
-}
 
 class FWireModelGen
-{
+:
     var connMap = 0
     var tw = 0
     var w = 0.0D
@@ -221,55 +181,42 @@ class FWireModelGen
     var model:CCModel = null
 
     def countConnections(mask:Int) =
-    {
         var n = 0
         for r <- 0 until 6 do if (mask&1<<r) != 0 then n+=1
         n
-    }
 
     private def setup(key:Int): Unit =
-    {
         connMap = key&0x3F
         connCount = countConnections(connMap)
         val thickness = key>>6
         tw = thickness+1
         w = tw/16D+0.004
         i = 0
-    }
 
     def generateWireModel(key:Int) =
-    {
         setup(key)
         model = CCModel.quadModel(connCount*16+24)
         for s <- 0 until 6 do generateSide(s)
         finishModel()
         model
-    }
 
     private def generateSide(s:Int): Unit =
-    {
         val verts = connCount match
-        {
             case 0 => generateStub(s)
             case 1  if (connMap&1<<(s^1)) != 0 => generateStub(s)
             case _ => generateSideFromType(s)
-        }
 
         val t = AxisCycle.cycles(s/2).at(Vector3.center)
         for vert <- verts do vert.apply(t)
         i = addVerts(model, verts, i)
-    }
 
     private def generateStub(s:Int) =
-    {
         val verts = faceVerts(s, 0.5-w)
         val t = new UVTranslation(12, 12)
         for vert <- verts do vert.apply(t)
         verts
-    }
 
     private def faceVerts(s:Int, d:Double) =
-    {
         val verts = Array(
             new Vertex5(0.5-w, d, 0.5-w, 8-tw, 16+tw),
             new Vertex5(0.5+w, d, 0.5-w, 8+tw, 16+tw),
@@ -278,63 +225,45 @@ class FWireModelGen
         )
 
         if s%2 == 1 then
-        {
             val t = new Scale(1, -1, 1).at(Vector3.center)
             for vert <- verts do vert.apply(t)
             reverseOrder(verts)
-        }
         verts
-    }
 
     private def generateSideFromType(s:Int) =
-    {
         if (connMap&1<<s) != 0 then generateStraight(s)
         else generateFlat(s)
-    }
 
     private val uvReflect = new UVT(new Scale(-1, 1, 1).at(new Vector3(8, 0, 16)))
     private def generateStraight(s:Int):Array[Vertex5] =
-    {
         val verts = new Array[Vertex5](20)
         Array.copy(faceVerts(s, 0), 0, verts, 0, 4)
 
         if s%2 == 0 then
-        {
             verts(4) = new Vertex5(0.5-w, 0, 0.5+w, 8-tw, 24)
             verts(5) = new Vertex5(0.5+w, 0, 0.5+w, 8+tw, 24)
             verts(6) = new Vertex5(0.5+w, 0.5-w, 0.5+w, 8+tw, 16+tw)
             verts(7) = new Vertex5(0.5-w, 0.5-w, 0.5+w, 8-tw, 16+tw)
-        }
         else
-        {
             verts(4) = new Vertex5(0.5-w, 0.5+w, 0.5+w, 8-tw, 16-tw)
             verts(5) = new Vertex5(0.5+w, 0.5+w, 0.5+w, 8+tw, 16-tw)
             verts(6) = new Vertex5(0.5+w, 1, 0.5+w, 8+tw, 8)
             verts(7) = new Vertex5(0.5-w, 1, 0.5+w, 8-tw, 8)
-        }
         for r <- 1 until 4 do
-        {
             val t = Rotation.quarterRotations(r).at(Vector3.center)
             for i <- 0 until 4 do
-            {
                 verts(i+r*4+4) = verts(i+4).copy.apply(t)
                 if r >= 2 then verts(i+r*4+4).apply(uvReflect)
-            }
-        }
         val t = new UVTranslation(12, 12)
         for i <- 0 until 4 do verts(i).apply(t)
         verts
-    }
 
     private def generateFlat(s:Int):Array[Vertex5] =
-    {
         val verts = faceVerts(s, 0.5-w)
         var fConnMask = 0
         for i <- 0 until 4 do
-        {
             val absSide = ((s&6)+i+2)%6
             if (connMap&1<<absSide) != 0 then fConnMask |= 1<<i
-        }
 
         val rot =
             if (fConnMask&0xC) == 0 then 0
@@ -342,39 +271,29 @@ class FWireModelGen
             else 2
 
         val uvt = rot match
-        {
             case 1 => new UVT(Rotation.quarterRotations(1).at(new Vector3(8, 0, 16)))
             case 2 => new UVT(Rotation.quarterRotations(1).at(new Vector3(8, 0, 16)).`with`(new Translation(16, 0, 0)))
             case _ => null
-        }
 
         if uvt != null then for vert <- verts do vert.apply(uvt)
         verts
-    }
 
     def generateJacketedModel(key:Int) =
-    {
         setup(key)
         new FWireJacketModel(generateJacketedWireModel, generateJacketedBoxes)
-    }
 
     private def generateJacketedWireModel:CCModel =
-    {
         val n = connCount match
-        {
             case 0 => 6
             case 1 => 2
             case _ => connCount
-        }
 
         model = CCModel.quadModel(n*4)
         for s <- 0 until 6 do generateJacketedSide(s)
         finishModel()
         model
-    }
 
     private def generateJacketedSide(s:Int): Unit =
-    {
         val d =
             if (connMap&1<<s) != 0 then 0.00D
             else if connCount == 0 then 0.25D
@@ -385,15 +304,11 @@ class FWireModelGen
         val t = AxisCycle.cycles(s/2).at(Vector3.center)
         val uvt = new UVTranslation(12, 12)
         for vert <- verts do
-        {
             vert.apply(t)
             vert.apply(uvt)
-        }
         i = addVerts(model, verts, i)
-    }
 
     private def generateJacketedBoxes:Array[IndexedCuboid6] =
-    {
         if connCount == 0 then return Array(new IndexedCuboid6(0, WireBoxes.fOBounds(6)))
 
         var n = 0
@@ -406,24 +321,20 @@ class FWireModelGen
         for a <- 0 until 3 do first = !generateAxialJacketBoxes(a, first, boxes)
 
         boxes
-    }
 
     private def generateAxialJacketBoxes(a:Int, first:Boolean, boxes:Array[IndexedCuboid6]):Boolean =
-    {
         import WireBoxes.fOBounds
 
         val mask = connMap>>a*2&3
         if mask == 0 then return false
 
         val box = mask match
-        {
             case 1 => fOBounds(0).copy
             case 2 => fOBounds(1).copy
             case _ =>
                 val b = fOBounds(0).copy
                 b.max.y = 1
                 b
-        }
 
         box.apply(Rotation.sideRotations(a*2).at(Vector3.center))
         if first then box.enclose(fOBounds(6))
@@ -436,49 +347,34 @@ class FWireModelGen
         boxes(i) = new IndexedCuboid6(fMask, box)
         i += 1
         true
-    }
 
     private def reverseOrder(verts:Array[Vertex5]): Unit =
-    {
         var k = 0
         while k < verts.length do
-        {
             val tmp = verts(k+1)
             verts(k+1) = verts(k+3)
             verts(k+3) = tmp
             k += 4
-        }
-    }
 
     /**
      * Puts verts into model m starting at index k
      */
     private def addVerts(m:CCModel, verts:Array[Vertex5], k:Int) =
-    {
         for i <- 0 until verts.length do m.verts(k+i) = verts(i)
         k+verts.length
-    }
 
     private def finishModel(): Unit =
-    {
         model.apply(new UVScale(1/32D))
         model.shrinkUVs(0.0005)
         model.computeNormals
         model.computeLighting(LightModel.standardLightModel)
-    }
-}
 
 class FWireJacketModel(wire:CCModel, boxes:Array[IndexedCuboid6])
-{
+:
     def renderWire(ccrs:CCRenderState, ops:IVertexOperation*): Unit =
-    {
         wire.render(ccrs, ops*)
-    }
 
     def renderMaterial(vec:Vector3, mat:Int, ccrs:CCRenderState, inventory:Boolean): Unit =
-    {
         val material = MicroMaterialRegistry.getMaterial(mat)
         val layer = if inventory then null else BlockRenderLayer.SOLID
         for b <- boxes do MicroblockRender.renderCuboid(vec, ccrs, material, layer, b, b.data.asInstanceOf[Int])
-    }
-}

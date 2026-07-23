@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 
 @Mod(modid = "projectred-transmission", useMetadata = true, modLanguage = "scala")
 object ProjectRedTransmission
-{
+:
     ProjectRedAPI.transmissionAPI = new APIImpl_Transmission
 
     /** Multipart items **/
@@ -18,31 +18,21 @@ object ProjectRedTransmission
     var itemPartFramedWire:ItemPartFramedWire = scala.compiletime.uninitialized
 
     val tabTransmission = new CreativeTabs("projectred.transmission")
-    {
+    :
         override def createIcon = new ItemStack(ProjectRedTransmission.itemPartWire)
-    }
 
     @Mod.EventHandler
     def preInit(event:FMLPreInitializationEvent): Unit =
-    {
         TransmissionProxy.preinit()
-    }
 
     @Mod.EventHandler
     def init(event:FMLInitializationEvent): Unit =
-    {
         TransmissionProxy.init()
-    }
 
     @Mod.EventHandler
     def postInit(event:FMLPostInitializationEvent): Unit =
-    {
         TransmissionProxy.postinit()
-    }
 
     @Mod.EventHandler
     def serverStopping(event:FMLServerAboutToStartEvent): Unit =
-    {
         WirePropagator.reset()
-    }
-}

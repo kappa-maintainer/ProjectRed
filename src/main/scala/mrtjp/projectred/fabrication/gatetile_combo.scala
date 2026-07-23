@@ -16,7 +16,7 @@ import scala.collection.mutable.ListBuffer
   * for example). Logic class is singleton.
   */
 class ComboGateICTile extends RedstoneGateICTile
-{
+:
     val inputRegs = Array(-1, -1, -1, -1)
     val outputRegs = Array(-1, -1, -1, -1)
 
@@ -24,17 +24,15 @@ class ComboGateICTile extends RedstoneGateICTile
     def getLogicCombo = getLogic[ComboGateTileLogic]
 
     override def getPartType = ICTileDefs.SimpleGate
-}
 
 object ComboGateTileLogic
-{
+:
     val advanceDead = Seq(1, 2, 4, 0, 5, 6, 3)
 
     val instances = new Array[ComboGateTileLogic](ICGateDefinition.values.length)
     initialize()
 
     def initialize(): Unit =
-    {
         import mrtjp.projectred.fabrication.{ICGateDefinition as defs}
         instances(defs.OR.ordinal) = OR
         instances(defs.NOR.ordinal) = NOR
@@ -50,24 +48,18 @@ object ComboGateTileLogic
 //        instances(defs.Randomizer.ordinal) = Randomizer
 //        instances(defs.TransparentLatch.ordinal) = TransparentLatch
 //        instances(defs.DecRandomizer.ordinal) = DecRandomizer
-    }
-}
 
 trait TIOControlableGateTileLogic[T <: RedstoneGateICTile] extends RedstoneGateTileLogic[T]
-{
+:
     override def cycleShape(gate:T) =
-    {
         val oldShape = gate.shape
         val newShape = cycleShape(oldShape)
-        if newShape != oldShape then {
+        if newShape != oldShape then
             gate.setShape(newShape)
             true
-        }
         else false
-    }
 
     def cycleShape(shape:Int):Int =
-    {
         if deadSides == 0 then return shape
 
         var shape1 = shape
@@ -75,227 +67,173 @@ trait TIOControlableGateTileLogic[T <: RedstoneGateICTile] extends RedstoneGateT
         while { shape1 = ComboGateTileLogic.advanceDead(shape1)
         ; bitCount(shape1) > maxDeadSides || 32-lead(shape1) > deadSides} do ()
         shape1
-    }
 
     def deadSides = 0
     def maxDeadSides = deadSides-1
-}
 
 abstract class ComboGateTileLogic extends RedstoneGateTileLogic[ComboGateICTile] with TIOControlableGateTileLogic[ComboGateICTile]
-{
+:
     def pullInput(gate:ComboGateICTile, mask:Int) = //Pull the input from the sim engine
-    {
         var input = 0
-        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then
             if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](gate.inputRegs(r)) > 0 then input |= 1<<r
-        }
         input
-    }
 
     def pullOutput(gate:ComboGateICTile, mask:Int) = //Pull the output form the sim engine
-    {
         var output = 0
-        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then
             if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](gate.outputRegs(r)) > 0 then output |= 1<<r
-        }
         output
-    }
 
     override def onRegistersChanged(gate:ComboGateICTile, regIDs:Set[Int]): Unit = //Use to set state on gates/update render
-    {
         val oldState = gate.state
         val newState = pullInput(gate, inputMask(gate.shape))&0xF | pullOutput(gate, outputMask(gate.shape))<<4
-        if oldState != newState then {
+        if oldState != newState then
             gate.setState(newState)
             gate.sendStateUpdate()
-        }
-    }
 
     override def allocateOrFindRegisters(gate:ComboGateICTile, linker:ISELinker): Unit =
-    {
-        for r <- 0 until 4 do {
+        for r <- 0 until 4 do
             gate.inputRegs(r) =
                     if canInput(gate, r) then gate.getInputRegister(r, linker) else -1
             gate.outputRegs(r) =
                     if canOutput(gate, r) then gate.getOutputRegister(r, linker) else -1
-        }
 
         import SEIntegratedCircuit.*
         if gate.inputRegs.forall(id => id == -1 || id == REG_ZERO) then
             linker.getLogger.logWarning(Seq(gate.pos), "gate has no inputs")
         if gate.outputRegs.forall(id => id == -1 || id == REG_ZERO) then
             linker.getLogger.logWarning(Seq(gate.pos), "gate has no outputs")
-    }
 
     override def declareOperations(gate:ComboGateICTile, linker:ISELinker): Unit =
-    {
         val comp = getOutputOp(gate.inputRegs, gate.outputRegs)
         linker.addGate(linker.allocateGateID(Set(gate.pos)), comp,
             gate.inputRegs.filter(_ != -1).toSeq.distinct,
             gate.outputRegs.filter(_ != -1).toSeq.distinct)
-    }
 
     def getOutputOp(inputs:Array[Int], outputs:Array[Int]):ISEGate
 
     @SideOnly(Side.CLIENT)
     override def buildRolloverData(gate:ComboGateICTile, buffer:ListBuffer[String]): Unit =
-    {
         super.buildRolloverData(gate, buffer)
         buffer += GRAY.toString + "I: "+rolloverInput(gate)
         buffer += GRAY.toString + "O: "+rolloverOutput(gate)
-    }
 
     def rolloverInput(gate:ComboGateICTile) = "0x"+Integer.toHexString(gate.state&0xF)
     def rolloverOutput(gate:ComboGateICTile) = "0x"+Integer.toHexString(gate.state>>4)
-}
 
 object OR extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = ~shape<<1&0xE
 
     override def deadSides = 3
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inIDs = inputs.filter(_ != -1).toSeq
         val outID = outputs(0)
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID, if inIDs.exists(ic.getRegVal(_) != 0) then 1 else 0)
-            }
-        }
-    }
-}
 
 object NOR extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = ~shape<<1&0xE
 
     override def deadSides = 3
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inIDs = inputs.filter(_ != -1).toSeq
         val outID = outputs(0)
 
-        new ISEGate {
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+        new ISEGate:
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID, if inIDs.exists(ic.getRegVal(_) != 0) then 0 else 1)
-            }
-        }
-    }
-}
 
 object NOT extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = ~((shape&1)<<1|(shape&2)>>1|(shape&4)<<1)&0xB
     override def inputMask(shape:Int) = 4
 
     override def deadSides = 3
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inID = inputs(2)
         val outIDs = outputs.filter(_ != -1).toSeq
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 val outVal = (if ic.getRegVal(inID) != 0 then 0 else 1).toByte
                 outIDs.foreach(ic.queueRegVal[Byte](_, outVal))
-            }
-        }
-    }
-}
 
 object AND extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = ~shape<<1&0xE
 
     override def deadSides = 3
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inIDs = inputs.filter(_ != -1).toSeq
         val outID = outputs(0)
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID, if inIDs.forall(ic.getRegVal(_) != 0) then 1 else 0)
-            }
-        }
-    }
-}
 
 object NAND extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = ~shape<<1&0xE
 
     override def deadSides = 3
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inIDs = inputs.filter(_ != -1).toSeq
         val outID = outputs(0)
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID, if inIDs.forall(ic.getRegVal(_) != 0) then 0 else 1)
-            }
-        }
-    }
-}
 
 object XOR extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = 10
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val in1 = inputs(1)
         val in2 = inputs(3)
         val outID = outputs(0)
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID, if ic.getRegVal(in1) != ic.getRegVal(in2) then 1 else 0)
-            }
-        }
-    }
-}
 
 object XNOR extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = 10
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val in1 = inputs(1)
         val in2 = inputs(3)
         val outID = outputs(0)
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID, if ic.getRegVal(in1) == ic.getRegVal(in2) then 1 else 0)
-            }
-        }
-    }
-}
 
 object Buffer extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = ~((shape&1)<<1|(shape&2)<<2)&0xB
     override def inputMask(shape:Int) = 4
 
@@ -303,43 +241,33 @@ object Buffer extends ComboGateTileLogic
     override def maxDeadSides = 2
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inID = inputs(2)
         val outIDs = outputs.filter(_ != -1).toSeq
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 val in = ic.getRegVal[Byte](inID)
                 outIDs.foreach(ic.queueRegVal[Byte](_, in))
-            }
-        }
-    }
-}
 
 object Multiplexer extends ComboGateTileLogic
-{
+:
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = 0xE
 
     override def getOutputOp(inputs:Array[Int], outputs:Array[Int]) =
-    {
         val inIDs = inputs.clone
         val outID = outputs(0)
 
-        new ISEGate {
+        new ISEGate:
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit): Unit = {
+            override def compute(ic:SEIntegratedCircuit): Unit =
                 ic.queueRegVal[Byte](outID,
                     if ic.getRegVal[Byte](inIDs(2)) != 0 then
                         ic.getRegVal[Byte](inIDs(3))
                     else
                         ic.getRegVal[Byte](inIDs(1))
                 )
-            }
-        }
-    }
-}
 
 //
 //object DecRandomizer extends ComboICGateLogic

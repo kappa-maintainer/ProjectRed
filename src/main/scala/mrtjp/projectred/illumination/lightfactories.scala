@@ -10,7 +10,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import scala.jdk.CollectionConverters.*
 
 object LightFactoryFixture extends LightFactory
-{
+:
     val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(3.5 / 16D, 0, 3.5 / 16D, 12.5 / 16D, 6.5 / 16D, 12.5 / 16D))
     val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4 / 16D, 1.5 / 16, 4 / 16D, 12 / 16D, 6.5 / 16D, 12 / 16D))
 
@@ -35,24 +35,20 @@ object LightFactoryFixture extends LightFactory
     override def getIcon: TextureAtlasSprite = icon
 
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map: TextureMap): Unit = {
+    override def registerTextures(map: TextureMap): Unit =
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/fixture"))
-    }
 
-    override def loadModels(): Unit = {
+    override def loadModels(): Unit =
         val models = parseModel("fixture")
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
 
-        for s <- 0 until 6 do {
+        for s <- 0 until 6 do
             bulbModels(s) = bakeCopy(s, bulb)
             chassiModels(s) = bakeCopy(s, chassi)
-        }
-    }
-}
 
 object LightFactoryFallout extends LightFactory
-{
+:
     val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(2 / 16D, 0, 2 / 16D, 14 / 16D, 11 / 16D, 14 / 16D))
     val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4 / 16D, 1.5 / 16, 4 / 16D, 12 / 16D, 10 / 16D, 12 / 16D).expand(-0.002))
 
@@ -78,24 +74,20 @@ object LightFactoryFallout extends LightFactory
     override def getIcon: TextureAtlasSprite = icon
 
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map: TextureMap): Unit = {
+    override def registerTextures(map: TextureMap): Unit =
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/fallout"))
-    }
 
-    override def loadModels(): Unit = {
+    override def loadModels(): Unit =
         val models = parseModel("fallout")
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
 
-        for s <- 0 until 6 do {
+        for s <- 0 until 6 do
             bulbModels(s) = bakeCopy(s, bulb)
             chassiModels(s) = bakeCopy(s, chassi)
-        }
-    }
-}
 
 object LightFactoryCage extends LightFactory
-{
+:
     val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(3.5 / 16D, 0, 3.5 / 16D, 12.5 / 16D, 12 / 16D, 12.5 / 16D))
     val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4.5 / 16D, 1.5 / 16, 4.5 / 16D, 11.5 / 16D, 11.5 / 16D, 11.5 / 16D))
 
@@ -125,24 +117,20 @@ object LightFactoryCage extends LightFactory
     override def getIcon: TextureAtlasSprite = icon
 
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map: TextureMap): Unit = {
+    override def registerTextures(map: TextureMap): Unit =
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/cage_lamp"))
-    }
 
-    override def loadModels(): Unit = {
+    override def loadModels(): Unit =
         val models = parseModel("cagelamp")
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
 
-        for s <- 0 until 6 do {
+        for s <- 0 until 6 do
             bulbModels(s) = bakeCopy(s, bulb)
             chassiModels(s) = bakeCopy(s, chassi)
-        }
-    }
-}
 
 object LightFactoryLantern extends LightFactory
-{
+:
     private val bounds: Cuboid6 = new Cuboid6(0.35D, 0.25D, 0.35D, 0.65D, 0.75D, 0.65D)
     private val lBounds: Cuboid6 = bounds.copy.expand(-1 / 64D)
 
@@ -172,19 +160,16 @@ object LightFactoryLantern extends LightFactory
     override def getIcon: TextureAtlasSprite = icon
 
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map: TextureMap): Unit = {
+    override def registerTextures(map: TextureMap): Unit =
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/lantern"))
-    }
 
-    override def getItemRenderTransform(t: TransformType): (Vector3, Vector3, Double) = t match {
+    override def getItemRenderTransform(t: TransformType): (Vector3, Vector3, Double) = t match
         case TransformType.GUI =>
             val (_, rot, _) = super.getItemRenderTransform(t)
             (new Vector3(0, -1 / 16D, 0), rot, 1.25)
         case _ => super.getItemRenderTransform(t)
-    }
 
     override def loadModels(): Unit =
-    {
         val models = parseModel("lantern")
 
         val bulb = models.get("bulb")
@@ -200,13 +185,10 @@ object LightFactoryLantern extends LightFactory
         chassiModels(1) = CCModel.combine(Seq(body, top, topRing).asJava)
         chassiModels(6) = CCModel.combine(Seq(body, topRing).asJava) //Inv model
 
-        for s <- 2 until 6 do {
+        for s <- 2 until 6 do
             val mSide = side.copy.apply(Rotation.sideOrientation(0, Rotation.rotationTo(0, s)).at(Vector3.center))
             val mRing = topRing.copy.apply(Rotation.sideOrientation(0, Rotation.rotationTo(0, s)).at(Vector3.center))
             chassiModels(s) = CCModel.combine(Seq(body, mSide, mRing).asJava)
-        }
 
         chassiModels.foreach(finishModel)
         finishModel(bulbModel)
-    }
-}

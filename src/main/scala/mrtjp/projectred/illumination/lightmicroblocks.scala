@@ -14,43 +14,33 @@ import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class LightMicroMaterial(val colour:Int, val key:String) extends BlockMicroMaterial(ProjectRedIllumination.blockLamp.getDefaultState, key) with IGeneratedMaterial
-{
+:
     override def addTraits(traits:util.BitSet, mcrFactory:MicroblockFactory, client:Boolean): Unit =
-    {
         traits.set(LightMicroMaterial.traitID)
-    }
 
     override def getItem = new ItemStack(ProjectRedIllumination.blockLamp, 1, colour)
 
     @SideOnly(Side.CLIENT)
     override def loadIcons(): Unit =
-    {
         icont = new MultiIconTransformation(LampRenderer.iconsOn(colour))
         pIconT = new IconTransformation(LampRenderer.iconsOn(colour))
-    }
-}
 
 object LightMicroMaterial
-{
+:
     var traitID:Int = scala.compiletime.uninitialized
 
     def register(): Unit =
-    {
         traitID = MicroblockGenerator.registerTrait(classOf[LightMicroblock])
 
-        for i <- 0 until 16 do {
+        for i <- 0 until 16 do
             val key = BlockMicroMaterial.materialKey(ProjectRedIllumination.blockLamp.getDefaultState)+"[colour:"+i+"]"
             MicroMaterialRegistry.registerMaterial(new LightMicroMaterial(i, key), key)
-        }
-    }
-}
 
 trait LightMicroblock extends Microblock with TDynamicRenderPart
-{
+:
     @SideOnly(Side.CLIENT)
     override def renderDynamic(vec:Vector3, pass:Int, frame:Float): Unit =
-    {
-        val boxes = this match {
+        val boxes = this match
             case h: HollowMicroblock =>
                 val size = h.getHollowSize
                 val d1 = 0.5 - size / 32D
@@ -70,22 +60,17 @@ trait LightMicroblock extends Microblock with TDynamicRenderPart
                 val bb = Seq.newBuilder[Cuboid6]
                 while it.hasNext do bb += it.next()
                 bb.result().map(_.copy.expand(0.025))
-        }
 
         val colour = getIMaterial.asInstanceOf[LightMicroMaterial].colour
 
         for box <- boxes do RenderHalo.addLight(pos, colour, box)
-    }
 
     override def canRenderDynamic(pass: Int) = pass == 0
 
     override def getLightValue =
-    {
         val lightVolume = tile.partList.collect { case p:LightMicroblock => p }.map { light =>
             val b = light.getBounds
             math.abs(b.max.x-b.min.x)*math.abs(b.max.y-b.min.y)*math.abs(b.max.z-b.min.z)
         }.sum
 
         math.min(15, 10+5*lightVolume*8).toInt
-    }
-}

@@ -23,31 +23,21 @@ object Services
     var plugins: Seq[IPRPlugin] = Seq[IPRPlugin]()
 
     def servicesLoad(): Unit =
-    {
-        try {
+        try
             for p <- rootPlugins do
                 if p.isEnabled && p.getModIDs.forall(Loader.isModLoaded) then
                     plugins :+= p
                 else
                     ProjectRedCore.log.warn(p.loadFailedDesc())
-        }
-        catch {
+        catch
             case e:Exception =>
-        }
-    }
 
     def doPreInit(): Unit =
-    {
         for p <- plugins do p.preInit()
-    }
 
     def doInit(): Unit =
-    {
         for p <- plugins do p.init()
-    }
 
     def doPostInit(): Unit =
-    {
         for p <- plugins do p.postInit()
-    }
 }
