@@ -3,7 +3,6 @@ plugins {
     id 'scala'
     id 'java-library'
     id 'maven-publish'
-    id 'com.gradleup.shadow' version '9.5.1'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.4.1'
     id 'xyz.wagyourtail.unimined' version '1.4.26-kappa'
     id 'net.kyori.blossom' version '2.2.0'
@@ -148,7 +147,9 @@ tasks.withType(ScalaCompile).configureEach {
             /*'-Ytasty-reader', */
             /*'-nowarn', */
             /*'-source:future-migration',*/
-            /*'-rewrite'*/]
+            '-indent',
+            '-rewrite']
+    //scalaCompileOptions.force = true
 }
 
 jar {
@@ -237,6 +238,12 @@ def baseJar = tasks.register('baseJar', Jar) {
 
 // The split jars and the development/remapped artifacts are all first-class outputs.
 tasks.named('remapJar').configure {
+    doFirst {
+        logging.captureStandardOutput LogLevel.INFO
+    }
+    doLast {
+        logging.captureStandardOutput LogLevel.QUIET
+    }
     archiveClassifier = 'universal'
 }
 
