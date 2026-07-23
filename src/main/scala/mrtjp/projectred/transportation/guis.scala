@@ -199,8 +199,7 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         {
             def stringMatch(name:String, filter:String):Boolean =
             {
-                for s <- filter.split(" ") do if !name.contains(s) then return false
-                true
+                filter.split(" ").forall(name.contains)
             }
 
             if stringMatch(stack.key.getName.toLowerCase, textFilter.text) then true

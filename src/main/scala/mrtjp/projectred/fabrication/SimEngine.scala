@@ -15,13 +15,13 @@ class SEIntegratedCircuit(
     val regDependents:Array[Array[Int]] = {
         val b = mutable.ArrayBuilder.make[Array[Int]]
         for i <- 0 until registers.length do
-            b += $regDependents.getOrElse(i, Seq.empty).toArray
+            b += $regDependents.getOrElse(i, Seq.empty).toIndexedSeq.toArray
         b.result()
     }
 
     val changeQueue:ListBuffer[Int] = new ListBuffer[Int]
 
-    def getRegisterMap:Seq[ISERegister] = registers
+    def getRegisterMap:Seq[ISERegister] = registers.toIndexedSeq
 
     def computeAll():Boolean =
     {
@@ -62,7 +62,6 @@ class SEIntegratedCircuit(
                 if allComputes(i) > 32 then {
                     hasOverflow = true
                     overflowGateID = i
-                    return
                 }
             }
 

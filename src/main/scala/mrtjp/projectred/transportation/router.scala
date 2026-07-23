@@ -38,7 +38,7 @@ object RouterServices
     def getOrCreateRouter(uu:UUID, holder:IRouterContainer):Router =
     {
         routers synchronized {
-            for r <- routers do if r != null && r.getContainer == holder then return r
+            routers.find(r => r != null && r.getContainer == holder).getOrElse {
             val r = Router(uu, holder)
 
             val newLease = r.getIPAddress
@@ -47,7 +47,8 @@ object RouterServices
 
             routers(newLease) = r
             UUIDTable += (r.getID -> r.getIPAddress)
-            return r
+            r
+            }
         }
     }
 
@@ -234,11 +235,10 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
         if rt.isDefinedAt(destination) && RouterServices.routerExists(destination) then {
             val paths = rt(destination)
             if paths != null then
-                for path <- paths do if path.flagRouteTo then
-                    if priority.isPathUsable(path) && path.allowItem(item) then
-                        return path
+                paths.find(path => path.flagRouteTo && priority.isPathUsable(path) && path.allowItem(item)).orNull
+            else null
         }
-        null
+        else null
     }
 
     private def refreshRouteTableIfNeeded(force:Boolean): Unit =

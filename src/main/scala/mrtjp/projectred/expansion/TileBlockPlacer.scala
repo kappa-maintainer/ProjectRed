@@ -110,13 +110,12 @@ class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory wit
         copyInvToPlayer()
         locateFakePlayer()
 
-        for i <- 0 until 9 do {
+        var used = false
+        for i <- 0 until 9 do if !used then {
             val stack = getStackInSlot(i)
             if !stack.isEmpty && tryUseItem(stack, upos, i) then {
                 if fakePlayer.isHandActive then fakePlayer.stopActiveHand()
-                copyInvFromPlayer()
-                popFakePlayerData()
-                return
+                used = true
             }
         }
         copyInvFromPlayer()

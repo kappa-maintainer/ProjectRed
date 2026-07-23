@@ -22,7 +22,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 
 import scala.jdk.CollectionConverters.*
-import scala.collection.mutable.{HashMap as MHashMap, Map as MMap, MultiMap as MMultiMap, Set as MSet}
+import scala.collection.mutable.{HashMap as MHashMap, Map as MMap, Set as MSet}
 
 /**
   * Tweaked version of Chickenbones' compressed end-of-tick tile data stream.
@@ -75,7 +75,7 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
     override def handlePacket(packetCustom:PacketCustom, entityPlayerMP:EntityPlayerMP, iNetHandlerPlayServer:INetHandlerPlayServer): Unit ={}
 
     private val updateMap = MMap[World, MMap[Set[ChunkPos], MCByteStream]]()
-    private val chunkWatchers = new MHashMap[Int, MSet[ChunkPos]] with MMultiMap[Int, ChunkPos]
+    private val chunkWatchers = MHashMap[Int, MSet[ChunkPos]]()
     private val newWatchers = MMap[Int, JLinkedList[ChunkPos]]()
 
     def onTickEnd(): Unit =
@@ -108,7 +108,10 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
             case Some(chunks) => chunks.remove(c)
             case _ =>
         }
-        chunkWatchers.removeBinding(p.getEntityId, c)
+        chunkWatchers.get(p.getEntityId).foreach { chunks =>
+            chunks -= c
+            if chunks.isEmpty then chunkWatchers.remove(p.getEntityId)
+        }
     }
 
     private def getServerPlayers:Seq[EntityPlayerMP] =
@@ -141,7 +144,7 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
             val pkt = getDescPacket(p.world, watched.asScala.toSet)
             if pkt != null then pkt.sendToPlayer(p)
             for c <- watched.asScala do
-                chunkWatchers.addBinding(p.getEntityId, c)
+                chunkWatchers.getOrElseUpdate(p.getEntityId, MSet.empty) += c
         }
         newWatchers.clear()
     }

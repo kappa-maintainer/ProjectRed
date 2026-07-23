@@ -9,21 +9,24 @@ import java.util.UUID
 
 import mrtjp.core.item.{ItemKey, ItemKeyStack}
 
-import scala.collection.mutable.{ListBuffer, HashMap as MHashMap, MultiMap as MMultiMap, Set as MSet}
+import scala.collection.mutable.{ListBuffer, HashMap as MHashMap, Set as MSet}
 
 object ChipCraftingExtension
 {
     //Router UUID -> Set[Extension UUID]
-    var map = new MHashMap[UUID, MSet[UUID]] with MMultiMap[UUID, UUID]
+    var map = MHashMap[UUID, MSet[UUID]]()
 
     def registerRouter(router:UUID, ext:UUID): Unit =
     {
-        map.addBinding(router, ext)
+        map.getOrElseUpdate(router, MSet.empty) += ext
     }
 
     def removeRouter(router:UUID, ext:UUID): Unit =
     {
-        map.removeBinding(router, ext)
+        map.get(router).foreach { extensions =>
+            extensions -= ext
+            if extensions.isEmpty then map.remove(router)
+        }
     }
 
     def getRoutersForExtension(ext:UUID) =

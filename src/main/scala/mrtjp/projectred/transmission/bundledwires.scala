@@ -156,7 +156,7 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
 
     override def setSignal(newSignal:Array[Byte]): Unit =
     {
-        if newSignal == null then signal.transform(_ => 0.toByte)
+        if newSignal == null then signal.mapInPlace(_ => 0.toByte)
         else for i <- 0 until 16 do signal(i) = newSignal(i)
     }
 

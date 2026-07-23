@@ -81,7 +81,7 @@ object MovingRenderer
         val light = movingWorld.getCombinedLight(currentPos, 0)
         val l1 = light % 65536
         val l2 = light / 65536
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, l1, l2)
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, l1.toFloat, l2.toFloat)
         GlStateManager.color(1, 1, 1, 1)
 
         RenderHelper.disableStandardItemLighting()

@@ -33,25 +33,15 @@ trait TCenterBundledAquisitions extends TBundledAquisitionsCommons with TCenterA
 object BundledCommons
 {
     def signalsEqual(signal1:Array[Byte], signal2:Array[Byte]):Boolean =
-    {
-        if signal1 == null then return isSignalZero(signal2)
-        if signal2 == null then return isSignalZero(signal1)
-        signal1.sameElements(signal2)
-    }
+        if signal1 == null then isSignalZero(signal2)
+        else if signal2 == null then isSignalZero(signal1)
+        else signal1.sameElements(signal2)
 
     def isSignalZero(signal:Array[Byte]):Boolean =
-    {
-        if signal == null then return true
-        for i <- 0 until 16 do if signal(i) != 0 then return false
-        true
-    }
+        signal == null || signal.forall(_ == 0)
 
     def isSignalZero(signal:Array[Byte], mask:Int):Boolean =
-    {
-        if signal == null then return true
-        for i <- 0 until 16 do if (mask&1<<i) != 0 && signal(i) != 0 then return false
-        true
-    }
+        signal == null || (0 until 16).forall(i => (mask&1<<i) == 0 || signal(i) == 0)
 
     def dropSignalsLessThan(inThis:Array[Byte], fromThat:Array[Byte]) =
     {

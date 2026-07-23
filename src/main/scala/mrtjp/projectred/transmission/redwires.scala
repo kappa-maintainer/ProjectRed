@@ -220,7 +220,7 @@ abstract class FramedRedwirePart extends FramedWirePart with TRedwireCommons wit
     override def calcStraightSignal(s:Int) = getStraight(s) match
     {
         case p:TMultiPart => resolveSignal(p, s^1)
-        case _ => calcStrongSignal(s)
+        case null => calcStrongSignal(s)
     }
 
     override def calcInternalSignal(s:Int) =

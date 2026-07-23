@@ -23,7 +23,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.jdk.CollectionConverters.*
 import scala.collection.immutable.HashSet
-import scala.collection.mutable.{HashMap as MHashMap, MultiMap as MMultiMap, Set as MSet}
+import scala.collection.mutable.{HashMap as MHashMap, Set as MSet}
 import scala.ref.WeakReference
 
 object MovementManager
@@ -123,13 +123,14 @@ object MovementManager
     {
         if blocks.size > RelocationConfig.moveLimit then return false
 
-        val map = new MHashMap[(Int, Int), MSet[Int]] with MMultiMap[(Int, Int), Int]
-        for b <- blocks do map.addBinding(MathLib.normal(b, moveDir), MathLib.basis(b, moveDir))
+        val map = MHashMap[(Int, Int), MSet[Int]]()
+        for b <- blocks do
+            map.getOrElseUpdate(MathLib.normal(b, moveDir), MSet.empty) += MathLib.basis(b, moveDir)
 
         val shift = if (moveDir & 1) == 1 then 1 else -1
         val rowB = Set.newBuilder[BlockRow]
         for normal <- map.keys do {
-            val line = map(normal).toArray
+            val line = map(normal).toIndexedSeq
             val sline = if shift == 1 then line.sorted else line.sorted(using Ordering[Int].reverse)
             for (basis, size) <- MathLib.splitLine(sline, shift) do {
                 val c = MathLib.rhrAxis(moveDir, normal, basis + shift)
@@ -468,11 +469,10 @@ class BlockRow(val pos:BlockPos, val moveDir:EnumFacing, val size:Int)
         if !MovingTileRegistry.canRunOverBlock(w, pos) then
             return false
 
-        for b <- preMoveBlocks do {
+        if !preMoveBlocks.forall { b =>
             val movable = MovementManager.getConditionallyMovable(w, b)
-            if movable != null && !movable.isMovable(w, b) then
-                return false
-        }
+            movable == null || movable.isMovable(w, b)
+        } then return false
 
         true
     }

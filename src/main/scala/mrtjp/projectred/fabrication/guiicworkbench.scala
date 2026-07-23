@@ -601,7 +601,7 @@ class NewICNode extends TNode
                 translateToScreen()
                 val Point(mx, my) = parent.convertPointToScreen(mouse)
                 import scala.jdk.CollectionConverters.*
-                GuiDraw.drawMultiLineTip(mx+12, my-12, Seq((mousePos.x+1)*16+" x "+(mousePos.y+1)*16).asJava)
+                GuiDraw.drawMultiLineTip(mx+12, my-12, Seq(s"${(mousePos.x+1)*16} x ${(mousePos.y+1)*16}").asJava)
                 translateFromScreen()
             }
         }

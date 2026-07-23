@@ -67,12 +67,12 @@ object RelocationConfig extends ModConfig("projectred-relocation")
         moveLimit = general.put("moveLimit", moveLimit, "Maximum amount of blocks that can be moved at once.")
 
         val movers = BaseCategory("Tile Movers", buildMoverDesc)
-        moverMap = movers.put("mover registry", moverMap)
-        moverMap = movers.put("mover registry", MovingTileRegistry.parseAndSetMovers(moverMap), force = true)
+        moverMap = movers.put("mover registry", moverMap.toIndexedSeq).toArray
+        moverMap = movers.put("mover registry", MovingTileRegistry.parseAndSetMovers(moverMap.toIndexedSeq).toIndexedSeq, force = true).toArray
 
         val sets = BaseCategory("Latched Sets", buildLatchSetsDesc)
-        setMap = sets.put("latch registry", setMap)
-        setMap = sets.put("latch registry", StickRegistry.parseAndAddLatchSets(setMap), force = true)
+        setMap = sets.put("latch registry", setMap.toIndexedSeq).toArray
+        setMap = sets.put("latch registry", StickRegistry.parseAndAddLatchSets(setMap.toIndexedSeq).toIndexedSeq, force = true).toArray
 
     }
 

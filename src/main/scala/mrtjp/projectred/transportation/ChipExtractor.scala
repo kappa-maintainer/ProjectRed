@@ -4,6 +4,8 @@ import mrtjp.core.inventory.InvWrapper
 
 import scala.collection.immutable.BitSet
 import scala.collection.mutable.ListBuffer
+import scala.util.boundary
+import boundary.break
 
 class ChipExtractor extends RoutingChip with TChipFilter with TChipOrientation
 {
@@ -13,8 +15,7 @@ class ChipExtractor extends RoutingChip with TChipFilter with TChipOrientation
 
     private def itemsToExtract = 64
 
-    override def update(): Unit =
-    {
+    override def update(): Unit = boundary {
         super.update()
 
         remainingDelay -= 1
@@ -41,15 +42,15 @@ class ChipExtractor extends RoutingChip with TChipFilter with TChipOrientation
                         var toExtract = math.min(leftInRun, stackSize)
                         toExtract = math.min(toExtract, stackKey.getMaxStackSize)
                         toExtract = math.min(toExtract, s.itemCount)
-                        if toExtract <= 0 then return
+                        if toExtract <= 0 then break()
 
                         val extracted = inv.extractItem(stackKey, toExtract)
-                        if extracted <= 0 then return
+                        if extracted <= 0 then break()
 
                         router.queueStackToSend(stackKey, extracted, s)
 
                         leftInRun -= extracted
-                        if leftInRun <= 0 then return
+                        if leftInRun <= 0 then break()
 
                         exclusions += s.responder
                         s = router.getLogisticPath(stackKey, exclusions, true)

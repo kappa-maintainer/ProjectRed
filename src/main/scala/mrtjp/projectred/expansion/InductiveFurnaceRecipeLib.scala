@@ -14,15 +14,13 @@ object InductiveFurnaceRecipeLib
     def getRecipeFor(in:ItemStack):InductiveFurnaceRecipe =
     {
         val key = ItemKeyStack.get(in)
-        for r <- recipes do if r.in.matches(key) then return r
-        null
+        recipes.find(_.in.matches(key)).orNull
     }
 
     def getRecipeOf(out:ItemStack):InductiveFurnaceRecipe =
     {
         val key = ItemKeyStack.get(out)
-        for r <- recipes do if r.out.matches(key) then return r
-        null
+        recipes.find(_.out.matches(key)).orNull
     }
 
     def addRecipe(in:ItemStack, out:ItemStack, ticks:Int): Unit =

@@ -8,6 +8,7 @@ package mrtjp.projectred.integration
 import codechicken.lib.colour.{Colour, EnumColour}
 import codechicken.lib.lighting.{LightModel, PlanarLightModel}
 import codechicken.lib.math.MathHelper
+import codechicken.lib.raytracer.IndexedCuboid6
 import codechicken.lib.render.*
 import codechicken.lib.render.pipeline.{ColourMultiplier, IVertexOperation}
 import codechicken.lib.texture.{TextureDataHolder, TextureSpecial, TextureUtils}
@@ -21,43 +22,45 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
 import org.lwjgl.opengl.GL11
 
+import scala.collection.mutable
+import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
 import scala.util.control.Breaks
 
 object ComponentStore
 {
     val base = loadBase("base")
-    val lightChip = loadModel("chip")
-    val leverOn = loadModel("leveron")
-    val leverOff = loadModel("leveroff")
-    val solarArray = loadModel("solar")
-    val rainSensor = loadModel("rainsensor")
-    val pointer = loadModel("pointer")
-    val busXcvr = loadModel("array/busxcvr")
-    val lightPanel1 = loadModel("array/lightpanel1")
-    val lightPanel2 = loadModel("array/lightpanel2")
-    val busRand = loadModel("array/busrand")
-    val busConv = loadModel("array/busconv")
-    val signalPanel = loadModel("array/signalpanel")
-    val busInput = loadModel("array/businput")
-    val icBundled = loadModel("array/icbundled")
+    val lightChip = loadCorrectedModel("chip")
+    val leverOn = loadCorrectedModel("leveron")
+    val leverOff = loadCorrectedModel("leveroff")
+    val solarArray = loadCorrectedModel("solar")
+    val rainSensor = loadCorrectedModel("rainsensor")
+    val pointer = loadCorrectedModel("pointer")
+    val busXcvr = loadCorrectedModel("array/busxcvr")
+    val lightPanel1 = loadCorrectedModel("array/lightpanel1")
+    val lightPanel2 = loadCorrectedModel("array/lightpanel2")
+    val busRand = loadCorrectedModel("array/busrand")
+    val busConv = loadCorrectedModel("array/busconv")
+    val signalPanel = loadCorrectedModel("array/signalpanel")
+    val busInput = loadCorrectedModel("array/businput")
+    val icBundled = loadCorrectedModel("array/icbundled")
 
-    val nullCellWireBottom = loadModel("array/nullcellbottomwire").apply(new Translation(0.5, 0, 0.5))
-    val nullCellWireTop = loadModel("array/nullcelltopwire").apply(new Translation(0.5, 0, 0.5))
+    val nullCellWireBottom = loadCorrectedModel("array/nullcellbottomwire").apply(new Translation(0.5, 0, 0.5))
+    val nullCellWireTop = loadCorrectedModel("array/nullcelltopwire").apply(new Translation(0.5, 0, 0.5))
     val nullCellBase = loadBase("array/nullcellbase")
-    val extendedCellWireBottom = loadModel("array/extendedcellbottomwire").apply(new Translation(0.5, 0, 0.5))
-    val extendedCellWireTop = loadModel("array/extendedcelltopwire").apply(new Translation(0.5, 0, 0.5))
+    val extendedCellWireBottom = loadCorrectedModel("array/extendedcellbottomwire").apply(new Translation(0.5, 0, 0.5))
+    val extendedCellWireTop = loadCorrectedModel("array/extendedcelltopwire").apply(new Translation(0.5, 0, 0.5))
     val extendedCellBase = loadBase("array/extendedcellbase")
-    val cellWireSide = loadModel("array/cellsidewire").apply(new Translation(0.5, 0, 0.5))
-    val cellFrame = loadModel("array/cellstand").apply(new Translation(0.5, 0, 0.5))
-    val cellPlate = loadModel("array/cellplate").apply(new Translation(0.5, 0, 0.5))
+    val cellWireSide = loadCorrectedModel("array/cellsidewire").apply(new Translation(0.5, 0, 0.5))
+    val cellFrame = loadCorrectedModel("array/cellstand").apply(new Translation(0.5, 0, 0.5))
+    val cellPlate = loadCorrectedModel("array/cellplate").apply(new Translation(0.5, 0, 0.5))
 
-    val stackLatchWireBottom = loadModel("array/stacklatchwire").apply(new Translation(0.5, 0, 0.5))
-    val stackStand = loadModel("array/latchstand")
+    val stackLatchWireBottom = loadCorrectedModel("array/stacklatchwire").apply(new Translation(0.5, 0, 0.5))
+    val stackStand = loadCorrectedModel("array/latchstand")
 
     val sevenSeg = loadCorrectedModels("array/7seg")
     val sixteenSeg = loadCorrectedModels("array/16seg")
-    val segbus = loadModel("array/segbus")
+    val segbus = loadCorrectedModel("array/segbus")
 
     val icChip = loadCorrectedModel("icchip")
     val icGlass = loadCorrectedModel("icglass")
@@ -129,25 +132,23 @@ object ComponentStore
         icHousingIcon = register("ic_housing")
     }
 
-    def loadCorrectedModels(name:String) =
-    {
-        val m = OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/integration/"+name+".obj"), GL11.GL_QUADS, null)
+    def loadCorrectedModels(name: String): mutable.Map[String, CCModel] = {
+        val m = OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/integration/" + name + ".obj"), GL11.GL_QUADS, null)
         val models = m.asScala.map(m => m._1 -> m._2.backfacedCopy())
         models.values.foreach(_.computeNormals.shrinkUVs(0.0005))
         models
     }
 
-    def loadCorrectedModel(name:String) =
+    def loadCorrectedModel(name: String): CCModel =
         CCModel.combine(loadCorrectedModels(name).values.asJavaCollection)
 
     @deprecated
-    def parseModels(name:String) =
-        OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/integration/"+name+".obj"), 7, InvertX)
+    def parseModels(name: String): mutable.Map[String, CCModel] =
+        OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/integration/" + name + ".obj"), 7, InvertX).asScala
 
     @deprecated("use loadCorrectedModels instead")
-    def loadModels(name:String) =
-    {
-        val models = parseModels(name).asScala
+    def loadModels(name: String): mutable.Map[String, CCModel] = {
+        val models = parseModels(name)
         models.values.foreach(_.computeNormals.shrinkUVs(0.0005))
         models
     }
@@ -156,35 +157,32 @@ object ComponentStore
     def loadModel(name:String):CCModel =
     {
         val models = parseModels(name)
-        val m = CCModel.combine(models.values)
+        val m = CCModel.combine(models.values.asJavaCollection)
         m.computeNormals
         m.shrinkUVs(0.0005)
         m
     }
 
-    def loadBase(name:String) =
-    {
-        val m = loadModel(name)
+    def loadBase(name: String): CCModel = {
+        val m = loadCorrectedModel(name)
         m.apply(new Translation(0.5, 0, 0.5))
         //inset each face a little for things like posts that render overtop
-        for i <- 0 until m.verts.length do
+        for i <- m.verts.indices do
             m.verts(i).vec.subtract(m.normals()(i).copy.multiply(0.0002))
         m
     }
 
-    def orientT(orient:Int) =
-    {
-        var t = Rotation.sideOrientation(orient%24>>2, orient&3)
+    def orientT(orient: Int): Transformation = {
+        var t = Rotation.sideOrientation(orient % 24 >> 2, orient & 3)
         if orient >= 24 then t = new Scale(-1, 1, 1).`with`(t)
         t.at(Vector3.center)
     }
 
-    def dynamicT(orient:Int) =
+    def dynamicT(orient: Int): Transformation =
         if orient == 0 then new RedundantTransformation
         else new Scale(-1, 1, 1).at(Vector3.center)
 
-    def bakeCopy(base:CCModel, orient:Int) =
-    {
+    def bakeCopy(base: CCModel, orient: Int): CCModel = {
         val m = base.copy
         if orient >= 24 then reverseFacing(m)
         m.apply(orientT(orient)).computeLighting(LightModel.standardLightModel)
@@ -195,7 +193,7 @@ object ComponentStore
 
     private def reverseFacing(m:CCModel) =
     {
-        for i <- 0 until m.verts.length by 4 do
+        for i <- m.verts.indices by 4 do
         {
             val vtmp = m.verts(i+1)
             val ntmp = m.normals()(i+1)
@@ -207,17 +205,15 @@ object ComponentStore
         m
     }
 
-    def generateWireModels(name:String, count:Int) =
-    {
+    def generateWireModels(name: String, count: Int): Seq[TWireModel] = {
         val xs = Seq.newBuilder[TWireModel]
-        for i <- 0 until count do xs += generateWireModel(name+"-"+i)
+        for i <- 0 until count do xs += generateWireModel(name + "-" + i)
         xs.result()
     }
 
-    def generateWireModel(name:String) =
-    {
+    def generateWireModel(name: String): TWireModel = {
         val data = TextureUtils.loadTextureColours(new ResourceLocation(
-            "projectred:textures/blocks/integration/surface/"+name+".png"))
+            "projectred:textures/blocks/integration/surface/" + name + ".png"))
 
         if Configurator.logicwires3D then new WireModel3D(data)
         else new WireModel2D(data)
@@ -235,10 +231,9 @@ abstract class ComponentModel
 
 abstract class SingleComponentModel(m:CCModel, pos:Vector3 = Vector3.zero) extends ComponentModel
 {
-    val models =
-    {
+    val models: Array[CCModel] = {
         val xs = new Array[CCModel](48)
-        val t = pos.copy.multiply(1/16D).translation
+        val t = pos.copy.multiply(1 / 16D).translation
         for i <- 0 until 48 do xs(i) = bakeCopy(m.copy.apply(t), i)
         xs
     }
@@ -253,10 +248,9 @@ abstract class SingleComponentModel(m:CCModel, pos:Vector3 = Vector3.zero) exten
 
 abstract class MultiComponentModel(m:Seq[CCModel], pos:Vector3 = Vector3.zero) extends ComponentModel
 {
-    val models =
-    {
+    val models: Array[Array[CCModel]] = {
         val xs = Array.ofDim[CCModel](m.length, 48)
-        val t = pos.copy.multiply(1/16D).translation
+        val t = pos.copy.multiply(1 / 16D).translation
         for i <- m.indices do for j <- 0 until 48 do
             xs(i)(j) = bakeCopy(m.apply(i).copy.apply(t), j)
         xs
@@ -303,48 +297,45 @@ trait TWireModel extends ComponentModel
 
 object TWireModel
 {
-    def rectangulate(data:Array[Colour]) =
-    {
+    def rectangulate(data: Array[Colour]): Seq[Rectangle4i] = {
         val wireCorners = new Array[Boolean](1024)
 
-        for y <- 0 to 30 do for x <- 0 to 30 do Breaks.breakable
-          {
-            if data(y*32+x).rgba != -1 then Breaks.break()
+        for y <- 0 to 30 do for x <- 0 to 30 do Breaks.breakable {
+            if data(y * 32 + x).rgba != -1 then Breaks.break()
             if overlap(wireCorners, x, y) then Breaks.break()
             if !segment2x2(data, x, y) then
-                throw new RuntimeException("Wire segment not 2x2 at ("+x+", "+y+")")
+                throw new RuntimeException("Wire segment not 2x2 at (" + x + ", " + y + ")")
 
-            wireCorners(y*32+x) = true
+            wireCorners(y * 32 + x) = true
         }
 
         var wireRectangles = Seq.newBuilder[Rectangle4i]
-        for i <- 0 until 1024 do if wireCorners(i) then
-        {
-            val rect = new Rectangle4i(i%32, i/32, 0, 0)
-            var x = rect.x+2
-            while x < 30 && wireCorners(rect.y*32+x) do x += 2
-            rect.w = x-rect.x
+        for i <- 0 until 1024 do if wireCorners(i) then {
+            val rect = new Rectangle4i(i % 32, i / 32, 0, 0)
+            var x = rect.x + 2
+            while x < 30 && wireCorners(rect.y * 32 + x) do x += 2
+            rect.w = x - rect.x
 
-            var y = rect.y+2
-            Breaks.breakable {while y < 30 do
-            {
-                var advance = true
-                var dx = rect.x
-                while dx < rect.x+rect.w && advance do
-                {
-                    if !wireCorners(y*32+dx) then advance = false
-                    dx += 2
+            var y = rect.y + 2
+            Breaks.breakable {
+                while y < 30 do {
+                    var advance = true
+                    var dx = rect.x
+                    while dx < rect.x + rect.w && advance do {
+                        if !wireCorners(y * 32 + dx) then advance = false
+                        dx += 2
+                    }
+
+                    if !advance then Breaks.break()
+
+                    y += 2
                 }
+            }
+            rect.h = y - rect.y
 
-                if !advance then Breaks.break()
-
-                y += 2
-            }}
-            rect.h = y-rect.y
-
-            for dy <- rect.y until rect.y+rect.h by 2 do
-                for dx <- rect.x until rect.x+rect.w by 2 do
-                    wireCorners(dy*32+dx) = false
+            for dy <- rect.y until rect.y + rect.h by 2 do
+                for dx <- rect.x until rect.x + rect.w by 2 do
+                    wireCorners(dy * 32 + dx) = false
 
             wireRectangles += rect
         }
@@ -352,26 +343,29 @@ object TWireModel
         wireRectangles.result()
     }
 
-    def overlap(wireCorners:Array[Boolean], x:Int, y:Int) =
-        wireCorners(y*32+x-1)||(y > 0 && wireCorners((y-1)*32+x)) || (y > 0 && wireCorners((y-1)*32+x-1))
+    def overlap(wireCorners: Array[Boolean], x: Int, y: Int): Boolean =
+        wireCorners(y * 32 + x - 1) || (y > 0 && wireCorners((y - 1) * 32 + x)) || (y > 0 && wireCorners((y - 1) * 32 + x - 1))
 
-    def segment2x2(data:Array[Colour], x:Int, y:Int) =
-        data(y*32+x+1).rgba == -1 && data((y+1)*32+x).rgba == -1 && data((y+1)*32+x+1).rgba == -1
+    def segment2x2(data: Array[Colour], x: Int, y: Int): Boolean =
+        data(y * 32 + x + 1).rgba == -1 && data((y + 1) * 32 + x).rgba == -1 && data((y + 1) * 32 + x + 1).rgba == -1
 
-    def border(wire:Rectangle4i) =
-    {
-        val border = new Rectangle4i(wire.x-2, wire.y-2, wire.w+4, wire.h+4)
-        if border.x < 0 then { border.w += border.x; border.x = 0 }
-        if border.y < 0 then { border.h += border.y; border.y = 0 }
-        if border.x + border.w >= 32 then border.w -= border.x+border.w-32
-        if border.y + border.h >= 32 then border.h -= border.y+border.h-32
+    def border(wire: Rectangle4i): Rectangle4i = {
+        val border = new Rectangle4i(wire.x - 2, wire.y - 2, wire.w + 4, wire.h + 4)
+        if border.x < 0 then {
+            border.w += border.x; border.x = 0
+        }
+        if border.y < 0 then {
+            border.h += border.y; border.y = 0
+        }
+        if border.x + border.w >= 32 then border.w -= border.x + border.w - 32
+        if border.y + border.h >= 32 then border.h -= border.y + border.h - 32
         border
     }
 }
 
 class WireModel3D(data:Array[Colour]) extends SingleComponentModel(WireModel3D.generateModel(data)) with TWireModel
 {
-    override def getUVT =
+    override def getUVT: UVTransformation =
         if disabled then new IconTransformation(wireIcons(0))
         else if on then new MultiIconTransformation(wireIcons(0), wireIcons(2))
         else new MultiIconTransformation(wireIcons(0), wireIcons(1))
@@ -379,13 +373,11 @@ class WireModel3D(data:Array[Colour]) extends SingleComponentModel(WireModel3D.g
 
 object WireModel3D
 {
-    def generateModel(data:Array[Colour]) =
-    {
+    def generateModel(data: Array[Colour]): CCModel = {
         val wireRectangles = TWireModel.rectangulate(data)
-        val model = CCModel.quadModel(wireRectangles.length*40)
+        val model = CCModel.quadModel(wireRectangles.length * 40)
         var i = 0
-        for rect <- wireRectangles do
-        {
+        for rect <- wireRectangles do {
             generateWireSegment(model, i, rect)
             i += 40
         }
@@ -426,7 +418,7 @@ class WireModel2D(data:Array[Colour]) extends ComponentModel with TWireModel
     {
         val wireRectangles = TWireModel.rectangulate(data)
         icons = new Array[TextureSpecial](wireData.length)
-        for tex <- 0 until icons.length do
+        for tex <- icons.indices do
         {
             val texMap = new Array[Int](1024)
             for rect <- wireRectangles do
@@ -441,7 +433,7 @@ class WireModel2D(data:Array[Colour]) extends ComponentModel with TWireModel
             val relP = size/pSize
 
             val imageData = new Array[Int](size*size)
-            for i <- 0 until imageData.length do
+            for i <- imageData.indices do
             {
                 val x = i%size
                 val y = i/size
@@ -463,17 +455,19 @@ class WireModel2D(data:Array[Colour]) extends ComponentModel with TWireModel
 
 object WireModel2D
 {
-    val models =
-    {
+    val models: Array[CCModel] = {
         val xs = new Array[CCModel](48)
-        val m = CCModel.quadModel(4).generateBlock(0, 0, 0, 0, 1, 1/8D+0.002, 1, ~2).computeNormals()
+        val m = CCModel.quadModel(4).generateBlock(0, 0, 0, 0, 1, 1 / 8D + 0.002, 1, ~2).computeNormals()
         m.shrinkUVs(0.0005)
         for i <- 0 until 48 do xs(i) = bakeCopy(m, i)
         xs
     }
 
     private var iconCounter = 0
-    def claimIdx() = { iconCounter += 1; iconCounter-1}
+
+    def claimIdx(): Int = {
+        iconCounter += 1; iconCounter - 1
+    }
 }
 
 trait TRedstoneTorchModel extends OnOffModel
@@ -483,32 +477,31 @@ trait TRedstoneTorchModel extends OnOffModel
 
 class RedstoneTorchModel(x:Double, z:Double, h:Int) extends OnOffModel(RedstoneTorchModel.genModel(x, z, h)) with TRedstoneTorchModel
 {
-    override val getLightPos = new Vector3(x, h-1, z).multiply(1/16D)
+    override val getLightPos: Vector3 = new Vector3(x, h - 1, z).multiply(1 / 16D)
 
-    override def getIcons = redstoneTorchIcons
+    override def getIcons: Array[TextureAtlasSprite] = redstoneTorchIcons
 }
 
 class FlippedRSTorchModel(x:Double, z:Double) extends OnOffModel(RedstoneTorchModel.genModel(x, z, 4).apply(
     new Rotation(180*MathHelper.torad, 0, 0, 1).at(Vector3.center).`with`(new Translation(new Vector3(0, -6, 0).
             multiply(1/16D))))) with TRedstoneTorchModel
 {
-    override val getLightPos = new Vector3(x, 4+1, z).multiply(1/16D)
+    override val getLightPos: Vector3 = new Vector3(x, 4 + 1, z).multiply(1 / 16D)
 
-    override def getIcons = redstoneTorchIcons
+    override def getIcons: Array[TextureAtlasSprite] = redstoneTorchIcons
 }
 
 object RedstoneTorchModel
 {
-    def genModel(x:Double, z:Double, h:Int) =
-    {
+    def genModel(x: Double, z: Double, h: Int): CCModel = {
         val m = CCModel.quadModel(20)
-        m.verts(0) = new Vertex5(7/16D, 10/16D, 9/16D, 7/16D, 8/16D)
-        m.verts(1) = new Vertex5(9/16D, 10/16D, 9/16D, 9/16D, 8/16D)
-        m.verts(2) = new Vertex5(9/16D, 10/16D, 7/16D, 9/16D, 6/16D)
-        m.verts(3) = new Vertex5(7/16D, 10/16D, 7/16D, 7/16D, 6/16D)
-        m.generateBlock(4, 6/16D, (10-h)/16D, 7/16D, 10/16D, 11/16D, 9/16D, 0x33)
-        m.generateBlock(12, 7/16D, (10-h)/16D, 6/16D, 9/16D, 11/16D, 10/16D, 0xF)
-        m.apply(new Translation(-0.5+x/16, (h-10)/16D, -0.5+z/16))
+        m.verts(0) = new Vertex5(7 / 16D, 10 / 16D, 9 / 16D, 7 / 16D, 8 / 16D)
+        m.verts(1) = new Vertex5(9 / 16D, 10 / 16D, 9 / 16D, 9 / 16D, 8 / 16D)
+        m.verts(2) = new Vertex5(9 / 16D, 10 / 16D, 7 / 16D, 9 / 16D, 6 / 16D)
+        m.verts(3) = new Vertex5(7 / 16D, 10 / 16D, 7 / 16D, 7 / 16D, 6 / 16D)
+        m.generateBlock(4, 6 / 16D, (10 - h) / 16D, 7 / 16D, 10 / 16D, 11 / 16D, 9 / 16D, 0x33)
+        m.generateBlock(12, 7 / 16D, (10 - h) / 16D, 6 / 16D, 9 / 16D, 11 / 16D, 10 / 16D, 0xF)
+        m.apply(new Translation(-0.5 + x / 16, (h - 10) / 16D, -0.5 + z / 16))
         m.computeNormals
         m.shrinkUVs(0.0005)
         m.apply(new Scale(1.0005))
@@ -523,27 +516,27 @@ class LeverModel(x:Double, z:Double) extends MultiComponentModel(Seq(leverOn, le
 
 class YellowChipModel(x:Double, z:Double) extends OnOffModel(lightChip, new Vector3(x, 0, z))
 {
-    override def getIcons = yellowChipIcons
+    override def getIcons: Array[TextureAtlasSprite] = yellowChipIcons
 }
 
 class RedChipModel(x:Double, z:Double) extends OnOffModel(lightChip, new Vector3(x, 0, z))
 {
-    override def getIcons = redChipIcons
+    override def getIcons: Array[TextureAtlasSprite] = redChipIcons
 }
 
 class MinusChipModel(x:Double, z:Double) extends OnOffModel(lightChip, new Vector3(x, 0, z))
 {
-    override def getIcons = minusChipIcons
+    override def getIcons: Array[TextureAtlasSprite] = minusChipIcons
 }
 
 class PlusChipModel(x:Double, z:Double) extends OnOffModel(lightChip, new Vector3(x, 0, z))
 {
-    override def getIcons = plusChipIcons
+    override def getIcons: Array[TextureAtlasSprite] = plusChipIcons
 }
 
 class SolarModel(x:Double, z:Double) extends StateIconModel(solarArray, new Vector3(x, 0, z))
 {
-    override def getIcons = solarIcons
+    override def getIcons: Array[TextureAtlasSprite] = solarIcons
 }
 
 class RainSensorModel(x:Double, z:Double) extends SingleComponentModel(rainSensor, new Vector3(x, 0, z))
@@ -553,8 +546,8 @@ class RainSensorModel(x:Double, z:Double) extends SingleComponentModel(rainSenso
 
 class PointerModel(x:Double, y:Double, z:Double, scale:Double = 1) extends ComponentModel
 {
-    val models = bakeDynamic(pointer.copy.apply(new Scale(scale, 1, scale)))
-    val pos = new Vector3(x, y-1, z).multiply(1/16D)
+    val models: Array[CCModel] = bakeDynamic(pointer.copy.apply(new Scale(scale, 1, scale)))
+    val pos: Vector3 = new Vector3(x, y - 1, z).multiply(1 / 16D)
 
     var angle = 0D
 
@@ -619,7 +612,7 @@ class SigLightPanelModel(pos:Vector3, rotY:Boolean) extends ComponentModel
 
     var offColour = 0x420000FF
     var onColour = 0xEC0000FF
-    var disableColour = EnumColour.GRAY.rgba
+    var disableColour: Int = EnumColour.GRAY.rgba
 
     {
         for i <- 0 until 16 do
@@ -683,10 +676,10 @@ class SignalBarModel(x:Double, z:Double) extends ComponentModel
     val models = new Array[CCModel](48)
     val bars = new Array[CCModel](16)
     val barsInv = new Array[CCModel](16)
-    var barsBg:CCModel = null
-    var barsBgInv:CCModel = null
+    var barsBg:CCModel = uninitialized
+    var barsBgInv:CCModel = uninitialized
 
-    val pos = new Vector3(x, 0, z).multiply(1/16D)
+    val pos: Vector3 = new Vector3(x, 0, z).multiply(1 / 16D)
 
     var signal = 0
     var inverted = false
@@ -739,13 +732,13 @@ class SignalBarModel(x:Double, z:Double) extends ComponentModel
 
 class InputPanelButtonsModel extends ComponentModel
 {
-    val unpressed = VecLib.buildCubeArray(4, 4, new Cuboid6(3, 1, 3, 13, 3, 13), new Vector3(-0.25, 0, -0.25))
-    val pressed = VecLib.buildCubeArray(4, 4, new Cuboid6(3, 1, 3, 13, 2.5, 13), new Vector3(-0.25, 0, -0.25))
-    val lights = VecLib.buildCubeArray(4, 4, new Cuboid6(3, 1, 3, 13, 2.5, 13), new Vector3(-0.25, 0, -0.25).add(0.2))
+    val unpressed: Array[IndexedCuboid6] = VecLib.buildCubeArray(4, 4, new Cuboid6(3, 1, 3, 13, 3, 13), new Vector3(-0.25, 0, -0.25))
+    val pressed: Array[IndexedCuboid6] = VecLib.buildCubeArray(4, 4, new Cuboid6(3, 1, 3, 13, 2.5, 13), new Vector3(-0.25, 0, -0.25))
+    val lights: Array[IndexedCuboid6] = VecLib.buildCubeArray(4, 4, new Cuboid6(3, 1, 3, 13, 2.5, 13), new Vector3(-0.25, 0, -0.25).add(0.2))
 
     var pressMask = 0
-    var pos = BlockPos.ORIGIN
-    var orientationT:Transformation = null
+    var pos: BlockPos = BlockPos.ORIGIN
+    var orientationT:Transformation = uninitialized
 
     override def renderModel(t:Transformation, orient:Int, ccrs:CCRenderState): Unit =
     {
@@ -769,7 +762,7 @@ abstract class CellWireModel extends ComponentModel
 {
     var signal:Byte = 0
 
-    def signalColour(signal:Byte) = (signal&0xFF)/2+60<<24|0xFF
+    def signalColour(signal: Byte): Int = (signal & 0xFF) / 2 + 60 << 24 | 0xFF
 
     def colourMult:IVertexOperation = ColourMultiplier.instance(signalColour(signal))
 }
@@ -848,8 +841,8 @@ class StackLatchStandModel(x:Double, z:Double) extends SingleComponentModel(stac
 trait SegModel
 {
     var signal = 0
-    var colour_on = EnumColour.RED.rgba
-    var colour_off = EnumColour.BLACK.rgba
+    var colour_on: Int = EnumColour.RED.rgba
+    var colour_off: Int = EnumColour.BLACK.rgba
 
     def setColourOn(colour:Byte): Unit =
     {
@@ -859,8 +852,8 @@ trait SegModel
 
 class SevenSegModel(x:Double, z:Double) extends SingleComponentModel(sevenSeg("base"), new Vector3(x, 0, z)) with SegModel
 {
-    val segModels = (0 until 8).map(i => sevenSeg(i.toString))
-    val dPos = new Vector3(x, 0, z).multiply(1/16D).translation
+    val segModels: IndexedSeq[CCModel] = (0 until 8).map(i => sevenSeg(i.toString))
+    val dPos: Translation = new Vector3(x, 0, z).multiply(1 / 16D).translation
 
     override def getUVT = new IconTransformation(segment)
 
@@ -880,8 +873,8 @@ class SevenSegModel(x:Double, z:Double) extends SingleComponentModel(sevenSeg("b
 
 class SixteenSegModel(x:Double, z:Double) extends SingleComponentModel(sixteenSeg("base"), new Vector3(x, 0, z)) with SegModel
 {
-    val segModels = (0 until 16).map(i => sixteenSeg(i.toString))
-    val dPos = new Vector3(x, 0, z).multiply(1/16D).translation
+    val segModels: IndexedSeq[CCModel] = (0 until 16).map(i => sixteenSeg(i.toString))
+    val dPos: Translation = new Vector3(x, 0, z).multiply(1 / 16D).translation
 
     override def getUVT = new IconTransformation(segment)
 
@@ -939,7 +932,7 @@ class ICChipModel extends SingleComponentModel(icChip, new Vector3(8, 2, 8))
 
 class ICChipHousingModel extends SingleComponentModel(icHousing, new Vector3(8, 0, 8))
 {
-    val glass = icGlass.copy.apply(new Vector3(8/16D, 0, 8/16D).translation())
+    val glass: CCModel = icGlass.copy.apply(new Vector3(8 / 16D, 0, 8 / 16D).translation())
 
     override def getUVT = new IconTransformation(icHousingIcon)
 

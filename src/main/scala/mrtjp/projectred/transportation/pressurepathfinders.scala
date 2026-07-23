@@ -85,7 +85,7 @@ object PressurePathFinder
                     if InvWrapper.wrap(pipe.world, next.pos, EnumFacing.VALUES(next.dir^1)).hasSpaceForItem(item) then setInvPath(next)
                 iterate(rest, closed+next)
             //Theoretically this will never be hit anymore, as all tiles are cap providers.
-            case _ => iterate(rest, closed+next)
+            case null => iterate(rest, closed+next)
         }
         case _ =>
     }

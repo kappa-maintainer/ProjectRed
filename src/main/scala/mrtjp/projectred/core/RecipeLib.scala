@@ -46,7 +46,7 @@ class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
     import scala.jdk.CollectionConverters.*
     def this(id:Int) = this(Seq(id))
     def this(name:String) = this(getOreID(name))
-    def this(stack:ItemStack) = this(getOreIDs(stack))
+    def this(stack:ItemStack) = this(getOreIDs(stack).toIndexedSeq)
     def this(b:Block) = this(new ItemStack(b))
     def this(i:Item) = this(new ItemStack(i))
     def this(stack:ItemKeyStack) = this(stack.makeStack)
@@ -56,7 +56,7 @@ class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
         getOreIDs(that.makeStack).exists(oreIDs contains _)
     }
 
-    val ins: Seq[ItemStack] = oreIDs.map(getOreName).flatMap(name => getOres(name).asScala)
+    val ins: Seq[ItemStack] = oreIDs.map(getOreName).flatMap(name => getOres(name).asScala.toIndexedSeq)
 
     override def matchingInputs: Seq[ItemStack] = ins
 }

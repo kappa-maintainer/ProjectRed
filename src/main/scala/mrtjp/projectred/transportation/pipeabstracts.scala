@@ -345,8 +345,8 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
     {
         getStraight(r.output) match
         {
-            case pipe:PayloadPipePart[T] =>
-                pipe.injectPayload(r, r.output)
+            case pipe:PayloadPipePart[?] =>
+                pipe.asInstanceOf[PayloadPipePart[T]].injectPayload(r, r.output)
                 true
             case _ => false
         }

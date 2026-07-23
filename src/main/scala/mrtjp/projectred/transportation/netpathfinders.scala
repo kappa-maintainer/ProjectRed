@@ -26,9 +26,8 @@ object LSPathFinder
 
     def getLinkState(tile:TileEntity):ISpecialLinkState =
     {
-        if tile == null then return null
-        for l <- registeredLSTypes do if l.matches(tile) then return l
-        null
+        if tile == null then null
+        else registeredLSTypes.find(_.matches(tile)).orNull
     }
 
     def clear(): Unit =
@@ -65,7 +64,7 @@ object LSPathFinder
                     if route.path.pathFlags != 0 && !closed(route) then upNext += route
                 }
                 iterate(rest++upNext.result(), closed+next, coll)
-            case _ =>
+            case null =>
                 val upNext = Vector.newBuilder[Node]
                 val tile = getTile(next.pos)
                 val link = LSPathFinder.getLinkState(tile)

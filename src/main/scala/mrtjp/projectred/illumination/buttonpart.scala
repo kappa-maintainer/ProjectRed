@@ -183,10 +183,7 @@ class FLightButtonPart extends LightButtonPart
         def isPowered:Boolean =
         {
             val side = getSideFromState
-            for s <- 0 until 6 do if s != (side^1) then
-                if RedstoneInteractions.getPowerTo(this, s) > 0 then
-                    return true
-            false
+            (0 until 6).exists(s => s != (side^1) && RedstoneInteractions.getPowerTo(this, s) > 0)
         }
     }
 

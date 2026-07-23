@@ -79,19 +79,13 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
         val allRouters = requester.getRouter
             .getFilteredRoutesByCost(p => p.flagRouteFrom && p.allowBroadcast && p.allowItem(stack.key))
             .sorted(using PathOrdering.metric)
-        def search(): Unit =
-        {
-            for l <- allRouters do
-                if isDone then return
-                else {
-                    val end = l.end.getContainer
-                    if !LogisticPathFinder.sharesInventory(requester.getPipe, end.getPipe) then {
-                        val prev = root.getExistingPromisesFor(end, stack.key)
-                        end.requestPromise(this, prev)
-                    }
-                }
+        allRouters.takeWhile(_ => !isDone).foreach { l =>
+            val end = l.end.getContainer
+            if !LogisticPathFinder.sharesInventory(requester.getPipe, end.getPipe) then {
+                val prev = root.getExistingPromisesFor(end, stack.key)
+                end.requestPromise(this, prev)
+            }
         }
-        search()
         isDone
     }
 
@@ -100,18 +94,14 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
         val all = root.gatherExcessFor(stack.key)
         def locate(): Unit =
         {
-            import scala.util.control.Breaks.*
-            for excess <- all do if isDone then return else if excess.size > 0 then breakable
-              {
+            for excess <- all if !isDone && excess.size > 0 do {
                 val pathsToThat = requester.getRouter.getRouteTable(excess.from.getRouter.getIPAddress)
                 val pathsFromThat = excess.from.getRouter.getRouteTable(requester.getRouter.getIPAddress)
-                for from <- pathsFromThat do if from != null && from.flagRouteTo then
-                    for to <- pathsToThat do if to != null && to.flagRouteFrom then
-                    {
-                        excess.size = math.min(excess.size, getMissingCount)
-                        addPromise(excess)
-                        break()
-                    }
+                if pathsFromThat.exists(from => from != null && from.flagRouteTo) &&
+                    pathsToThat.exists(to => to != null && to.flagRouteFrom) then {
+                    excess.size = math.min(excess.size, getMissingCount)
+                    addPromise(excess)
+                }
             }
         }
         locate()
@@ -259,23 +249,16 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
                 if extras != null then
                 {
                     var toRem = Vector[DeliveryPromise]()
-                    def remove(): Unit =
-                    {
-                        for e <- extras do
-                        {
-                            if e.size >= usedcount then
-                            {
-                                e.size -= usedcount
-                                return
-                            }
-                            else
-                            {
-                                usedcount -= e.size
-                                toRem :+= e
-                            }
+                    extras.takeWhile(_ => usedcount > 0).foreach { e =>
+                        if e.size >= usedcount then {
+                            e.size -= usedcount
+                            usedcount = 0
+                        }
+                        else {
+                            usedcount -= e.size
+                            toRem :+= e
                         }
                     }
-                    remove()
                     extras = extras.filterNot(e => toRem.contains(e))
                     excessMap += epromise.from -> extras
                 }
@@ -409,12 +392,10 @@ class CraftingPromise(val result:ItemKeyStack, val crafter:IRouterContainer, val
 
     def addIngredient(stack:ItemKeyStack, eq:ItemEquality, destination:IRouterContainer): Unit =
     {
-        for (s, e, d) <- ingredients2 do if s.key == stack.key && d == destination then
-        {
-            s.stackSize += stack.stackSize
-            return
+        ingredients2.find { case (s, _, d) => s.key == stack.key && d == destination } match {
+            case Some((s, _, _)) => s.stackSize += stack.stackSize
+            case None => ingredients2 :+= ((stack, eq, destination))
         }
-        ingredients2 :+= ((stack, eq, destination))
     }
 
     def getScaledPromise(sets:Int) = new DeliveryPromise(result.key.copy, result.stackSize*sets, crafter)

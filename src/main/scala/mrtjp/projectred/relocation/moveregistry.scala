@@ -140,7 +140,7 @@ object SaveLoadTileMover extends ITileMover
         if tag != null then {
             TileEntity.create(w, tag) match {
                 case te:TileEntity => w.getChunk(pos2).addTileEntity(te)
-                case _ =>
+                case null =>
             }
         }
     }

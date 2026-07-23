@@ -243,70 +243,38 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
 
     def containsEnoughOf(stack:ItemKeyStack):Boolean =
     {
-        var a = 0
-        for i <- 0 until 18 do
-        {
-            val s = getStackInSlot(i)
-            if !s.isEmpty && ItemKey.get(s) == stack.key then
-            {
-                a += s.getCount
-                if a >= stack.stackSize then return true
-            }
-        }
-
-        if !world.isRemote then
-        {
+        var a = (0 until 18).map(getStackInSlot).filter(s => !s.isEmpty && ItemKey.get(s) == stack.key).map(_.getCount).sum
+        if world.isRemote then externalItems.contains(stack.key)
+        else {
             externalItems -= stack.key
-            for s <- 0 until 6 if s != 1 do
-            {
+            for s <- 0 until 6 if s != 1 && a < stack.stackSize do {
                 val side = EnumFacing.VALUES(s)
                 val inv = InvWrapper.wrap(world, pos.offset(side), side.getOpposite)
-                if inv != null then
-                {
-                    val in = inv.getItemCount(stack.key)
-                    if in > 0 then
-                    {
-                        a += in
-                        if a >= stack.stackSize then
-                        {
-                            externalItems += stack.key
-                            return true
-                        }
-                    }
-                }
+                if inv != null then a += inv.getItemCount(stack.key)
             }
+            val enough = a >= stack.stackSize
+            if enough then externalItems += stack.key
+            enough
         }
-        else return externalItems.contains(stack.key)
-
-        false
     }
 
     def eatResource(stack:ItemKeyStack): Unit =
     {
         var left = stack.stackSize
-        for i <- 0 until 18 do
-        {
+        for i <- 0 until 18 if left > 0 do {
             val s = getStackInSlot(i)
-            if !s.isEmpty && stack.key == ItemKey.get(s) then
-            {
+            if !s.isEmpty && stack.key == ItemKey.get(s) then {
                 val toEat = math.min(left, s.getCount)
                 left -= toEat
                 s.shrink(toEat)
                 if s.getCount <= 0 then setInventorySlotContents(i, ItemStack.EMPTY)
                 else setInventorySlotContents(i, s)
-                if left <= 0 then return
             }
         }
-
-        for s <- 0 until 6 if s != 1 do
-        {
+        for s <- 0 until 6 if s != 1 && left > 0 do {
             val side = EnumFacing.VALUES(s)
             val inv = InvWrapper.wrap(world, pos.offset(side), side.getOpposite)
-            if inv != null then
-            {
-                left -= inv.extractItem(stack.key, left)
-                if left <= 0 then return
-            }
+            if inv != null then left -= inv.extractItem(stack.key, left)
         }
     }
 
@@ -481,10 +449,7 @@ object TileICPrinter
 //                    case _ => Seq.empty
 //                }
                 if inputs.nonEmpty then
-                {
                     gRec += key -> inputs.toSeq
-                    return
-                }
             }
         }
         catch {

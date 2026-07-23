@@ -478,7 +478,7 @@ object CapabilityTeleposedEnderPearl
     {
         e.getCapability(teleposedEnderPearlCapability, null) match {
             case t:ITeleposedItem => t.isTeleposed = true
-            case _ =>
+            case null =>
         }
     }
 
@@ -486,7 +486,7 @@ object CapabilityTeleposedEnderPearl
     {
         e.getCapability(teleposedEnderPearlCapability, null) match {
             case t:ITeleposedItem => t.isTeleposed
-            case _ => false
+            case null => false
         }
     }
 }

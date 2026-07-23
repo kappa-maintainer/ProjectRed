@@ -69,19 +69,19 @@ class RoutedInterfacePipePart extends AbstractNetPipe with TNetworkPipe with INe
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if super.activate(player, hit, item, hand) then return true
-        if !item.isEmpty && item.getItem.isInstanceOf[ItemRoutingChip] then
+        if super.activate(player, hit, item, hand) then true
+        else if !item.isEmpty && item.getItem.isInstanceOf[ItemRoutingChip] then
         {
-            for i <- 0 until chipSlots.getSizeInventory do
-                if chipSlots.getStackInSlot(i).isEmpty && chipSlots.isItemValidForSlot(i, item) then
-                {
-                    val chip = item.splitStack(1)
-                    chipSlots.setInventorySlotContents(i, chip)
-                    return true
-                }
+            (0 until chipSlots.getSizeInventory).find(i =>
+                chipSlots.getStackInSlot(i).isEmpty && chipSlots.isItemValidForSlot(i, item)) match
+            {
+                case Some(i) =>
+                    chipSlots.setInventorySlotContents(i, item.splitStack(1))
+                    true
+                case None => if !player.isSneaking then { openGui(player); true } else false
+            }
         }
-
-        if !player.isSneaking then
+        else if !player.isSneaking then
         {
             openGui(player)
             true
@@ -202,10 +202,7 @@ class RoutedInterfacePipePart extends AbstractNetPipe with TNetworkPipe with INe
     }
 
     override def weakTileChanges():Boolean =
-    {
-        for r <- chips do if r != null then if r.weakTileChanges then return true
-        false
-    }
+        chips.exists(r => r != null && r.weakTileChanges)
 
     override def requestCraftPromise(request:RequestBranchNode) =
     {

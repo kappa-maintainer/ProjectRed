@@ -126,12 +126,7 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
     }
 
     private def checkPower:Boolean =
-    {
-        for s <- 0 until 6 do if s != (getSide^1) then
-            if RedstoneInteractions.getPowerTo(this, s) > 0 then
-                return true
-        false
-    }
+        (0 until 6).exists(s => s != (getSide^1) && RedstoneInteractions.getPowerTo(this, s) > 0)
 
     private def updateState(forceRender:Boolean): Unit =
     {
@@ -199,12 +194,8 @@ object BaseLightPart
 {
     def canPlaceLight(w:World, pos:BlockPos, side:Int):Boolean =
     {
-        if PRLib.canPlaceLight(w, pos, side) then return true
-
-        val part = BlockMultipart.getPart(w, pos, side)
-        if part.isInstanceOf[HollowMicroblock] then return true
-
-        false
+        PRLib.canPlaceLight(w, pos, side) ||
+            BlockMultipart.getPart(w, pos, side).isInstanceOf[HollowMicroblock]
     }
 }
 

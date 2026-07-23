@@ -159,16 +159,13 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
 
     def containsUncharged:Boolean =
     {
-        for i <- 0 until 8 do
-        {
+        (0 until 8).exists { i =>
             val stack = getStackInSlot(i)
-            if !stack.isEmpty then stack.getItem match
-            {
-                case ic:IChargable if !ic.isFullyCharged(stack) => return true
-                case _ =>
-            }
+            if stack.isEmpty then false
+            else stack.getItem match
+                case ic:IChargable => !ic.isFullyCharged(stack)
+                case _ => false
         }
-        false
     }
 
     private var oldIC = false

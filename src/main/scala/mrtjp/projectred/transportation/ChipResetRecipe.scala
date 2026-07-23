@@ -18,30 +18,23 @@ class ChipResetRecipe extends IForgeRegistryEntry.Impl[IRecipe] with IRecipe
     override def getCraftingResult(inv:InventoryCrafting):ItemStack =
     {
         val cdef = getType(inv)
-        if cdef != null then if isTypeExclusive(cdef, inv) then return cdef.makeStack(countUnits(inv))
-        ItemStack.EMPTY
+        if cdef != null && isTypeExclusive(cdef, inv) then cdef.makeStack(countUnits(inv))
+        else ItemStack.EMPTY
     }
 
     def getType(inv:InventoryCrafting):ChipVal =
     {
-        for i <- 0 until inv.getSizeInventory do
-        {
-            val cdef = RoutingChipDefs.getForStack(inv.getStackInSlot(i))
-            if cdef != null then return cdef
-        }
-        null
+        (0 until inv.getSizeInventory).map(i => RoutingChipDefs.getForStack(inv.getStackInSlot(i))).find(_ != null).orNull
     }
 
     def isTypeExclusive(cdef:ChipVal, inv:InventoryCrafting):Boolean =
     {
-        for i <- 0 until inv.getSizeInventory do
-        {
+        (0 until inv.getSizeInventory).forall { i =>
             val stack = inv.getStackInSlot(i)
-            if !stack.isEmpty && !stack.getItem.isInstanceOf[ItemRoutingChip] then return false
             val type2 = RoutingChipDefs.getForStack(stack)
-            if type2 != null && !(type2 == cdef) then return false
+            (stack.isEmpty || stack.getItem.isInstanceOf[ItemRoutingChip]) &&
+                (type2 == null || type2 == cdef)
         }
-        true
     }
 
     def countUnits(inv:InventoryCrafting):Int =

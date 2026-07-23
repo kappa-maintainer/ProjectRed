@@ -243,17 +243,17 @@ class CraftingResultTestHelper
         val result = recipe.getCraftingResult(invCrafting)
         if result.isEmpty then return (ItemStack.EMPTY, null)
 
-        for i <- 0 until 9 do {
+        val consumed = (0 until 9).forall { i =>
             val prevInput = invCrafting.getStackInSlot(i)
-            if !prevInput.isEmpty && !eatIngredient(0, { input =>
+            prevInput.isEmpty || eatIngredient(0, { input =>
                 invCrafting.setInventorySlotContents(i, input)
                 val resultSame = recipe.matches(invCrafting, w) && ItemStack.areItemStacksEqual(recipe.getCraftingResult(invCrafting), result)
                 invCrafting.setInventorySlotContents(i, prevInput)
                 resultSame
-            }) then return (ItemStack.EMPTY, null)
+            })
         }
-
-        (result, recipe.getRemainingItems(invCrafting))
+        if !consumed then (ItemStack.EMPTY, null)
+        else (result, recipe.getRemainingItems(invCrafting))
     }
 
     private def eatIngredient(startIdx:Int, matchFunc:ItemStack => Boolean):Boolean =
@@ -262,16 +262,16 @@ class CraftingResultTestHelper
         def increment() = {
             i = (i + 1) % storage.length; i
         }
-        while { {
+        var consumed = false
+        while !consumed && ({
             val stack2 = storage(i)
-            if !stack2.isEmpty && matchFunc(stack2) then {
-                if stack2.getCount >= 1 then {
-                    stack2.shrink(1)
-                    return true
-                }
+            if !stack2.isEmpty && matchFunc(stack2) && stack2.getCount >= 1 then {
+                stack2.shrink(1)
+                consumed = true
             }
-        } ; increment() != startIdx} do ()
-        false
+            increment() != startIdx
+        }) do ()
+        consumed
     }
 
     def consumeAndCraftToStorage(w:World, slotLimit:Int):Boolean =
@@ -283,13 +283,9 @@ class CraftingResultTestHelper
 
         val wr = InvWrapper.wrapInternal(new ArrayWrapInventory(storage, "", slotLimit))
 
-        for stack <- Seq(result) ++ remaining.asScala.filter(!_.isEmpty) do {
-            val i = wr.injectItem(ItemKey.get(stack), stack.getCount)
-            if i < stack.getCount then
-                return false
+        (Seq(result) ++ remaining.asScala.filter(!_.isEmpty)).forall { stack =>
+            wr.injectItem(ItemKey.get(stack), stack.getCount) >= stack.getCount
         }
-
-        true
     }
 
     def unloadStorage(inv:IInventory, idxToSlot:Int => Int): Unit =

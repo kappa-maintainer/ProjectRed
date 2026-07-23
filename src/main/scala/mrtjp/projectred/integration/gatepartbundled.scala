@@ -318,8 +318,12 @@ class BusRandomizer(gate:BundledGatePart) extends BundledGateLogic(gate)
         val high = Integer.bitCount(mask)
         val n = rand.nextInt(high)
         var v = 0
-        for i <- 0 until 16 do if (mask&1<<i) != 0 && {v+=1; v-1} == n then return 1<<i
-        0
+        var result = 0
+        for i <- 0 until 16 do if result == 0 && (mask&1<<i) != 0 then {
+            if v == n then result = 1<<i
+            v += 1
+        }
+        result
     }
 
     def calcNBitOut =

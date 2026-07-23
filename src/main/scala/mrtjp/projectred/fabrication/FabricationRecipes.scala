@@ -29,15 +29,8 @@ class ICBlueprintResetRecipe extends TBaseRecipe {
 
     override def getCraftingResult(inv:InventoryCrafting):ItemStack =
     {
-        var bp:ItemStack = ItemStack.EMPTY
-        for i <- 0 until inv.getSizeInventory do {
-            val s = inv.getStackInSlot(i)
-            if !s.isEmpty then
-                if !bp.isEmpty then return ItemStack.EMPTY
-                else bp = s
-        }
-
-        if !bp.isEmpty && bp.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(bp) then
+        val inputs = (0 until inv.getSizeInventory).map(inv.getStackInSlot).filter(!_.isEmpty)
+        if inputs.size == 1 && inputs.head.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(inputs.head) then
             new ItemStack(itemICBlueprint)
         else ItemStack.EMPTY
     }
@@ -50,18 +43,17 @@ class ICBlueprintCopyRecipe extends TBaseRecipe {
     {
         var bp:ItemStack = ItemStack.EMPTY
         var emptyCount = 0
+        var valid = true
         for i <- 0 until inv.getSizeInventory do {
             val s = inv.getStackInSlot(i)
             if !s.isEmpty then {
-                if s.getItem != itemICBlueprint then return ItemStack.EMPTY
-                if ItemICBlueprint.hasICInside(s) then
-                    if !bp.isEmpty then return ItemStack.EMPTY
-                    else bp = s
-                else
-                    emptyCount += 1
+                if s.getItem != itemICBlueprint then valid = false
+                else if ItemICBlueprint.hasICInside(s) then
+                    if !bp.isEmpty then valid = false else bp = s
+                else emptyCount += 1
             }
         }
-        if !bp.isEmpty && emptyCount == 1 then {
+        if valid && !bp.isEmpty && emptyCount == 1 then {
             val out = new ItemStack(itemICBlueprint)
             out.setCount(emptyCount)
             ItemICBlueprint.copyIC(bp, out)
@@ -72,15 +64,10 @@ class ICBlueprintCopyRecipe extends TBaseRecipe {
 
     override def getRemainingItems(inv:InventoryCrafting):NonNullList[ItemStack] = {
         val remaining = NonNullList.withSize(inv.getSizeInventory, ItemStack.EMPTY)
-        for i <- 0 until inv.getSizeInventory do {
+        (0 until inv.getSizeInventory).find { i =>
             val s = inv.getStackInSlot(i)
-            if !s.isEmpty then {
-                if s.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(s) then {
-                    remaining.set(i, s.copy())
-                    return remaining
-                }
-            }
-        }
+            !s.isEmpty && s.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(s)
+        }.foreach(i => remaining.set(i, inv.getStackInSlot(i).copy))
         remaining
     }
 }
@@ -90,18 +77,20 @@ class ICGateRecipe extends TBaseRecipe {
     override def getRecipeSize = 9
     override def getCraftingResult(inv:InventoryCrafting):ItemStack =
     {
-        for i <- 0 until 9 do {
+        val valid = (0 until 9).forall { i =>
             val stack = inv.getStackInSlot(i)
-            if stack.isEmpty then return ItemStack.EMPTY
-            i match {
-                case 4 => if stack.getItem != itemICChip ||
-                    !ItemICBlueprint.hasICInside(stack) then return ItemStack.EMPTY
-                case _ => if !stack.isItemEqual(PartDefs.PLATE.makeStack) then return ItemStack.EMPTY
+            if stack.isEmpty then false
+            else i match {
+                case 4 => stack.getItem == itemICChip && ItemICBlueprint.hasICInside(stack)
+                case _ => stack.isItemEqual(PartDefs.PLATE.makeStack)
             }
         }
+        if !valid then ItemStack.EMPTY
+        else {
         val out = GateDefinition.ICGate.makeStack
         ItemICBlueprint.copyToGate(inv.getStackInSlot(4), out)
         out
+        }
     }
 }
 

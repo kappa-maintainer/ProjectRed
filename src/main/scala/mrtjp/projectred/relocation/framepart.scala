@@ -103,7 +103,7 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
                 val cube = new IndexedCuboid6(0, Cuboid6.full)
                 val dist = start.squareDistanceTo(mop.hitVec)
                 new CuboidRayTraceResult(new Vector3(mop.hitVec), mop.getBlockPos, mop.sideHit, cube, dist)
-            case _ => null
+            case null => null
         }
     }
 

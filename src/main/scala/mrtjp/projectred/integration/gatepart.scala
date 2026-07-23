@@ -335,8 +335,8 @@ abstract class GateLogic[T <: GatePart]
     def activate(gate:T, player:EntityPlayer, held:ItemStack, hit:CuboidRayTraceResult) = false
 
     def getBounds(gate:T) = FaceMicroFactory.aBounds(0x10|gate.side)
-    def getSubParts(gate:T) = Seq[IndexedCuboid6]()
-    def getOcclusions(gate:T):Seq[Cuboid6] = GatePart.oBoxes(gate.side)
+    def getSubParts(gate:T) = Seq.empty[IndexedCuboid6]
+    def getOcclusions(gate:T):Seq[Cuboid6] = GatePart.oBoxes(gate.side).toIndexedSeq
 
     def lightLevel = 7
 }

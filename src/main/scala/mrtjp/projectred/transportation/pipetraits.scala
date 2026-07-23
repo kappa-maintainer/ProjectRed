@@ -199,7 +199,7 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
     override def calcStraightSignal(s:Int) = getStraight(s) match
     {
         case p:TMultiPart => resolveSignal(p, s^1)
-        case _ => calcStrongSignal(s)
+        case null => calcStrongSignal(s)
     }
 
     override def resolveSignal(part:Any, s:Int) = part match

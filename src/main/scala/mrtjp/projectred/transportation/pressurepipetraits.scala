@@ -143,12 +143,12 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
 
     abstract override def discoverStraightOverride(s:Int):Boolean =
     {
-        if super.discoverStraightOverride(s) then return true
-        world.getTileEntity(posOfStraight(s)) match {
+        if super.discoverStraightOverride(s) then true
+        else world.getTileEntity(posOfStraight(s)) match {
             case sinv:ISidedInventory => sinv.getSlotsForFace(EnumFacing.values()(s^1)).nonEmpty
             case inv:IInventory => true
             case cap:ICapabilityProvider => cap.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.VALUES(s^1))
-            case _ => false
+            case null => false
         }
     }
 

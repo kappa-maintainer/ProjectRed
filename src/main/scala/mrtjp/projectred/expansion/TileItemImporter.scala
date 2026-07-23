@@ -55,23 +55,23 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
         val inv = InvWrapper.wrap(world, getPos.offset(s.getOpposite), s)
         if inv == null then return false
         val list = inv.getAllItemStacks
-        for (k, v) <- list do if canImport(k) then
+        list.find { case (k, _) => canImport(k) } match
         {
-            val toExtract = math.min(k.getMaxStackSize, getExtractAmount)
-            val extracted = inv.extractItem(k, toExtract)
-
-            if extracted > 0 then
-            {
-                itemStorage.add(k.makeStack(extracted))
-                active = true
-                sendStateUpdate()
-                scheduleTick(4)
-                exportBuffer()
-                return true
-            }
-            return false
+            case Some((k, _)) =>
+                val toExtract = math.min(k.getMaxStackSize, getExtractAmount)
+                val extracted = inv.extractItem(k, toExtract)
+                if extracted > 0 then
+                {
+                    itemStorage.add(k.makeStack(extracted))
+                    active = true
+                    sendStateUpdate()
+                    scheduleTick(4)
+                    exportBuffer()
+                    true
+                }
+                else false
+            case None => false
         }
-        false
     }
 
     def importEntities():Boolean =

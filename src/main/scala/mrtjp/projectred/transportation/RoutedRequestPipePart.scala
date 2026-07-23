@@ -49,12 +49,10 @@ class RoutedRequestPipePart extends AbstractNetPipe with TNetworkPipe
 
             if count <= 1 then return r.input
             else if count == 2 then
-            {
-                for i <- 0 until 6 do if i != (r.input^1) then
-                    if (connMap&1<<i) != 0 then return i
-            }
+                (0 until 6).find(i => i != (r.input^1) && (connMap&1<<i) != 0).getOrElse(dir)
+            else dir
         }
-        dir
+        else dir
     }
 
     override def getActiveFreeSpace(item:ItemKey) =

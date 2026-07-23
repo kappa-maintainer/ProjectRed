@@ -166,7 +166,7 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
             else
             {
                 sender.sendMessage(new TextComponentString("Could not request "+s.stackSize+" of "+s.key.getName+". Missing:"))
-                for (k,v) <- r.getMissing do sender.sendMessage(new TextComponentString(v+" of "+k.getName))
+                for (k,v) <- r.getMissing do sender.sendMessage(new TextComponentString(s"$v of ${k.getName}"))
             }
 
             sendRequestList(t.asInstanceOf[IRouterContainer], sender, pull, craft)

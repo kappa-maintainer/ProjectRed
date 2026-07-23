@@ -360,7 +360,7 @@ abstract class ArrayGateLogicCrossing(gate:ArrayGatePart) extends ArrayGateLogic
         }
     }
 
-    override def getOcclusions(gate:ArrayGatePart) = ArrayGatePart.oBoxes(gate.side)
+    override def getOcclusions(gate:ArrayGatePart) = ArrayGatePart.oBoxes(gate.side).toIndexedSeq
     override def getBounds(gate:ArrayGatePart) = ArrayGatePart.cBoxes(gate.side)
 
     override def onSignalUpdate(): Unit ={ sendSignalUpdate() }
@@ -448,7 +448,7 @@ class ANDCell(gate:ArrayGatePart) extends ArrayGateLogic(gate) with TArrayCellTo
 
     override def calcOutput(gate:ArrayGatePart, input:Int) = if input == 4 && signal != 0 then 1 else 0
 
-    override def getOcclusions(gate:ArrayGatePart) = ArrayGatePart.oBoxes(gate.side)
+    override def getOcclusions(gate:ArrayGatePart) = ArrayGatePart.oBoxes(gate.side).toIndexedSeq
     override def getBounds(gate:ArrayGatePart) = ArrayGatePart.cBoxes(gate.side)
 }
 

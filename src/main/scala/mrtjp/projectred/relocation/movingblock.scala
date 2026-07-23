@@ -50,7 +50,7 @@ object TileMovingRow
         val box = bl.getCollisionBoundingBox(w, p) match {
             case aabb:AxisAlignedBB => new Cuboid6(aabb).subtract(Vector3.fromBlockPos(r.pos))
                     .add(Vector3.fromVec3i(r.moveDir.getDirectionVec).multiply(progress))
-            case _ => Cuboid6.full.copy
+            case null => Cuboid6.full.copy
         }
         isCalculatingBB = false
 
@@ -96,7 +96,7 @@ class TileMovingRow extends MTBlockTile
                 for e <- list.asScala do {
                     e.move(MoverType.PISTON, d.x, d.y*4 max 0, d.z) //TODO find better way to do this
                 }
-            case _ =>
+            case null =>
         }
 
         prevProg = progress

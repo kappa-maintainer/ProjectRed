@@ -481,7 +481,7 @@ class Sequencer(gate:SequentialGatePart) extends SequentialGateLogic(gate) with 
         if !gate.world.isRemote then
         {
             val oldOut = gate.state>>4
-            var out = 1<<gate.world.getWorldTime%(pointer_max*4)/pointer_max
+            var out = 1 << (gate.world.getWorldTime % (pointer_max * 4) / pointer_max).toInt
             if gate.shape == 1 then out = flipMaskZ(out)
             if oldOut != out then
             {
