@@ -1,6 +1,6 @@
 package mrtjp.projectred
 
-import mrtjp.projectred.core._
+import mrtjp.projectred.core.*
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.Mod
@@ -13,10 +13,10 @@ object ProjectRedCore
     val log: Logger = LogManager.getFormatterLogger("ProjectRed")
 
     /** Items **/
-    var itemPart:ItemPart = _
-    var itemDrawPlate:ItemDrawPlate = _
-    var itemScrewdriver:ItemScrewdriver = _
-    var itemMultimeter:ItemMultimeter = _
+    var itemPart:ItemPart = scala.compiletime.uninitialized
+    var itemDrawPlate:ItemDrawPlate = scala.compiletime.uninitialized
+    var itemScrewdriver:ItemScrewdriver = scala.compiletime.uninitialized
+    var itemMultimeter:ItemMultimeter = scala.compiletime.uninitialized
 
     val tabCore: CreativeTabs = new CreativeTabs("projectred.core") {
         override def createIcon = new ItemStack(itemScrewdriver)

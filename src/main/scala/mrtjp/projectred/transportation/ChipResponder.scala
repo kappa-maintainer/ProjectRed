@@ -14,13 +14,13 @@ class ChipItemResponder extends RoutingChip with TChipFilter with TChipPriority
         val real = invProvider.getInventory
         val side = invProvider.getInterfacedSide
 
-        if (real == null || side < 0) return null
+        if real == null || side < 0 then return null
 
-        if (SyncResponse.isPreferredOver(sendPriority.ordinal, preference, rival) && filterAllows(item))
+        if SyncResponse.isPreferredOver(sendPriority.ordinal, preference, rival) && filterAllows(item) then
         {
             val inv = real
             val room = inv.getSpaceForItem(item)
-            if (room > 0) return new SyncResponse().setPriority(sendPriority).setCustomPriority(preference).setItemCount(room)
+            if room > 0 then return new SyncResponse().setPriority(sendPriority).setCustomPriority(preference).setItemCount(room)
         }
 
         null
@@ -28,7 +28,7 @@ class ChipItemResponder extends RoutingChip with TChipFilter with TChipPriority
 
     def filterAllows(item:ItemKey) = !enableFilter || applyFilter(InvWrapper.wrapInternal(filter)).hasItem(item) != filterExclude
 
-    override def infoCollection(list:ListBuffer[String])
+    override def infoCollection(list:ListBuffer[String]): Unit =
     {
         super.infoCollection(list)
         addPriorityInfo(list)

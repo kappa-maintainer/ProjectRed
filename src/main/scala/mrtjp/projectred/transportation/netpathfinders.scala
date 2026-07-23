@@ -11,27 +11,27 @@ import net.minecraft.util.math.BlockPos
 
 import scala.annotation.tailrec
 import scala.collection.immutable.{BitSet, Queue}
-import scala.collection.mutable.{Builder => MBuilder}
+import scala.collection.mutable.{Builder as MBuilder}
 
 object LSPathFinder
 {
-    var start:IRouterContainer = _
+    var start:IRouterContainer = scala.compiletime.uninitialized
 
     private var registeredLSTypes = List[ISpecialLinkState]()
 
-    def register(link:ISpecialLinkState)
+    def register(link:ISpecialLinkState): Unit =
     {
         registeredLSTypes :+= link
     }
 
     def getLinkState(tile:TileEntity):ISpecialLinkState =
     {
-        if (tile == null) return null
-        for (l <- registeredLSTypes) if (l.matches(tile)) return l
+        if tile == null then return null
+        for l <- registeredLSTypes do if l.matches(tile) then return l
         null
     }
 
-    def clear()
+    def clear(): Unit =
     {
         start = null
     }
@@ -41,7 +41,7 @@ object LSPathFinder
         val pipe = start.getPipe
         val pos = pipe.pos
         val q = Queue.newBuilder[Node]
-        for (s <- 0 until 6 if pipe.maskConnects(s)) q += Node(pos, s)
+        for s <- 0 until 6 if pipe.maskConnects(s) do q += Node(pos, s)
         iterate(q.result()).sorted
     }
 
@@ -54,31 +54,31 @@ object LSPathFinder
         case Seq() => coll.result()
         case Seq(next, rest@_*) => getPipe(next.pos) match
         {
-            case iwr:IRouterContainer with TNetworkPipe if {val r = iwr.getRouter; r != null && r.isLoaded} =>
+            case iwr:(IRouterContainer & TNetworkPipe) if {val r = iwr.getRouter; r != null && r.isLoaded} =>
                 iterate(rest, closed+next, coll += new StartEndPath(start.getRouter,
                     iwr.getRouter, next.hop, next.dist, next.filters+iwr.pathFilter, iwr.networkFilter))
             case p:TNetworkSubsystem =>
                 val upNext = Vector.newBuilder[Node]
-                for (s <- 0 until 6) if (s != (next.dir^1) && p.maskConnects(s))
+                for s <- 0 until 6 do if s != (next.dir^1) && p.maskConnects(s) then
                 {
                     val route = next --> (s, p.getPathWeight, p.pathFilter(next.dir^1, s))
-                    if (route.path.pathFlags != 0 && !closed(route)) upNext += route
+                    if route.path.pathFlags != 0 && !closed(route) then upNext += route
                 }
                 iterate(rest++upNext.result(), closed+next, coll)
             case _ =>
                 val upNext = Vector.newBuilder[Node]
                 val tile = getTile(next.pos)
                 val link = LSPathFinder.getLinkState(tile)
-                if (link != null) //Special LS
+                if link != null then //Special LS
                 {
                     val te = link.getLink(tile)
-                    if (te != null)
+                    if te != null then
                     {
                         val linkedPipe = getPipe(te.getPos)
-                        if (linkedPipe != null)
+                        if linkedPipe != null then
                         {
                             val route = next --> (te.getPos, linkedPipe.getPathWeight)
-                            if (!closed(route)) upNext += route
+                            if !closed(route) then upNext += route
                         }
                     }
                 }
@@ -132,7 +132,7 @@ object CollectionPathFinder
     var collectBroadcasts:Boolean = false
     var collectCrafts:Boolean = false
 
-    def clear()
+    def clear(): Unit =
     {
         start = null
         collectBroadcasts = false
@@ -144,18 +144,18 @@ object CollectionPathFinder
         var pool = new ItemQueue
         val builder = new ItemQueue
 
-        for (p <- start.getRouter.getRoutesByCost)
+        for p <- start.getRouter.getRoutesByCost do
         {
             builder.clear()
             val parent = p.end.getContainer
 
-            if (collectCrafts && p.flagRouteFrom && p.allowCrafting)
+            if collectCrafts && p.flagRouteFrom && p.allowCrafting then
             {
                 val list = parent.getCraftedItems
-                if (list != null) for (stack <- list) builder += stack.key -> 0
+                if list != null then for stack <- list do builder += stack.key -> 0
             }
 
-            if (collectBroadcasts && p.flagRouteFrom && p.allowBroadcast)
+            if collectBroadcasts && p.flagRouteFrom && p.allowBroadcast then
                 parent.getBroadcasts(builder)
 
             pool ++= builder.result.filter(i => p.allowItem(i._1))
@@ -166,15 +166,15 @@ object CollectionPathFinder
 
 object LogisticPathFinder
 {
-    var start:Router = _
-    var payload:ItemKey = _
+    var start:Router = scala.compiletime.uninitialized
+    var payload:ItemKey = scala.compiletime.uninitialized
 
     var exclusions = BitSet.empty
     var excludeSource = false
 
     private var visited = BitSet.empty
 
-    def clear()
+    def clear(): Unit =
     {
         start = null
         payload = null
@@ -187,36 +187,36 @@ object LogisticPathFinder
     {
         var bestResponse = new SyncResponse
         var bestIP = -1
-        import scala.util.control.Breaks._
+        import scala.util.control.Breaks.*
 
-        for (l <- start.getFilteredRoutesByCost(p => p.flagRouteTo && p.allowRouting && p.allowItem(payload))) breakable {
+        for l <- start.getFilteredRoutesByCost(p => p.flagRouteTo && p.allowRouting && p.allowItem(payload)) do breakable {
             val r = l.end
-            if (excludeSource && r.getIPAddress == start.getIPAddress) break()
-            if (excludeSource && LogisticPathFinder.sharesInventory(start.getContainer.getPipe, r.getContainer.getPipe)) break()
-            if (exclusions(r.getIPAddress) || visited(r.getIPAddress)) break()
+            if excludeSource && r.getIPAddress == start.getIPAddress then break()
+            if excludeSource && LogisticPathFinder.sharesInventory(start.getContainer.getPipe, r.getContainer.getPipe) then break()
+            if exclusions(r.getIPAddress) || visited(r.getIPAddress) then break()
 
             visited += r.getIPAddress
             val parent = r.getContainer
-            if (parent == null) break()
+            if parent == null then break()
 
             val sync = parent.getSyncResponse(payload, bestResponse)
-            if (sync != null) if (sync.isPreferredOver(bestResponse)) {
+            if sync != null then if sync.isPreferredOver(bestResponse) then {
                 bestResponse = sync
                 bestIP = r.getIPAddress
             }
         }
-        if (bestIP > -1) bestResponse.setResponder(bestIP) else null
+        if bestIP > -1 then bestResponse.setResponder(bestIP) else null
     }
 
     //TODO, Not sure if this will work with capabilities, some mods just return a new cap class every time..
-    def sharesInventory(pipe1:TInventoryPipe[_], pipe2:TInventoryPipe[_]):Boolean =
+    def sharesInventory(pipe1:TInventoryPipe[?], pipe2:TInventoryPipe[?]):Boolean =
     {
-        if (pipe1 == null || pipe2 == null) return false
-        if (pipe1.tile.getWorld != pipe2.tile.getWorld) return false
+        if pipe1 == null || pipe2 == null then return false
+        if pipe1.tile.getWorld != pipe2.tile.getWorld then return false
 
         val adjacent1 = pipe1.getInventory
         val adjacent2 = pipe2.getInventory
-        if (adjacent1 == null || adjacent2 == null) return false
+        if adjacent1 == null || adjacent2 == null then return false
 
         adjacent1 == adjacent2
     }

@@ -2,7 +2,7 @@ package mrtjp.projectred
 
 import mrtjp.core.data.{ModConfig, SpecialConfigGui, TModGuiFactory}
 import mrtjp.projectred.api.ProjectRedAPI
-import mrtjp.projectred.relocation._
+import mrtjp.projectred.relocation.*
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.ItemStack
@@ -14,8 +14,8 @@ object ProjectRedRelocation
 {
     ProjectRedAPI.relocationAPI = APIImpl_Relocation
 
-    var blockMovingRow:BlockMovingRow = _
-    var blockFrame:BlockFrame = _
+    var blockMovingRow:BlockMovingRow = scala.compiletime.uninitialized
+    var blockFrame:BlockFrame = scala.compiletime.uninitialized
 
     var tabRelocation: CreativeTabs = new CreativeTabs("projectred.relocation") {
         override def createIcon = new ItemStack(blockFrame)
@@ -91,12 +91,12 @@ object RelocationConfig extends ModConfig("projectred-relocation")
             """.stripMargin
 
         s += "\nAvailable tile movers:\n"
-        for ((k, v) <- MovingTileRegistry.moverDescMap)
+        for (k, v) <- MovingTileRegistry.moverDescMap do
             s += "    '" + k + "' - " + v + "\n"
 
-        if (MovingTileRegistry.mandatoryMovers.nonEmpty) {
+        if MovingTileRegistry.mandatoryMovers.nonEmpty then {
             s += "\nMovers locked via API:\n"
-            for ((k, v) <- MovingTileRegistry.mandatoryMovers)
+            for (k, v) <- MovingTileRegistry.mandatoryMovers do
                 s += "    " + k + " -> " + v + "\n"
         }
 

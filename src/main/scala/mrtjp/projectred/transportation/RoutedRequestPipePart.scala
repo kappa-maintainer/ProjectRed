@@ -9,9 +9,9 @@ import net.minecraft.util.EnumHand
 
 class RoutedRequestPipePart extends AbstractNetPipe with TNetworkPipe
 {
-    override def centerReached(r:NetworkPayload)
+    override def centerReached(r:NetworkPayload): Unit =
     {
-        if (!maskConnects(r.output) && !world.isRemote) if (itemFlow.scheduleRemoval(r))
+        if !maskConnects(r.output) && !world.isRemote then if itemFlow.scheduleRemoval(r) then
         {
             r.resetTrip()
             r.moveProgress(0.375F)
@@ -25,17 +25,17 @@ class RoutedRequestPipePart extends AbstractNetPipe with TNetworkPipe
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (super.activate(player, hit, item, hand)) return true
-        if (!player.isSneaking) {
+        if super.activate(player, hit, item, hand) then return true
+        if !player.isSneaking then {
             openGui(player)
             true
         }
         else false
     }
 
-    private def openGui(player:EntityPlayer)
+    private def openGui(player:EntityPlayer): Unit =
     {
-        if (world.isRemote) return
+        if world.isRemote then return
         val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.gui_Request_open)
         packet.writePos(pos).sendToPlayer(player)
     }
@@ -43,15 +43,15 @@ class RoutedRequestPipePart extends AbstractNetPipe with TNetworkPipe
     override def getDirForIncomingItem(r:NetworkPayload):Int =
     {
         val dir = inOutSide
-        if (dir == 6)
+        if dir == 6 then
         {
             val count = Integer.bitCount(connMap&0x3F)
 
-            if (count <= 1) return r.input
-            else if (count == 2)
+            if count <= 1 then return r.input
+            else if count == 2 then
             {
-                for (i <- 0 until 6) if (i != (r.input^1))
-                    if ((connMap&1<<i) != 0) return i
+                for i <- 0 until 6 do if i != (r.input^1) then
+                    if (connMap&1<<i) != 0 then return i
             }
         }
         dir
@@ -59,7 +59,7 @@ class RoutedRequestPipePart extends AbstractNetPipe with TNetworkPipe
 
     override def getActiveFreeSpace(item:ItemKey) =
     {
-        if (getInventory != null) super.getActiveFreeSpace(item)
+        if getInventory != null then super.getActiveFreeSpace(item)
         else Integer.MAX_VALUE
     }
 }

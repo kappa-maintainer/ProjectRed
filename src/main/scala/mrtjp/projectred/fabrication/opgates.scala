@@ -9,8 +9,8 @@ import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.render.CCRenderState
 import codechicken.lib.vec.{Rotation, Transformation, Translation, Vector3}
 import mrtjp.core.vec.{Point, Vec2}
-import mrtjp.projectred.fabrication.TileEditorOp._
-import mrtjp.projectred.fabrication.ICComponentStore._
+import mrtjp.projectred.fabrication.TileEditorOp.*
+import mrtjp.projectred.fabrication.ICComponentStore.*
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 abstract class OpGateCommons(meta:Int) extends TileEditorOp
@@ -21,18 +21,18 @@ abstract class OpGateCommons(meta:Int) extends TileEditorOp
     override def checkOp(editor:ICTileMapEditor, start:Point, end:Point) =
         canPlace(editor, start) && editor.getTile(start) == null
 
-    override def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput)
+    override def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput): Unit =
     {
         out.writeByte(start.x).writeByte(start.y)
         out.writeByte(findRot(editor, start, end))
     }
 
-    override def readOp(editor:ICTileMapEditor, in:MCDataInput)
+    override def readOp(editor:ICTileMapEditor, in:MCDataInput): Unit =
     {
         val point = Point(in.readByte(), in.readByte())
         val r = in.readUByte()
 
-        if (editor.getTile(point) == null && canPlace(editor, point)) {
+        if editor.getTile(point) == null && canPlace(editor, point) then {
             val part = ICTile.createTile(ICGateDefinition(meta).gateType).asInstanceOf[GateICTile]
             part.preparePlacement(r, meta)
             editor.setTile(point, part)
@@ -40,38 +40,38 @@ abstract class OpGateCommons(meta:Int) extends TileEditorOp
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double)
+    override def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit =
     {
-        if (editor.getTile(point) != null) return
+        if editor.getTile(point) != null then return
 
         val t = orthoPartT(x, y, xSize, ySize, editor.size, point.x, point.y)
         doRender(ccrs, t, findRot(editor, point, point))
 
         renderHolo(x, y, xSize,  ySize, editor.size, point,
-            if (canPlace(editor, point)) 0x33FFFFFF else 0x33FF0000)
+            if canPlace(editor, point) then 0x33FFFFFF else 0x33FF0000)
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double)
+    override def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit =
     {
-        if (editor.getTile(start) != null) return
+        if editor.getTile(start) != null then return
 
         val t = orthoPartT(x, y, xSize, ySize, editor.size, start.x, start.y)
         doRender(ccrs, t, findRot(editor, start, end))
 
         renderHolo(x, y, xSize,  ySize, editor.size, start,
-            if (canPlace(editor, start)) 0x44FFFFFF else 0x44FF0000)
+            if canPlace(editor, start) then 0x44FFFFFF else 0x44FF0000)
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double)
+    override def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double): Unit =
     {
         val t = orthoGridT(width, height) `with` new Translation(x, y, 0)
         doRender(ccrs, t, 0)
     }
 
     @SideOnly(Side.CLIENT)
-    def doRender(ccrs:CCRenderState, t:Transformation, rot:Int)
+    def doRender(ccrs:CCRenderState, t:Transformation, rot:Int): Unit =
     {
         RenderGateTile.renderInv(ccrs, Rotation.quarterRotations(rot).at(Vector3.center) `with` t, meta)
     }

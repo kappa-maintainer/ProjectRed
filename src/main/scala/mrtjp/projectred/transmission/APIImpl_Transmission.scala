@@ -9,7 +9,7 @@ import net.minecraft.world.World
 
 class APIImpl_Transmission extends ITransmissionAPI
 {
-    override def registerBundledTileInteraction(interaction:IBundledTileInteraction)
+    override def registerBundledTileInteraction(interaction:IBundledTileInteraction): Unit =
     {
         APIImpl_Transmission.interactions :+= interaction
     }
@@ -22,11 +22,11 @@ class APIImpl_Transmission extends ITransmissionAPI
 
             case tmp:TileMultipart =>
                 var signal:Array[Byte] = null
-                def raise(ibe:IBundledEmitter, r:Int) {
+                def raise(ibe:IBundledEmitter, r:Int): Unit = {
                     signal = BundledCommons.raiseSignal(signal, ibe.getBundledSignal(r))
                 }
 
-                for (r <- 0 until 4) {
+                for r <- 0 until 4 do {
                     val pside = Rotation.rotateSide(side, r)
                     tmp.partMap(pside) match {
                         case ibe:IBundledEmitter => raise(ibe, Rotation.rotationTo(pside, side^1))

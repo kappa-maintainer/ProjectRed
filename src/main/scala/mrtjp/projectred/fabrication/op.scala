@@ -11,8 +11,8 @@ import codechicken.lib.render.CCRenderState
 import codechicken.lib.vec.{Transformation, Translation}
 import mrtjp.core.util.Enum
 import mrtjp.core.vec.{Point, Size}
-import mrtjp.projectred.fabrication.TileEditorOp._
-import mrtjp.projectred.fabrication.ICComponentStore._
+import mrtjp.projectred.fabrication.TileEditorOp.*
+import mrtjp.projectred.fabrication.ICComponentStore.*
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.language.postfixOps
@@ -99,8 +99,8 @@ object TileEditorOpDefs extends Enum
     val InvertCellGate = OpDef(new OpGate(ICGateDefinition.InvertCell.ordinal))
     val BufferCellGate = OpDef(new OpGate(ICGateDefinition.BufferCell.ordinal))
 
-    val INSULATED = WhiteInsulatedWire to BlackInsulatedWire toArray
-    val BUNDLED = NeutralBundledCable to BlackBundledCable toArray
+    val INSULATED = WhiteInsulatedWire `to` BlackInsulatedWire toArray
+    val BUNDLED = NeutralBundledCable `to` BlackBundledCable toArray
 
     case class OpDef(op:TileEditorOp) extends Value
     {
@@ -117,7 +117,7 @@ object TileEditorOp
 {
     def getOperation(id:Int) = TileEditorOpDefs(id).getOp
 
-    def renderHolo(x:Double, y:Double, xSize:Double, ySize:Double, csize:Size, point:Point, colour:Int)
+    def renderHolo(x:Double, y:Double, xSize:Double, ySize:Double, csize:Size, point:Point, colour:Int): Unit =
     {
         val x1 = (x+xSize/csize.width*point.x).toInt
         val y1 = (y+ySize/csize.height*point.y).toInt
@@ -140,17 +140,17 @@ trait TileEditorOp
 
     def checkOp(editor:ICTileMapEditor, start:Point, end:Point):Boolean
 
-    def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput)
-    def readOp(editor:ICTileMapEditor, in:MCDataInput)
+    def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput): Unit 
+    def readOp(editor:ICTileMapEditor, in:MCDataInput): Unit 
 
     @SideOnly(Side.CLIENT)
     def getOpName:String
     @SideOnly(Side.CLIENT)
-    def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double)
+    def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit 
     @SideOnly(Side.CLIENT)
-    def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double)
+    def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit 
     @SideOnly(Side.CLIENT)
-    def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double)
+    def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double): Unit 
 }
 
 abstract class SimplePlacementOp extends TileEditorOp
@@ -161,50 +161,50 @@ abstract class SimplePlacementOp extends TileEditorOp
     override def checkOp(editor:ICTileMapEditor, start:Point, end:Point) =
         canPlace(editor, end) && editor.getTile(end) == null
 
-    override def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput)
+    override def writeOp(editor:ICTileMapEditor, start:Point, end:Point, out:MCDataOutput): Unit =
     {
         out.writeByte(end.x).writeByte(end.y)
     }
 
-    override def readOp(editor: ICTileMapEditor, in: MCDataInput)
+    override def readOp(editor: ICTileMapEditor, in: MCDataInput): Unit =
     {
         val point = Point(in.readUByte(), in.readUByte())
-        if (canPlace(editor, point) && editor.getTile(point) == null)
+        if canPlace(editor, point) && editor.getTile(point) == null then
             editor.setTile(point, createPart)
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double)
+    override def renderImage(ccrs:CCRenderState, x:Double, y:Double, width:Double, height:Double): Unit =
     {
         val t = orthoGridT(width, height) `with` new Translation(x, y, 0)
         doPartRender(ccrs, t)
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double)
+    override def renderHover(ccrs:CCRenderState, editor:ICTileMapEditor, point:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit =
     {
-        if (editor.getTile(point) != null) return
+        if editor.getTile(point) != null then return
 
         renderHolo(x, y, xSize,  ySize, editor.size, point,
-            if (!isOnBorder(editor.size, point)) 0x33FFFFFF else 0x33FF0000)
+            if !isOnBorder(editor.size, point) then 0x33FFFFFF else 0x33FF0000)
 
         val t = orthoPartT(x, y, xSize, ySize, editor.size, point.x, point.y)
         doPartRender(ccrs, t)
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double)
+    override def renderDrag(ccrs:CCRenderState, editor:ICTileMapEditor, start:Point, end:Point, x:Double, y:Double, xSize:Double, ySize:Double): Unit =
     {
-        if (editor.getTile(end) != null) return
+        if editor.getTile(end) != null then return
 
         renderHolo(x, y, xSize,  ySize, editor.size, end,
-            if (!isOnBorder(editor.size, end)) 0x44FFFFFF else 0x44FF0000)
+            if !isOnBorder(editor.size, end) then 0x44FFFFFF else 0x44FF0000)
 
         val t = orthoPartT(x, y, xSize, ySize, editor.size, end.x, end.y)
         doPartRender(ccrs, t)
     }
 
-    def doPartRender(ccrs:CCRenderState, t:Transformation)
+    def doPartRender(ccrs:CCRenderState, t:Transformation): Unit 
 
     def createPart:ICTile
 }

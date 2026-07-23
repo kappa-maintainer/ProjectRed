@@ -11,7 +11,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.{InvWrapper, TInventory, TInventoryCapablilityTile}
 import mrtjp.core.item.ItemKey
 import mrtjp.core.vec.{Point, Size}
@@ -37,16 +37,16 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
     override def getName = "filtered importer"
     override def getDisplayName = super.getDisplayName //for trait conflict
 
-    override def canExtractItem(slot:Int, item:ItemStack, s:EnumFacing) = (if(s == null) 6 else s.ordinal()&6) != (side&6)
-    override def canInsertItem(slot:Int, item:ItemStack, s:EnumFacing) = (if(s == null) 6 else s.ordinal()&6) != (side&6)
-    override def getSlotsForFace(s:EnumFacing) = if ((if(s == null) 6 else s.ordinal()&6) != (side&6)) (0 to 9).toArray else Array.empty[Int]
+    override def canExtractItem(slot:Int, item:ItemStack, s:EnumFacing) = (if s == null then 6 else s.ordinal()&6) != (side&6)
+    override def canInsertItem(slot:Int, item:ItemStack, s:EnumFacing) = (if s == null then 6 else s.ordinal()&6) != (side&6)
+    override def getSlotsForFace(s:EnumFacing) = if (if s == null then 6 else s.ordinal()&6) != (side&6) then (0 to 9).toArray else Array.empty[Int]
 
     override def getExtractAmount = 64
 
     //side = out, side^1 = in
     override def canAcceptInput(item:ItemKey, side:Int):Boolean =
     {
-        if (!super.canAcceptInput(item, side)) return false
+        if !super.canAcceptInput(item, side) then return false
         canImport(item)
     }
 
@@ -56,27 +56,27 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
         map.isEmpty || map.contains(item)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         saveInv(tag)
         tag.setByte("col", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         loadInv(tag)
         colour = tag.getByte("col")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(colour)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         colour = in.readByte()
@@ -86,18 +86,18 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
     {
         case 6 => colour = in.readByte()
         case 7 =>
-            if (colour == 15) colour = -1
+            if colour == 15 then colour = -1
             else colour = (colour+1).toByte
             sendColourUpdate()
         case _ => super.read(in, key)
     }
 
-    def sendColourUpdate()
+    def sendColourUpdate(): Unit =
     {
         writeStream(6).writeByte(colour).sendToChunk(this)
     }
 
-    def clientCycleColourUp()
+    def clientCycleColourUp(): Unit =
     {
         writeStream(7).sendToServer()
     }
@@ -110,9 +110,9 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
 
     override def onBlockActivated(player:EntityPlayer, actside:Int):Boolean =
     {
-        if (super.onBlockActivated(player, actside)) return true
+        if super.onBlockActivated(player, actside) then return true
 
-        if (!world.isRemote)
+        if !world.isRemote then
             GuiFilteredImporter.open(player, createContainer(player), _.writePos(getPos))
         true
     }
@@ -121,7 +121,7 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
     {
         val cont = new NodeContainer
         var s = 0
-        for ((x, y) <- GuiLib.createSlotGrid(62, 18, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(62, 18, 3, 3, 0, 0) do
         {
             cont.addSlotToContainer(new Slot3(this, s, x, y))
             s += 1
@@ -130,12 +130,12 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
         cont
     }
 
-    override def markDirty()
+    override def markDirty(): Unit =
     {
         super.markDirty()
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
@@ -147,9 +147,9 @@ class GuiFilteredImporter(c:Container, tile:TileFilteredImporter) extends NodeGu
     {
         val color = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
-                if (tile.colour == -1)
+                if tile.colour == -1 then
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
                     GuiDraw.drawTexturedModalRect(position.x, position.y, 40, 2, 11, 11)
@@ -157,7 +157,7 @@ class GuiFilteredImporter(c:Container, tile:TileFilteredImporter) extends NodeGu
                 else GuiDraw.drawRect(position.x+2, position.y+2, 8, 8, EnumColour.fromWoolMeta(tile.colour).argb)//TODO Maybe from dye id.
             }
 
-            override def onButtonClicked()
+            override def onButtonClicked(): Unit =
             {
                 tile.clientCycleColourUp()
             }
@@ -167,7 +167,7 @@ class GuiFilteredImporter(c:Container, tile:TileFilteredImporter) extends NodeGu
         addChild(color)
     }
 
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiFilteredImporter.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, 176, 168)
@@ -188,7 +188,7 @@ object GuiFilteredImporter extends TGuiFactory
             case tile: TileFilteredImporter => tile
             case _ => null
         }
-        if (t != null) new GuiFilteredImporter(t.createContainer(player), t)
+        if t != null then new GuiFilteredImporter(t.createContainer(player), t)
         else null
     }
 }
@@ -196,19 +196,19 @@ object GuiFilteredImporter extends TGuiFactory
 
 object RenderFilteredImporter extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
     import org.apache.commons.lang3.tuple.Triple
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
 
-    var bottom:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var top1:TextureAtlasSprite = _
-    var side2:TextureAtlasSprite = _
-    var top2:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top2:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
         case t:TActiveDevice => {
@@ -226,7 +226,7 @@ object RenderFilteredImporter extends SimpleBlockRenderer
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val active = state.getValue(UNLISTED_ACTIVE_PROPERTY).asInstanceOf[Boolean]
         val powered = state.getValue(UNLISTED_POWERED_PROPERTY).asInstanceOf[Boolean]
-        Triple.of(side, rotation, if (active || powered) iconT2 else iconT1)
+        Triple.of(side, rotation, if active || powered then iconT2 else iconT1)
     }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
@@ -240,7 +240,7 @@ object RenderFilteredImporter extends SimpleBlockRenderer
         case _ => side1
     }
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/fimporter/bottom"))
         top1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/fimporter/top1"))

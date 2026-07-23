@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.expansion
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.math.MathHelper
 import codechicken.lib.packet.PacketCustom
@@ -29,7 +29,7 @@ import net.minecraft.item.{Item, ItemArmor, ItemStack}
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.TextFormatting
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.{ISpecialArmor, MinecraftForge}
 import net.minecraftforge.common.ISpecialArmor.ArmorProperties
@@ -38,7 +38,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.{ClientTickEvent, Phase
 import net.minecraftforge.fml.common.registry.GameRegistry
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.mutable.{Set => MSet}
+import scala.collection.mutable.{Set as MSet}
 
 trait TItemBattery extends IChargable
 {
@@ -53,7 +53,7 @@ trait TItemBattery extends IChargable
         stack.getItem match
         {
             case b:TItemBattery if pow > 0 =>
-                val newStack = if (b.isEmpty) new ItemStack(b.getChargedVariant, 1, b.getChargedVariant.getMaxDamage) else stack
+                val newStack = if b.isEmpty then new ItemStack(b.getChargedVariant, 1, b.getChargedVariant.getMaxDamage) else stack
                 val spaceLeft = newStack.getItemDamage
                 val toAdd = Math.min(spaceLeft, pow)
                 newStack.setItemDamage(newStack.getItemDamage-toAdd)
@@ -70,7 +70,7 @@ trait TItemBattery extends IChargable
                 val powerLeft = stack.getMaxDamage-stack.getItemDamage
                 val toDraw = Math.min(powerLeft, pow)
                 stack.setItemDamage(stack.getItemDamage+toDraw)
-                val newStack = if (stack.getItemDamage >= stack.getMaxDamage) new ItemStack(b.getEmptyVariant) else stack
+                val newStack = if stack.getItemDamage >= stack.getMaxDamage then new ItemStack(b.getEmptyVariant) else stack
                 (newStack, toDraw)
             case _ => (stack, 0)
         }
@@ -151,7 +151,7 @@ class ItemElectricScrewdriver extends ItemCore with IScrewdriver with IChargable
 
     override def canUse(player:EntityPlayer, stack:ItemStack) = stack.getItemDamage < stack.getMaxDamage
 
-    override def damageScrewdriver(player:EntityPlayer, stack:ItemStack)
+    override def damageScrewdriver(player:EntityPlayer, stack:ItemStack): Unit =
     {
         stack.damageItem(1, player)
     }
@@ -161,9 +161,9 @@ class ItemPlan extends ItemCore
 {
     setCreativeTab(ProjectRedExpansion.tabExpansion)
 
-    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag): Unit =
     {
-        if (ItemPlan.hasRecipeInside(stack))
+        if ItemPlan.hasRecipeInside(stack) then
         {
             val s = s"${TextFormatting.BLUE}Output: ${TextFormatting.GRAY.toString + ItemPlan.loadPlanOutput(stack).getDisplayName}"
             list.add(s)
@@ -173,9 +173,9 @@ class ItemPlan extends ItemCore
 
 object ItemPlan
 {
-    private def assertStackTag(stack:ItemStack)
+    private def assertStackTag(stack:ItemStack): Unit =
     {
-        if (!stack.hasTagCompound)
+        if !stack.hasTagCompound then
             stack.setTagCompound(new NBTTagCompound)
     }
 
@@ -184,14 +184,14 @@ object ItemPlan
         stack.hasTagCompound && stack.getTagCompound.hasKey("recipe")
     }
 
-    def savePlan(stack:ItemStack, inputs:Array[ItemStack], out:ItemStack)
+    def savePlan(stack:ItemStack, inputs:Array[ItemStack], out:ItemStack): Unit =
     {
         assertStackTag(stack)
         val tag0 = new NBTTagList
-        for (i <- 0 until 9) {
+        for i <- 0 until 9 do {
             val tag1 = new NBTTagCompound
             var slotStack = inputs(i)
-            if (slotStack.isItemStackDamageable) { //save without damage bar
+            if slotStack.isItemStackDamageable then { //save without damage bar
                 slotStack = slotStack.copy
                 slotStack.setItemDamage(0)
             }
@@ -209,9 +209,9 @@ object ItemPlan
     {
         val out = new Array[ItemStack](9)
         val tag0 = stack.getTagCompound.getTagList("recipe", 10)
-        for (i <- 0 until 9) {
+        for i <- 0 until 9 do {
             val tag1 = tag0.getCompoundTagAt(i)
-            if (tag1.hasKey("id"))
+            if tag1.hasKey("id") then
                 out(i) = new ItemStack(tag1)
             else
                 out(i) = ItemStack.EMPTY
@@ -223,7 +223,7 @@ object ItemPlan
     {
         val tag0 = stack.getTagCompound.getTagList("recipe", 10)
         val out = new ItemStack(tag0.getCompoundTagAt(9))
-        if (!out.isEmpty) out else new ItemStack(Blocks.STONE)
+        if !out.isEmpty then out else new ItemStack(Blocks.STONE)
     }
 }
 
@@ -239,12 +239,12 @@ class ItemJetpack extends ItemArmor(ArmorMaterial.DIAMOND, 0, EntityEquipmentSlo
         case _ => false
     }
 
-    override def onArmorTick(world:World, player:EntityPlayer, stack:ItemStack)
+    override def onArmorTick(world:World, player:EntityPlayer, stack:ItemStack): Unit =
     {
-        if (SpacebarServerTracker.isKeyDown(player) && stack.getItemDamage < stack.getMaxDamage)
+        if SpacebarServerTracker.isKeyDown(player) && stack.getItemDamage < stack.getMaxDamage then
         {
             propellPlayer(player, stack)
-            if (!player.capabilities.isCreativeMode)
+            if !player.capabilities.isCreativeMode then
                 stack.setItemDamage(stack.getItemDamage+getPowerDraw(stack))
             ItemJetpack.setStateOfEntity(player.getEntityId, true, !world.isRemote)
         }
@@ -254,9 +254,9 @@ class ItemJetpack extends ItemArmor(ArmorMaterial.DIAMOND, 0, EntityEquipmentSlo
 
     def getPowerDraw(stack:ItemStack):Int =
     {
-        if (!stack.isItemEnchanted) return 16
+        if !stack.isItemEnchanted then return 16
         val i = EnchantmentHelper.getEnchantmentLevel(ProjectRedExpansion.enchantmentElectricEfficiency, stack)
-        if (i == 0) return 16
+        if i == 0 then return 16
         Math.max(1, 16-Math.pow(2, i)).toInt
     }
 
@@ -266,14 +266,14 @@ class ItemJetpack extends ItemArmor(ArmorMaterial.DIAMOND, 0, EntityEquipmentSlo
     @SideOnly(Side.CLIENT)
     override def getArmorModel(entityLiving: EntityLivingBase, itemStack: ItemStack, armorSlot: EntityEquipmentSlot, _default: ModelBiped):ModelBiped = ModelJetpack
 
-    override def damageArmor(entity:EntityLivingBase, stack:ItemStack, source:DamageSource, damage:Int, slot:Int){}
+    override def damageArmor(entity:EntityLivingBase, stack:ItemStack, source:DamageSource, damage:Int, slot:Int): Unit ={}
 
     override def getArmorDisplay(player:EntityPlayer, armor:ItemStack, slot:Int) = 0
 
     override def getProperties(player:EntityLivingBase, armor:ItemStack, source:DamageSource, damage:Double, slot:Int) =
         new ArmorProperties(0, 1, 0)
 
-    def propellPlayer(player:EntityPlayer, stack:ItemStack)
+    def propellPlayer(player:EntityPlayer, stack:ItemStack): Unit =
     {
         val maxHeight = 256.0*0.6
         val thrust = 0.1
@@ -285,22 +285,22 @@ class ItemJetpack extends ItemArmor(ArmorMaterial.DIAMOND, 0, EntityEquipmentSlo
         var power = 1.0
 
         val y = player.posY
-        if (y > maxHeight-heightFalloff)
+        if y > maxHeight-heightFalloff then
             power *= Math.max(0, maxHeight-y)/heightFalloff
 
         val damage = stack.getItemDamage
-        if (damage > getMaxDamage-damageFalloff)
+        if damage > getMaxDamage-damageFalloff then
             power *= Math.max(0, getMaxDamage-damage)/heightFalloff
 
         val velY = player.motionY
-        val accelY = if (player.isSneaking) Math.min(-velY*stabalizeSpeed, thrust*power) else thrust*power
+        val accelY = if player.isSneaking then Math.min(-velY*stabalizeSpeed, thrust*power) else thrust*power
         player.motionY = Math.min(velY+accelY, maxUpSpeed)
 
-        if (ForwardServerTracker.isKeyDown(player))
+        if ForwardServerTracker.isKeyDown(player) then
             player.moveRelative(0, 0, (power*0.6).toFloat, 0.055f)
 
         player.distanceWalkedModified = 0
-        player.fallDistance = if (player.motionY < 0)
+        player.fallDistance = if player.motionY < 0 then
             ((player.motionY*player.motionY)/0.065).toFloat else 0
     }
 
@@ -325,12 +325,12 @@ object ItemJetpack
 {
     var entitiesUsingJetpack = Set[Int]()
 
-    def setStateOfEntity(id:Int, state:Boolean, isServer:Boolean)
+    def setStateOfEntity(id:Int, state:Boolean, isServer:Boolean): Unit =
     {
         val prev = isEntityUsing(id)
-        if (state) entitiesUsingJetpack += id
+        if state then entitiesUsingJetpack += id
         else entitiesUsingJetpack -= id
-        if (isServer && prev != isEntityUsing(id))
+        if isServer && prev != isEntityUsing(id) then
         {
             val packet = new PacketCustom(ExpansionSPH.channel, ExpansionSPH.jetpack_state)
             packet.writeInt(id).writeBoolean(state).sendToClients()
@@ -341,10 +341,10 @@ object ItemJetpack
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
-    def onRenderTick(event:ClientTickEvent)
+    def onRenderTick(event:ClientTickEvent): Unit =
     {
-        if (event.phase == Phase.END && Minecraft.getMinecraft.world != null)
-            for (id <- entitiesUsingJetpack)
+        if event.phase == Phase.END && Minecraft.getMinecraft.world != null then
+            for id <- entitiesUsingJetpack do
                 Minecraft.getMinecraft.world.getEntityByID(id) match {
                     case e:EntityPlayer => renderParticlesForPlayer(e)
                     case _ =>
@@ -352,13 +352,13 @@ object ItemJetpack
     }
 
     @SideOnly(Side.CLIENT)
-    def register()
+    def register(): Unit =
     {
         MinecraftForge.EVENT_BUS.register(this)
     }
 
     @SideOnly(Side.CLIENT)
-    def renderParticlesForPlayer(player:EntityPlayer)
+    def renderParticlesForPlayer(player:EntityPlayer): Unit =
     {
         val pos1 = new Vector3(-2.5/16D, -15/16D, -4/16D).apply(new Rotation(-player.renderYawOffset * MathHelper.torad, 0, 1, 0) `with`
                 new Translation(player.posX, player.posY, player.posZ))
@@ -369,7 +369,7 @@ object ItemJetpack
 
         val s = -player.world.rand.nextDouble()*0.2+Math.min(0, player.motionY)
 
-        import mrtjp.core.fx.ParticleAction._
+        import mrtjp.core.fx.ParticleAction.*
         val a1 = group(
             repeatForever(sequence(
                 delay(2.5),
@@ -391,7 +391,7 @@ object ItemJetpack
             )
         )
 
-        for (pos <- positions) for (i <- 0 until 2)
+        for pos <- positions do for i <- 0 until 2 do
         {
             val p = new SpriteParticle(player.world)
             Minecraft.getMinecraft.effectRenderer.addEffect(p)
@@ -412,11 +412,11 @@ class ItemInfusedEnderPearl extends ItemCore
 {
     setMaxStackSize(1)
 
-    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag): Unit =
     {
-        import ItemInfusedEnderPearl._
+        import ItemInfusedEnderPearl.*
         val slist = list.asInstanceOf[JList[String]]
-        if (hasLocation(stack))
+        if hasLocation(stack) then
         {
             val bc = getLocation(stack)
             slist.add(TextFormatting.GRAY.toString + s"Tied to [${bc.getX}, ${bc.getY}, ${bc.getZ}]")
@@ -426,13 +426,13 @@ class ItemInfusedEnderPearl extends ItemCore
 
 object ItemInfusedEnderPearl
 {
-    private def assertNBT(stack:ItemStack)
+    private def assertNBT(stack:ItemStack): Unit =
     {
-        if (!stack.hasTagCompound)
+        if !stack.hasTagCompound then
             stack.setTagCompound(new NBTTagCompound)
     }
 
-    def setLocation(stack:ItemStack, x:Int, y:Int, z:Int)
+    def setLocation(stack:ItemStack, x:Int, y:Int, z:Int): Unit =
     {
         assertNBT(stack)
         val tag = stack.getTagCompound
@@ -526,7 +526,7 @@ object ModelJetpack extends ModelBiped(1.0F, 0, 64, 64)
     bipedBody.addChild(rightExhaust1)
     bipedBody.addChild(rightExhaust2)
 
-    def setRotation(model:ModelRenderer, x:Float, y:Float, z:Float)
+    def setRotation(model:ModelRenderer, x:Float, y:Float, z:Float): Unit =
     {
         model.rotateAngleX = x
         model.rotateAngleY = y

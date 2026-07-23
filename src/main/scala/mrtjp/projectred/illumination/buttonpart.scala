@@ -8,7 +8,7 @@ import codechicken.lib.render.pipeline.ColourMultiplier
 import codechicken.lib.render.{BlockRenderer, CCModel, CCRenderState}
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.util.TransformUtils
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.lib.vec.uv.IconTransformation
 import codechicken.multipart.minecraft.ButtonPart
 import codechicken.multipart.{RedstoneInteractions, TDynamicRenderPart, TileMultipart}
@@ -28,14 +28,14 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDynamicRenderPart
 {
     var colorMeta:Byte = 0
     var inverted = false
 
-    override def setStateOnPlacement(world:World, pos:BlockPos, facing:EnumFacing, hitVec:Vec3d, placer:EntityLivingBase, held:ItemStack)
+    override def setStateOnPlacement(world:World, pos:BlockPos, facing:EnumFacing, hitVec:Vec3d, placer:EntityLivingBase, held:ItemStack): Unit =
     {
         super.setStateOnPlacement(world, pos, facing, hitVec, placer, new ItemStack(Blocks.STONE_BUTTON))
         colorMeta = held.getItemDamage.toByte
@@ -43,10 +43,10 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand) =
     {
-        if (pressed) false
-        else if (!world.isRemote)
+        if pressed then false
+        else if !world.isRemote then
         {
-            if (player.isSneaking)
+            if player.isSneaking then
             {
                 inverted = !inverted
                 sendInvUpdate()
@@ -58,43 +58,43 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
     }
 
     //hacked override point to remap description update to just a meta update.
-    override def sendDescUpdate() {sendMetaUpdate()}
+    override def sendDescUpdate(): Unit = {sendMetaUpdate()}
 
     override def isOn = pressed != inverted
 
     override def getColor: Int = colorMeta
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("colorMeta", colorMeta)
         tag.setBoolean("inv", inverted)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         colorMeta = tag.getByte("colorMeta")
         inverted = tag.getBoolean("inv")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(colorMeta)
         packet.writeBoolean(inverted)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         colorMeta = packet.readByte
         inverted = packet.readBoolean
     }
 
-    def sendInvUpdate() {getWriteStreamOf(1).writeBoolean(inverted)}
+    def sendInvUpdate(): Unit = {getWriteStreamOf(1).writeBoolean(inverted)}
 
-    def sendMetaUpdate() {getWriteStreamOf(2).writeByte(getMeta)}
+    def sendMetaUpdate(): Unit = {getWriteStreamOf(2).writeByte(getMeta)}
 
     override def read(packet:MCDataInput, key:Int) = key match
     {
@@ -112,7 +112,7 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
     override def getDrops = Seq(getItemStack).asJava
     override def pickItem(hit:CuboidRayTraceResult) = getItemStack
 
-    override def drop()
+    override def drop(): Unit =
     {
         TileMultipart.dropItem(getItemStack, world, Vector3.fromTileCenter(tile))
         tile.remPart(this)
@@ -123,7 +123,7 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
     @SideOnly(Side.CLIENT)
     override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) =
     {
-        if (layer == BlockRenderLayer.SOLID) {
+        if layer == BlockRenderLayer.SOLID then {
             ccrs.setBrightness(world, this.pos)
             ccrs.setPipeline(pos.translation, new IconTransformation(Minecraft.getMinecraft
                     .getTextureMapBlocks.getAtlasSprite("minecraft:blocks/stone")),
@@ -135,7 +135,7 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(vec:Vector3, pass:Int, frame:Float)
+    override def renderDynamic(vec:Vector3, pass:Int, frame:Float): Unit =
     {
         val box = getBounds.expand(0.025D)
         RenderHalo.addLight(pos, colorMeta, box)
@@ -147,7 +147,7 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
     override def getBrokenIcon(side:Int) =
         TextureUtils.getParticleIconForBlock(Blocks.STAINED_HARDENED_CLAY.getStateFromMeta(colorMeta))
 
-    override def getLightValue = if (isOn) 5 else 0
+    override def getLightValue = if isOn then 5 else 0
 }
 
 object LightButtonPart
@@ -161,48 +161,48 @@ class FLightButtonPart extends LightButtonPart
 
     override def isOn = powered != inverted
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         super.onAdded()
-        if (!world.isRemote) checkAndUpdatePower()
+        if !world.isRemote then checkAndUpdatePower()
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
         super.onNeighborChanged()
-        if (world == null) return //might have been dropped in super call
-        if (!world.isRemote) checkAndUpdatePower()
+        if world == null then return //might have been dropped in super call
+        if !world.isRemote then checkAndUpdatePower()
     }
 
-    def checkAndUpdatePower()
+    def checkAndUpdatePower(): Unit =
     {
         val old = powered
         powered = isPowered
-        if (old != powered) sendPowUpdate()
+        if old != powered then sendPowUpdate()
 
         def isPowered:Boolean =
         {
             val side = getSideFromState
-            for (s <- 0 until 6) if (s != (side^1))
-                if (RedstoneInteractions.getPowerTo(this, s) > 0)
+            for s <- 0 until 6 do if s != (side^1) then
+                if RedstoneInteractions.getPowerTo(this, s) > 0 then
                     return true
             false
         }
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeBoolean(powered)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         powered = packet.readBoolean()
     }
 
-    def sendPowUpdate() {getWriteStreamOf(3).writeBoolean(powered)}
+    def sendPowUpdate(): Unit = {getWriteStreamOf(3).writeBoolean(powered)}
 
     override def read(packet:MCDataInput, key:Int) = key match
     {
@@ -229,13 +229,13 @@ trait TButtonItemRendererCommons extends IItemRenderer
     override def isGui3d = true
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
-    override def renderItem(item:ItemStack, transformType: TransformType)
+    override def renderItem(item:ItemStack, transformType: TransformType): Unit =
     {
-        val colour = if (0 until 16 contains item.getItemDamage) item.getItemDamage else 0
+        val colour = if 0 until 16 contains item.getItemDamage then item.getItemDamage else 0
         renderButtonInventory(colour, 0, 0, 0, 1)
     }
 
-    def renderButtonInventory(colour:Int, x:Float, y:Float, z:Float, scale:Float)
+    def renderButtonInventory(colour:Int, x:Float, y:Float, z:Float, scale:Float): Unit =
     {
         val icon = new IconTransformation(TextureUtils.getParticleIconForBlock(
             Blocks.STAINED_HARDENED_CLAY.getStateFromMeta(colour)))
@@ -258,7 +258,7 @@ trait TButtonItemRendererCommons extends IItemRenderer
         RenderHalo.restoreRenderState()
     }
 
-    def drawExtras(ccrs:CCRenderState, t:Transformation){}
+    def drawExtras(ccrs:CCRenderState, t:Transformation): Unit ={}
 }
 
 object ButtonItemRenderer extends TButtonItemRendererCommons
@@ -267,7 +267,7 @@ object FButtonItemRenderer extends TButtonItemRendererCommons
 {
     val model = genModel(10, 8, 8)
 
-    override def drawExtras(ccrs:CCRenderState, t:Transformation)
+    override def drawExtras(ccrs:CCRenderState, t:Transformation): Unit =
     {
         model.render(ccrs, new Translation(0, 6/16D, 0) `with` t, new IconTransformation(Minecraft.getMinecraft
                 .getTextureMapBlocks.getAtlasSprite("minecraft:blocks/redstone_torch_on")))

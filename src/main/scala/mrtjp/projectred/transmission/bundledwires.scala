@@ -5,7 +5,7 @@ import codechicken.lib.vec.Rotation
 import codechicken.multipart.TMultiPart
 import mrtjp.core.world.Messenger
 import mrtjp.projectred.api.{IBundledEmitter, IBundledTile, IConnectable, IMaskedBundledTile}
-import mrtjp.projectred.core.IWirePart._
+import mrtjp.projectred.core.IWirePart.*
 import mrtjp.projectred.core.{IInsulatedRedwirePart, IWirePart, WirePropagator}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
@@ -19,7 +19,7 @@ trait IBundledCablePart extends IWirePart with IBundledEmitter
 
     def calculateSignal:Array[Byte]
 
-    def setSignal(newSignal:Array[Byte])
+    def setSignal(newSignal:Array[Byte]): Unit 
 
     def getBundledColour:Int
 }
@@ -31,33 +31,33 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
 
     def getWireType = WireDef.values(WireDef.BUNDLED_N.meta+colour+1)
 
-    override def preparePlacement(side:Int, meta:Int)
+    override def preparePlacement(side:Int, meta:Int): Unit =
     {
         super.preparePlacement(side, meta)
         colour = (meta-WireDef.BUNDLED_0.meta).toByte
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByteArray("signal", signal)
         tag.setByte("colour", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         signal = tag.getByteArray("signal")
         colour = tag.getByte("colour")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(colour)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         colour = packet.readByte()
@@ -72,30 +72,30 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
     }
 
     protected var propagatingMask = 0xFFFF
-    override def updateAndPropagate(from:TMultiPart, mode:Int)
+    override def updateAndPropagate(from:TMultiPart, mode:Int): Unit =
     {
-        import mrtjp.projectred.transmission.BundledCommons._
+        import mrtjp.projectred.transmission.BundledCommons.*
         val mask = getUpdateMask(from, mode)
-        if (mode == DROPPING && isSignalZero(getBundledSignal, mask)) return
+        if mode == DROPPING && isSignalZero(getBundledSignal, mask) then return
 
         val newSignal = calculateSignal
         applyChangeMask(getBundledSignal, newSignal, mask)
 
         propagatingMask = mask
 
-        if (dropSignalsLessThan(getBundledSignal, newSignal))
+        if dropSignalsLessThan(getBundledSignal, newSignal) then
         {
-            if (!isSignalZero(newSignal, mask)) WirePropagator.propagateAnalogDrop(this)
+            if !isSignalZero(newSignal, mask) then WirePropagator.propagateAnalogDrop(this)
             propagate(from, DROPPING)
         }
-        else if (!signalsEqual(getBundledSignal, newSignal))
+        else if !signalsEqual(getBundledSignal, newSignal) then
         {
             setSignal(newSignal)
-            if (mode == DROPPING) propagate(null, RISING)
+            if mode == DROPPING then propagate(null, RISING)
             else propagate(from, RISING)
         }
-        else if (mode == DROPPING) propagateTo(from, RISING)
-        else if (mode == FORCE) propagate(from, FORCED)
+        else if mode == DROPPING then propagateTo(from, RISING)
+        else if mode == FORCE then propagate(from, FORCED)
 
         propagatingMask = 0xFFFF
     }
@@ -106,12 +106,12 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
         case b:IBundledCablePart if mode == DROPPING =>
             var m = 0
             val osignal = b.getBundledSignal
-            for (i <- 0 until 16) if (osignal(i) == 0) m |= 1<<i
+            for i <- 0 until 16 do if osignal(i) == 0 then m |= 1<<i
             m
         case b:IBundledCablePart if mode == RISING =>
             var m = 0
             val osignal = b.getBundledSignal
-            for (i <- 0 until 16) if ((osignal(i)&0xFF) > (getBundledSignal.apply(i)&0xFF)) m |= 1<<i
+            for i <- 0 until 16 do if (osignal(i)&0xFF) > (getBundledSignal.apply(i)&0xFF) then m |= 1<<i
             m
         case _ => 0xFFFF
     }
@@ -122,11 +122,11 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
         {
             case b:IBundledCablePart =>
                 val osig = b.getBundledSignal
-                for (i <- 0 until 16) if ((osig(i)&0xFF)-1 > (tmpSignal(i)&0xFF))
+                for i <- 0 until 16 do if (osig(i)&0xFF)-1 > (tmpSignal(i)&0xFF) then
                     tmpSignal(i) = (osig(i)-1).toByte
             case i:IInsulatedRedwirePart =>
                 val s = i.getRedwireSignal(r)-1
-                if (s > (tmpSignal(i.getInsulatedColour)&0xFF))
+                if s > (tmpSignal(i.getInsulatedColour)&0xFF) then
                     tmpSignal(i.getInsulatedColour) = s.toByte
             case b:IBundledEmitter => BundledCommons.raiseSignal(tmpSignal, b.getBundledSignal(r))
             case t:TileEntity => BundledCommons.raiseSignal(tmpSignal,
@@ -137,9 +137,9 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
     }
 
     protected val tmpSignal = new Array[Byte](16)
-    protected def tmpSignalClear()
+    protected def tmpSignalClear(): Unit =
     {
-        for (i <- 0 until 16) tmpSignal(i) = 0.toByte
+        for i <- 0 until 16 do tmpSignal(i) = 0.toByte
     }
 
     override def propagateTo(part:TMultiPart, mode:Int) =
@@ -150,29 +150,29 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
             case _ => true
         }
 
-        if (shouldPropogate(part, mode)) super.propagateTo(part, mode)
+        if shouldPropogate(part, mode) then super.propagateTo(part, mode)
         else true
     }
 
-    override def setSignal(newSignal:Array[Byte])
+    override def setSignal(newSignal:Array[Byte]): Unit =
     {
-        if (newSignal == null) signal.transform(_ => 0.toByte)
-        else for (i <- 0 until 16) signal(i) = newSignal(i)
+        if newSignal == null then signal.transform(_ => 0.toByte)
+        else for i <- 0 until 16 do signal(i) = newSignal(i)
     }
 
     override def getBundledSignal = signal
 
-    override def getBundledSignal(dir:Int) = if (maskConnects(dir)) getBundledSignal else null
+    override def getBundledSignal(dir:Int) = if maskConnects(dir) then getBundledSignal else null
 
     override def getBundledColour = colour
 
     override def debug(player:EntityPlayer):Boolean =
     {
         val sb = new StringBuilder
-        for (i <- 0 until 16)
+        for i <- 0 until 16 do
         {
             val s = Integer.toHexString(signal(i)&0xFF).toUpperCase
-            if (s.length == 1) sb.append('0')
+            if s.length == 1 then sb.append('0')
             sb.append(s)
         }
         player.sendMessage(new TextComponentString(sb.toString()))
@@ -181,11 +181,11 @@ trait TBundledCableCommons extends TWireCommons with TBundledAquisitionsCommons 
 
     override def test(player:EntityPlayer) =
     {
-        if (!world.isRemote) {
+        if !world.isRemote then {
             var s = ""
-            for (i <- 0 until 16) if (getBundledSignal.apply(i) != 0) s = s+"["+i+"]"
+            for i <- 0 until 16 do if getBundledSignal.apply(i) != 0 then s = s+"["+i+"]"
 
-            if (s == "") s = "off"
+            if s == "" then s = "off"
             val packet = Messenger.createPacket
             //TODO we have writeVector in 1.12.
             packet.writeDouble(pos.getX + 0.0D)
@@ -205,14 +205,14 @@ class BundledCablePart extends WirePart with TFaceBundledAquisitions with TBundl
     override def calculateSignal =
     {
         tmpSignalClear()
-        for (r <- 0 until 4) if (maskConnects(r)) {
-            if (maskConnectsCorner(r)) calcCornerArray(r)
+        for r <- 0 until 4 do if maskConnects(r) then {
+            if maskConnectsCorner(r) then calcCornerArray(r)
             else {
-                if (maskConnectsStraight(r)) calcStraightArray(r)
+                if maskConnectsStraight(r) then calcStraightArray(r)
                 calcInternalArray(r)
             }
         }
-        if (maskConnectsCenter) calcCenterArray
+        if maskConnectsCenter then calcCenterArray
         tmpSignal
     }
 
@@ -243,8 +243,8 @@ class FramedBundledCablePart extends FramedWirePart with TCenterBundledAquisitio
     override def calculateSignal =
     {
         tmpSignalClear()
-        for (s <- 0 until 6) if (maskConnects(s))
-            if (maskConnectsOut(s)) calcStraightArray(s)
+        for s <- 0 until 6 do if maskConnects(s) then
+            if maskConnectsOut(s) then calcStraightArray(s)
             else calcInternalArray(s)
 
         tmpSignal

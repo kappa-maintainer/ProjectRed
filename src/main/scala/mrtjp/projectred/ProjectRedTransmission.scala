@@ -2,7 +2,7 @@ package mrtjp.projectred
 
 import mrtjp.projectred.api.ProjectRedAPI
 import mrtjp.projectred.core.WirePropagator
-import mrtjp.projectred.transmission._
+import mrtjp.projectred.transmission.*
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.ItemStack
 import net.minecraftforge.fml.common.Mod
@@ -14,8 +14,8 @@ object ProjectRedTransmission
     ProjectRedAPI.transmissionAPI = new APIImpl_Transmission
 
     /** Multipart items **/
-    var itemPartWire:ItemPartWire = _
-    var itemPartFramedWire:ItemPartFramedWire = _
+    var itemPartWire:ItemPartWire = scala.compiletime.uninitialized
+    var itemPartFramedWire:ItemPartFramedWire = scala.compiletime.uninitialized
 
     val tabTransmission = new CreativeTabs("projectred.transmission")
     {

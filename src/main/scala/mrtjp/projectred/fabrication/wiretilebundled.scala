@@ -23,25 +23,25 @@ class BundledCableICTile extends WireICTile with IBundledCableICPart
 {
     var colour:Byte = -1
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("colour", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         colour = tag.getByte("colour")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(colour)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         colour = in.readByte()
@@ -71,18 +71,18 @@ class BundledCableICTile extends WireICTile with IBundledCableICPart
     override def getInputColourMask(r:Int) = 0xFFFF
     override def getOutputColourMask(r:Int) = 0
 
-    override def cacheStateRegisters(linker:ISELinker){}
-    override def onRegistersChanged(regIDs:Set[Int]){}
+    override def cacheStateRegisters(linker:ISELinker): Unit ={}
+    override def onRegistersChanged(regIDs:Set[Int]): Unit ={}
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float)
+    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         RenderTileBundledCable.prepairDynamic(this)
         RenderTileBundledCable.render(ccrs, t, ortho)
     }
 
     @SideOnly(Side.CLIENT)
-    override def getPartName = (if (colour != -1) EnumColour.values()(colour&0xFF).name+" " else "")+"Bundled cable"
+    override def getPartName = (if colour != -1 then EnumColour.values()(colour&0xFF).name+" " else "")+"Bundled cable"
 
     @SideOnly(Side.CLIENT)
     override def getPickOp = TileEditorOpDefs.values(TileEditorOpDefs.NeutralBundledCable.ordinal+colour+1).getOp

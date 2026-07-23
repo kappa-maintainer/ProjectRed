@@ -6,7 +6,7 @@
 package mrtjp.projectred.relocation
 
 import mrtjp.core.world.WorldLib
-import mrtjp.core.world.WorldLib._
+import mrtjp.core.world.WorldLib.*
 import mrtjp.projectred.api.ITileMover
 import net.minecraft.block.Block
 import net.minecraft.block.state.IBlockState
@@ -34,7 +34,7 @@ object MovingTileRegistry extends ITileMover
     var moverDescMap:Map[String, String] = Map()
     var moverNameMap:Map[String, ITileMover] = Map()
 
-    var defaultMover:ITileMover = _
+    var defaultMover:ITileMover = scala.compiletime.uninitialized
     var preferredMovers:Seq[(String, String)] = Seq()
     var mandatoryMovers:Seq[(String, String)] = Seq()
 
@@ -49,16 +49,16 @@ object MovingTileRegistry extends ITileMover
 
     def parseAndSetMovers(kv:Seq[String]):Array[String] =
     {
-        var moverMap = ListMap(parseKV(kv):_*)
-        for ((k, v) <- preferredMovers) if (!moverMap.contains(k)) moverMap += k -> v
-        for (pair <- mandatoryMovers) moverMap += pair
+        var moverMap = ListMap(parseKV(kv)*)
+        for (k, v) <- preferredMovers do if !moverMap.contains(k) then moverMap += k -> v
+        for pair <- mandatoryMovers do moverMap += pair
         moverMap.foreach(h => setMover(h._1, h._2))
         moverMap.map(p => p._1 + " -> " + p._2).toArray
     }
 
-    def setMover(that:String, m:String)
+    def setMover(that:String, m:String): Unit =
     {
-        if (!moverNameMap.contains(m)) return
+        if !moverNameMap.contains(m) then return
         val h = moverNameMap(m)
         that match {
             case "default" => defaultMover = h
@@ -67,7 +67,7 @@ object MovingTileRegistry extends ITileMover
         }
     }
 
-    def registerTileMover(name:String, desc:String, m:ITileMover)
+    def registerTileMover(name:String, desc:String, m:ITileMover): Unit =
     {
         moverDescMap += name -> desc
         moverNameMap += name -> m
@@ -96,35 +96,35 @@ object CoordPushTileMover extends ITileMover
 {
     override def canMove(w:World, pos:BlockPos) = true
 
-    override def move(w:World, pos:BlockPos, side:EnumFacing)
+    override def move(w:World, pos:BlockPos, side:EnumFacing): Unit =
     {
         val (state, te) = (w.getBlockState(pos), uncheckedGetTileEntity(w, pos))
         val pos2 = pos.offset(side)
-        if (te != null) {
+        if te != null then {
             te.invalidate()
             uncheckedRemoveTileEntity(w, pos)
         }
         uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
         uncheckedSetBlock(w, pos2, state)
-        if (te != null) {
+        if te != null then {
             te.setPos(pos2)
             te.validate()
             uncheckedSetTileEntity(w, pos2, te)
         }
     }
 
-    override def postMove(w:World, pos:BlockPos){}
+    override def postMove(w:World, pos:BlockPos): Unit ={}
 }
 
 object SaveLoadTileMover extends ITileMover
 {
     override def canMove(w:World, pos:BlockPos) = true
 
-    override def move(w:World, pos:BlockPos, side:EnumFacing)
+    override def move(w:World, pos:BlockPos, side:EnumFacing): Unit =
     {
         val (state, te) = (w.getBlockState(pos), uncheckedGetTileEntity(w, pos))
         val pos2 = pos.offset(side)
-        val tag = if (te != null) {
+        val tag = if te != null then {
             val tag = new NBTTagCompound
             te.writeToNBT(tag)
             tag.setInteger("x", pos2.getX)
@@ -137,7 +137,7 @@ object SaveLoadTileMover extends ITileMover
         else null
         uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState)
         uncheckedSetBlock(w, pos2, state)
-        if (tag != null) {
+        if tag != null then {
             TileEntity.create(w, tag) match {
                 case te:TileEntity => w.getChunk(pos2).addTileEntity(te)
                 case _ =>
@@ -145,14 +145,14 @@ object SaveLoadTileMover extends ITileMover
         }
     }
 
-    override def postMove(w:World, pos:BlockPos){}
+    override def postMove(w:World, pos:BlockPos): Unit ={}
 }
 
 object StaticTileMover extends ITileMover
 {
     override def canMove(w:World, pos:BlockPos) = false
 
-    override def move(w:World, pos:BlockPos, side:EnumFacing){}
+    override def move(w:World, pos:BlockPos, side:EnumFacing): Unit ={}
 
-    override def postMove(w:World, pos:BlockPos){}
+    override def postMove(w:World, pos:BlockPos): Unit ={}
 }

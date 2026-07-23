@@ -4,7 +4,7 @@ import mrtjp.projectred.api.IConnectable
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.world.World
 
-import scala.collection.mutable.{Set => MSet}
+import scala.collection.mutable.{Set as MSet}
 
 /**
  * Interface for things that wish to conduct/use electricity.
@@ -75,7 +75,7 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
     def voltage() =
     {
         val tick = parent.connWorld.getTotalWorldTime
-        if ((tick & 0xFFFF) != time) {
+        if (tick & 0xFFFF) != time then {
             time = (tick & 0xFFFF).asInstanceOf[Int]
             //calculate voltage
             Iloc = 0.5D * Iflow
@@ -100,43 +100,43 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
      */
     def power = voltage()*Iloc
 
-    def applyCurrent(I:Double)
+    def applyCurrent(I:Double): Unit =
     {
         voltage()
         Vflow += I
         Iflow += math.abs(I)
     }
 
-    def applyPower(P:Double)
+    def applyPower(P:Double): Unit =
     {
         val Ptot = voltage()*Vloc + 0.1D*P*capacitance
         val dP = math.sqrt(Ptot)-Vloc
         applyCurrent(20.0D*dP/capacitance)
     }
 
-    def drawPower(P:Double)
+    def drawPower(P:Double): Unit =
     {
         val Ptot = voltage()*Vloc - 0.1D*P*capacitance
-        val dP = if (Ptot < 0.0D) 0.0D else math.sqrt(Ptot)-Vloc
+        val dP = if Ptot < 0.0D then 0.0D else math.sqrt(Ptot)-Vloc
         applyCurrent(20.0D*dP/capacitance)
     }
 
     def powerTotal = (voltage()*Vloc)/(0.1D*capacitance)
 
-    def update()
+    def update(): Unit =
     {
         voltage()
-        for (id <- ids)
-            if (!surge(parent.conductorOut(id), id)) flows(id) = 0.0D
+        for id <- ids do
+            if !surge(parent.conductorOut(id), id) then flows(id) = 0.0D
 
         surgeIn.clear()
     }
 
     def surge(cond:PowerConductor, id:Int) =
     {
-        if (cond == null) false
-        else if (cond.parent == parent) false
-        else if (surgeIn.contains(cond)) true
+        if cond == null then false
+        else if cond.parent == parent then false
+        else if surgeIn.contains(cond) then true
         else
         {
             val r = resistance+cond.resistance
@@ -153,15 +153,15 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
     }
 
     var surgeIn = MSet[PowerConductor]()
-    def applySurge(from:PowerConductor, Iin:Double)
+    def applySurge(from:PowerConductor, Iin:Double): Unit =
     {
         surgeIn += from
         applyCurrent(Iin)
     }
 
-    def save(tag:NBTTagCompound)
+    def save(tag:NBTTagCompound): Unit =
     {
-        for (i <- 0 until flows.length)
+        for i <- 0 until flows.length do
             tag.setDouble("flow"+i, flows(i))
 
         tag.setDouble("vl", Vloc)
@@ -171,9 +171,9 @@ class PowerConductor(val parent:IPowerConnectable, ids:Seq[Int])
         tag.setInteger("tm", time)
     }
 
-    def load(tag:NBTTagCompound)
+    def load(tag:NBTTagCompound): Unit =
     {
-        for (i <- 0 until flows.length)
+        for i <- 0 until flows.length do
             flows(i) = tag.getDouble("flow"+i)
 
         Vloc = tag.getDouble("vl")
@@ -196,22 +196,22 @@ trait TPowerDrawPoint extends PowerConductor
 
     def canWork = charge > 600
 
-    abstract override def update()
+    abstract override def update(): Unit =
     {
         super.update()
         charge = (voltage()*10.0D).asInstanceOf[Int]
         flow <<= 1
-        if (canWork) flow |= 1
+        if canWork then flow |= 1
     }
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setInteger("chg", charge)
         tag.setInteger("flow", flow)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         charge = tag.getInteger("chg")

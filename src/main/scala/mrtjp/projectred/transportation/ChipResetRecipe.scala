@@ -1,6 +1,6 @@
 package mrtjp.projectred.transportation
 
-import java.lang.{Character => JC}
+import java.lang.{Character as JC}
 
 import mrtjp.projectred.transportation.RoutingChipDefs.ChipVal
 import net.minecraft.inventory.InventoryCrafting
@@ -18,28 +18,28 @@ class ChipResetRecipe extends IForgeRegistryEntry.Impl[IRecipe] with IRecipe
     override def getCraftingResult(inv:InventoryCrafting):ItemStack =
     {
         val cdef = getType(inv)
-        if (cdef != null) if (isTypeExclusive(cdef, inv)) return cdef.makeStack(countUnits(inv))
+        if cdef != null then if isTypeExclusive(cdef, inv) then return cdef.makeStack(countUnits(inv))
         ItemStack.EMPTY
     }
 
     def getType(inv:InventoryCrafting):ChipVal =
     {
-        for (i <- 0 until inv.getSizeInventory)
+        for i <- 0 until inv.getSizeInventory do
         {
             val cdef = RoutingChipDefs.getForStack(inv.getStackInSlot(i))
-            if (cdef != null) return cdef
+            if cdef != null then return cdef
         }
         null
     }
 
     def isTypeExclusive(cdef:ChipVal, inv:InventoryCrafting):Boolean =
     {
-        for (i <- 0 until inv.getSizeInventory)
+        for i <- 0 until inv.getSizeInventory do
         {
             val stack = inv.getStackInSlot(i)
-            if (!stack.isEmpty && !stack.getItem.isInstanceOf[ItemRoutingChip]) return false
+            if !stack.isEmpty && !stack.getItem.isInstanceOf[ItemRoutingChip] then return false
             val type2 = RoutingChipDefs.getForStack(stack)
-            if (type2 != null && !(type2 == cdef)) return false
+            if type2 != null && !(type2 == cdef) then return false
         }
         true
     }
@@ -47,8 +47,8 @@ class ChipResetRecipe extends IForgeRegistryEntry.Impl[IRecipe] with IRecipe
     def countUnits(inv:InventoryCrafting):Int =
     {
         var count = 0
-        for (i <- 0 until inv.getSizeInventory)
-            if (!inv.getStackInSlot(i).isEmpty) count += 1
+        for i <- 0 until inv.getSizeInventory do
+            if !inv.getStackInSlot(i).isEmpty then count += 1
         count
     }
 
@@ -60,7 +60,7 @@ class ChipResetRecipe extends IForgeRegistryEntry.Impl[IRecipe] with IRecipe
 object ChipResetRecipe
 {
     @SubscribeEvent
-    def registerRecipes(event: RegistryEvent.Register[IRecipe])
+    def registerRecipes(event: RegistryEvent.Register[IRecipe]): Unit =
     {
         event.getRegistry.register(new ChipResetRecipe().setRegistryName("chip_reset"))
     }

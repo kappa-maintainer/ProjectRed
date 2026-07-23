@@ -3,10 +3,10 @@ package mrtjp.projectred.fabrication
 import java.util.Random
 
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
-import com.mojang.realmsclient.gui.ChatFormatting._
+import com.mojang.realmsclient.gui.ChatFormatting.*
 import mrtjp.projectred.ProjectRedCore.log
 import mrtjp.projectred.core.Configurator
-import mrtjp.projectred.fabrication.SEIntegratedCircuit._
+import mrtjp.projectred.fabrication.SEIntegratedCircuit.*
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
@@ -16,28 +16,28 @@ trait TComplexGateICTile extends GateICTile
 {
     def getLogicComplex = getLogic[TComplexGateTileLogic[TComplexGateICTile]]
 
-    def assertLogic()
+    def assertLogic(): Unit 
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         getLogicComplex.save(tag)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         assertLogic()
         getLogicComplex.load(tag)
     }
 
-    abstract override def writeDesc(packet:MCDataOutput)
+    abstract override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         getLogicComplex.writeDesc(packet)
     }
 
-    abstract override def readDesc(packet:MCDataInput)
+    abstract override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         assertLogic()
@@ -52,7 +52,7 @@ trait TComplexGateICTile extends GateICTile
         case _ => super.read(packet, key)
     }
 
-    abstract override def preparePlacement(rot:Int, meta:Int)
+    abstract override def preparePlacement(rot:Int, meta:Int): Unit =
     {
         super.preparePlacement(rot, meta)
         assertLogic()
@@ -63,9 +63,9 @@ class SequentialGateICTile extends RedstoneGateICTile with TComplexGateICTile
 {
     var logic:SequentialGateTileLogic = null
 
-    override def assertLogic()
+    override def assertLogic(): Unit =
     {
-        if (logic == null) logic = SequentialGateTileLogic.create(this, subID)
+        if logic == null then logic = SequentialGateTileLogic.create(this, subID)
     }
 
     override def getLogic[T]:T = logic.asInstanceOf[T]
@@ -96,21 +96,21 @@ class SequentialGateICTile extends RedstoneGateICTile with TComplexGateICTile
 
 trait TComplexGateTileLogic[T <: TComplexGateICTile] extends GateTileLogic[T]
 {
-    def save(tag:NBTTagCompound){}
-    def load(tag:NBTTagCompound){}
+    def save(tag:NBTTagCompound): Unit ={}
+    def load(tag:NBTTagCompound): Unit ={}
 
-    def readDesc(packet:MCDataInput){}
-    def writeDesc(packet:MCDataOutput){}
+    def readDesc(packet:MCDataInput): Unit ={}
+    def writeDesc(packet:MCDataOutput): Unit ={}
 
     /*
      * Allocated keys > 10
      */
-    def read(packet:MCDataInput, key:Int){}
+    def read(packet:MCDataInput, key:Int): Unit ={}
 }
 
 object SequentialGateTileLogic
 {
-    import mrtjp.projectred.fabrication.{ICGateDefinition => defs}
+    import mrtjp.projectred.fabrication.{ICGateDefinition as defs}
 
     def create(gate:SequentialGateICTile, subID:Int):SequentialGateTileLogic = subID match
     {
@@ -134,27 +134,27 @@ abstract class SequentialGateTileLogic(val gate:SequentialGateICTile) extends Re
     val inputRegs = Array(-1, -1, -1, -1)
     val outputRegs = Array(-1, -1, -1, -1)
 
-    def cacheIORegisters(linker:ISELinker)
+    def cacheIORegisters(linker:ISELinker): Unit =
     {
-        for (r <- 0 until 4) {
+        for r <- 0 until 4 do {
             inputRegs(r) =
-                    if (canInput(gate, r)) gate.getInputRegister(r, linker) else -1
+                    if canInput(gate, r) then gate.getInputRegister(r, linker) else -1
             outputRegs(r) =
-                    if (canOutput(gate, r)) gate.getOutputRegister(r, linker) else -1
+                    if canOutput(gate, r) then gate.getOutputRegister(r, linker) else -1
         }
 
-        import SEIntegratedCircuit._
-        if (inputRegs.forall(id => id == -1 || id == REG_ZERO))
+        import SEIntegratedCircuit.*
+        if inputRegs.forall(id => id == -1 || id == REG_ZERO) then
             linker.getLogger.logWarning(Seq(gate.pos), "gate has no inputs")
-        if (outputRegs.forall(id => id == -1 || id == REG_ZERO))
+        if outputRegs.forall(id => id == -1 || id == REG_ZERO) then
             linker.getLogger.logWarning(Seq(gate.pos), "gate has no outputs")
     }
 
     private def pullInput(mask:Int) = //Pull the input from the sim engine
     {
         var input = 0
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
-            if (gate.editor.simEngineContainer.simEngine.getRegVal[Byte](inputRegs(r)) > 0) input |= 1<<r
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+            if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](inputRegs(r)) > 0 then input |= 1<<r
         }
         input
     }
@@ -162,34 +162,34 @@ abstract class SequentialGateTileLogic(val gate:SequentialGateICTile) extends Re
     private def pullOutput(mask:Int) = //Pull the output form the sim engine
     {
         var output = 0
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
-            if (gate.editor.simEngineContainer.simEngine.getRegVal[Byte](outputRegs(r)) > 0) output |= 1<<r
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+            if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](outputRegs(r)) > 0 then output |= 1<<r
         }
         output
     }
 
-    def pullIOStateFromSim()
+    def pullIOStateFromSim(): Unit =
     {
         val oldState = gate.state
         val newState = pullInput(inputMask(gate.shape))&0xF | pullOutput(outputMask(gate.shape))<<4
-        if (oldState != newState) {
+        if oldState != newState then {
             gate.setState(newState)
             gate.sendStateUpdate()
         }
     }
 
-    override def allocateOrFindRegisters(gate:SequentialGateICTile, linker:ISELinker)
+    override def allocateOrFindRegisters(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         cacheIORegisters(linker)
         allocInternalRegisters(linker)
     }
 
-    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int]): Unit =
     {
         pullIOStateFromSim()
     }
 
-    def allocInternalRegisters(linker:ISELinker)
+    def allocInternalRegisters(linker:ISELinker): Unit 
 }
 
 class Pulse(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
@@ -201,7 +201,7 @@ class Pulse(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = 4
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](0))
@@ -219,22 +219,22 @@ class Pulse(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //Wait for high input state
-                        if (ic.getRegVal[Byte](inputReg) != 0) {
+                        if ic.getRegVal[Byte](inputReg) != 0 then {
                             ic.queueRegVal[Byte](stateReg, 1)
                             ic.queueRegVal[Byte](outputReg, 1)
                             ic.queueRegVal[Long](schdTimeReg, ic.getRegVal[Long](REG_SYSTIME)+2)
                         }
                     case 1 => //Wait for timer expire state
-                        if (ic.getRegVal[Long](REG_SYSTIME) >= ic.getRegVal[Long](schdTimeReg)) {
-                            ic.queueRegVal[Byte](stateReg, if (ic.getRegVal[Byte](inputReg) == 0) 0 else 2)
+                        if ic.getRegVal[Long](REG_SYSTIME) >= ic.getRegVal[Long](schdTimeReg) then {
+                            ic.queueRegVal[Byte](stateReg, if ic.getRegVal[Byte](inputReg) == 0 then 0 else 2)
                             ic.queueRegVal[Byte](outputReg, 0)
                             ic.queueRegVal[Long](schdTimeReg, -1)
                         }
                     case 2 => //Wait for low input state
-                        if (ic.getRegVal[Byte](inputReg) == 0)
+                        if ic.getRegVal[Byte](inputReg) == 0 then
                             ic.queueRegVal[Byte](stateReg, 0)
                 }
             }
@@ -262,19 +262,19 @@ class Repeater(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         true
     }
 
-    override def activate(gate:SequentialGateICTile)
+    override def activate(gate:SequentialGateICTile): Unit =
     {
         gate.configure()
     }
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String])
+    override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(gate, buffer)
         buffer += GRAY.toString+"delay: "+delays(gate.shape)
     }
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](0))
@@ -283,7 +283,7 @@ class Repeater(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         linker.addRegister(schdTimeReg, new StandardRegister[Long](-1))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val outputReg = outputRegs(0)
         val inputReg = inputRegs(2)
@@ -293,31 +293,31 @@ class Repeater(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
 
                 def inputHi = ic.getRegVal[Byte](inputReg) != 0
                 def sysTime = ic.getRegVal[Long](REG_SYSTIME)
                 def schdTime = ic.getRegVal[Long](schdTimeReg)
 
-                def enterWaitForHiState() {
+                def enterWaitForHiState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                     ic.queueRegVal[Byte](outputReg, 0)
                     ic.queueRegVal[Long](schdTimeReg, -1)
                 }
 
-                def enterOutputLoDelayState() {
+                def enterOutputLoDelayState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     ic.queueRegVal[Byte](outputReg, 0)
                     ic.queueRegVal[Long](schdTimeReg, sysTime+delay)
                 }
 
-                def enterWaitForLoState() {
+                def enterWaitForLoState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 2)
                     ic.queueRegVal[Byte](outputReg, 1)
                     ic.queueRegVal[Long](schdTimeReg, -1)
                 }
 
-                def enterOutputHiDelayState() {
+                def enterOutputHiDelayState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 3)
                     ic.queueRegVal[Byte](outputReg, 1)
                     ic.queueRegVal[Long](schdTimeReg, sysTime+delay)
@@ -325,16 +325,16 @@ class Repeater(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //Wait for high input state
-                        if (inputHi)
+                        if inputHi then
                             enterOutputLoDelayState()
                     case 1 => //Output delay lo state
-                        if (sysTime >= schdTime)
+                        if sysTime >= schdTime then
                             enterWaitForLoState()
                     case 2 => //Wait for low state
-                        if (!inputHi)
+                        if !inputHi then
                             enterOutputHiDelayState()
                     case 3 => //Output delay hi state
-                        if (sysTime >= schdTime)
+                        if sysTime >= schdTime then
                             enterWaitForHiState()
                 }
             }
@@ -356,7 +356,7 @@ class Randomizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate
 
     override def deadSides = 3
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](127))
@@ -365,11 +365,11 @@ class Randomizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate
         linker.addRegister(timeStartReg, new StandardRegister[Long](-1))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
-        val outputAReg = if (outputRegs(3) != -1) outputRegs(3) else REG_ZERO
-        val outputBReg = if (outputRegs(0) != -1) outputRegs(0) else REG_ZERO
-        val outputCReg = if (outputRegs(1) != -1) outputRegs(1) else REG_ZERO
+        val outputAReg = if outputRegs(3) != -1 then outputRegs(3) else REG_ZERO
+        val outputBReg = if outputRegs(0) != -1 then outputRegs(0) else REG_ZERO
+        val outputCReg = if outputRegs(1) != -1 then outputRegs(1) else REG_ZERO
         val inputReg = inputRegs(2)
 
         val stateReg = this.stateReg
@@ -377,41 +377,41 @@ class Randomizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
 
                 def inputHi = ic.getRegVal[Byte](inputReg) != 0
 
                 def sysTime = ic.getRegVal[Long](REG_SYSTIME)
                 def startTime = ic.getRegVal[Long](timeStartReg)
 
-                def enterShiftingState() {
+                def enterShiftingState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                     ic.queueRegVal[Long](timeStartReg, ic.getRegVal[Long](REG_SYSTIME))
                 }
 
-                def enterHaltState() {
+                def enterHaltState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     ic.queueRegVal[Long](timeStartReg, -1)
                 }
 
-                def randomizeOutput() {
+                def randomizeOutput(): Unit = {
                     val sMask = Randomizer.rand.nextInt(8)
-                    ic.queueRegVal[Byte](outputAReg, if ((sMask&1) != 0) 1 else 0)
-                    ic.queueRegVal[Byte](outputBReg, if ((sMask&2) != 0) 1 else 0)
-                    ic.queueRegVal[Byte](outputCReg, if ((sMask&4) != 0) 1 else 0)
+                    ic.queueRegVal[Byte](outputAReg, if (sMask&1) != 0 then 1 else 0)
+                    ic.queueRegVal[Byte](outputBReg, if (sMask&2) != 0 then 1 else 0)
+                    ic.queueRegVal[Byte](outputCReg, if (sMask&4) != 0 then 1 else 0)
                 }
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //Shifting state
-                        if (!inputHi)
+                        if !inputHi then
                             enterHaltState()
-                        else if ((sysTime-startTime)%2 == 0)
+                        else if (sysTime-startTime)%2 == 0 then
                             randomizeOutput()
                     case 1 => //Halt state
-                        if (inputHi)
+                        if inputHi then
                             enterShiftingState()
                     case 127 => //Initial state
-                        if (inputHi)
+                        if inputHi then
                             enterShiftingState()
                         else
                             enterHaltState()
@@ -434,7 +434,7 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     /* registers */
     var stateReg = -1
 
-    override def outputMask(shape:Int) = if ((shape>>1) == 0) 0xF else 5
+    override def outputMask(shape:Int) = if (shape>>1) == 0 then 0xF else 5
     override def inputMask(shape:Int) = 0xA
 
     override def cycleShape(gate:SequentialGateICTile) =
@@ -446,21 +446,21 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     def reflect = (gate.shape&1) != 0
     def backfeed = (gate.shape&2) == 0
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](127))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val outputAReg = outputRegs(2)
         val outputBReg = outputRegs(0)
-        val bfOutputAReg = if (backfeed) if (reflect) outputRegs(3) else outputRegs(1) else REG_ZERO
-        val bfOutputBReg = if (backfeed) if (reflect) outputRegs(1) else outputRegs(3) else REG_ZERO
+        val bfOutputAReg = if backfeed then if reflect then outputRegs(3) else outputRegs(1) else REG_ZERO
+        val bfOutputBReg = if backfeed then if reflect then outputRegs(1) else outputRegs(3) else REG_ZERO
 
-        val inputAReg = if (reflect) inputRegs(3) else inputRegs(1)
-        val inputBReg = if (reflect) inputRegs(1) else inputRegs(3)
+        val inputAReg = if reflect then inputRegs(3) else inputRegs(1)
+        val inputBReg = if reflect then inputRegs(1) else inputRegs(3)
 
         val stateReg = this.stateReg
 
@@ -468,9 +468,9 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
             private val serialVersionUID = 1L
             val rand = new Random()
 
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
 
-                def enterAState() {
+                def enterAState(): Unit = {
                     ic.queueRegVal[Byte](stateReg,     0)
                     ic.queueRegVal[Byte](outputAReg,   1)
                     ic.queueRegVal[Byte](bfOutputAReg, 1)
@@ -478,7 +478,7 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
                     ic.queueRegVal[Byte](bfOutputBReg, 0)
                 }
 
-                def enterBState() {
+                def enterBState(): Unit = {
                     ic.queueRegVal[Byte](stateReg,     1)
                     ic.queueRegVal[Byte](outputAReg,   0)
                     ic.queueRegVal[Byte](bfOutputAReg, 0)
@@ -486,7 +486,7 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
                     ic.queueRegVal[Byte](bfOutputBReg, 1)
                 }
 
-                def enterUndfState() {
+                def enterUndfState(): Unit = {
                     ic.queueRegVal[Byte](stateReg,     2)
                     ic.queueRegVal[Byte](outputAReg,   0)
                     ic.queueRegVal[Byte](bfOutputAReg, 0)
@@ -494,7 +494,7 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
                     ic.queueRegVal[Byte](bfOutputBReg, 0)
                 }
 
-                def inputMask = (if (ic.getRegVal[Byte](inputBReg) != 0) 2 else 0) | (if (ic.getRegVal[Byte](inputAReg) != 0) 1 else 0)
+                def inputMask = (if ic.getRegVal[Byte](inputBReg) != 0 then 2 else 0) | (if ic.getRegVal[Byte](inputAReg) != 0 then 1 else 0)
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //A State
@@ -511,7 +511,7 @@ class SRLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
                         }
                     case 2 => //Undefined State
                         inputMask match {
-                            case 0 => if (rand.nextBoolean()) enterAState() else enterBState()
+                            case 0 => if rand.nextBoolean() then enterAState() else enterBState()
                             case 1 => enterAState()
                             case 2 => enterBState()
                             case 3 => //Still Undf, Remain in state
@@ -547,12 +547,12 @@ class ToggleLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gat
         true
     }
 
-    override def activate(gate:SequentialGateICTile)
+    override def activate(gate:SequentialGateICTile): Unit =
     {
         gate.configure()
     }
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](127))
@@ -562,7 +562,7 @@ class ToggleLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gat
 
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val outputAReg = outputRegs(0)
         val outputBReg = outputRegs(2)
@@ -574,20 +574,20 @@ class ToggleLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gat
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
-                def enterAState() {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
+                def enterAState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                     ic.queueRegVal[Byte](outputAReg, 1)
                     ic.queueRegVal[Byte](outputBReg, 0)
                 }
 
-                def enterBState() {
+                def enterBState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     ic.queueRegVal[Byte](outputAReg, 0)
                     ic.queueRegVal[Byte](outputBReg, 1)
                 }
 
-                val inputMask = (if (ic.getRegVal[Byte](inputBReg) != 0) 2 else 0) | (if (ic.getRegVal[Byte](inputAReg) != 0) 1 else 0)
+                val inputMask = (if ic.getRegVal[Byte](inputBReg) != 0 then 2 else 0) | (if ic.getRegVal[Byte](inputAReg) != 0 then 1 else 0)
 
                 def singleBitHi = {
                     val high = inputMask & ~ic.getRegVal[Byte](prevInputMaskReg)
@@ -595,9 +595,9 @@ class ToggleLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gat
                 }
 
                 ic.getRegVal[Byte](stateReg) match {
-                    case 0 => if (singleBitHi) enterBState()
-                    case 1 => if (singleBitHi) enterAState()
-                    case 127 => if (defState == 0) enterAState() else enterBState()
+                    case 0 => if singleBitHi then enterBState()
+                    case 1 => if singleBitHi then enterAState()
+                    case 127 => if defState == 0 then enterAState() else enterBState()
                 }
 
                 ic.queueRegVal[Byte](prevInputMaskReg, inputMask.toByte)
@@ -612,22 +612,22 @@ class ToggleLatch(gate:SequentialGateICTile) extends SequentialGateTileLogic(gat
 trait ITimerGuiLogic
 {
     def getTimerMax:Int
-    def setTimerMax(gate:GateICTile, t:Int)
+    def setTimerMax(gate:GateICTile, t:Int): Unit 
 }
 
 trait ICounterGuiLogic
 {
     def getCounterMax:Int
-    def setCounterMax(gate:GateICTile, i:Int)
+    def setCounterMax(gate:GateICTile, i:Int): Unit 
 
     def getCounterIncr:Int
-    def setCounterIncr(gate:GateICTile, i:Int)
+    def setCounterIncr(gate:GateICTile, i:Int): Unit 
 
     def getCounterDecr:Int
-    def setCounterDecr(gate:GateICTile, i:Int)
+    def setCounterDecr(gate:GateICTile, i:Int): Unit 
 
     def getCounterStart:Int
-    def setCounterStart(gate:GateICTile, i:Int)
+    def setCounterStart(gate:GateICTile, i:Int): Unit 
 
     def getCounterValue:Int
 }
@@ -641,26 +641,26 @@ trait TTimerICGateLogic extends SequentialGateTileLogic with ITimerGuiLogic
     /* registers */
     var timerStartReg = -1
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setInteger("pmax", pointer_max)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         pointer_max = tag.getInteger("pmax")
     }
 
-    abstract override def writeDesc(packet:MCDataOutput)
+    abstract override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeInt(pointer_max)
         packet.writeLong(pointer_start)
     }
 
-    abstract override def readDesc(packet:MCDataInput)
+    abstract override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         pointer_max = packet.readInt()
@@ -674,20 +674,20 @@ trait TTimerICGateLogic extends SequentialGateTileLogic with ITimerGuiLogic
         case _ => super.read(packet, key)
     }
 
-    def getTotalTime = if (gate.editor != null) gate.editor.getTotalSimTimeClient else 0L
+    def getTotalTime = if gate.editor != null then gate.editor.getTotalSimTimeClient else 0L
 
-    def pointerValue = if (pointer_start < 0) 0 else ((getTotalTime-pointer_start)%getTimerMax + 1).toInt
+    def pointerValue = if pointer_start < 0 then 0 else ((getTotalTime-pointer_start)%getTimerMax + 1).toInt
 
-    def sendPointerMaxUpdate(){ gate.writeStreamOf(12).writeInt(pointer_max)}
-    def sendPointerUpdate(){ gate.writeStreamOf(13).writeLong(pointer_start)}
+    def sendPointerMaxUpdate(): Unit ={ gate.writeStreamOf(12).writeInt(pointer_max)}
+    def sendPointerUpdate(): Unit ={ gate.writeStreamOf(13).writeLong(pointer_start)}
 
     override def getTimerMax = pointer_max+2
-    override def setTimerMax(gate:GateICTile, time:Int)
+    override def setTimerMax(gate:GateICTile, time:Int): Unit =
     {
         var t = time
         val minTime = math.max(4, Configurator.minTimerTicks)
-        if (t < minTime) t = minTime
-        if (t != getTimerMax) {
+        if t < minTime then t = minTime
+        if t != getTimerMax then {
             pointer_max = t-2
             sendPointerMaxUpdate()
             gate.editor.network.markSave()
@@ -695,20 +695,20 @@ trait TTimerICGateLogic extends SequentialGateTileLogic with ITimerGuiLogic
         }
     }
 
-    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int]): Unit =
     {
         super.onRegistersChanged(gate, regIDs)
 
         //Update pointer_start
         val old_pointer_start = pointer_start
         pointer_start = gate.editor.simEngineContainer.simEngine.getRegVal[Long](timerStartReg)
-        if (old_pointer_start != pointer_start) {
+        if old_pointer_start != pointer_start then {
             sendPointerUpdate()
             println(s"Timer updated $old_pointer_start -> $pointer_start")
         }
     }
 
-    def interpPointer(f:Float) = if (pointer_start < 0) 0f else (pointerValue+f)/getTimerMax
+    def interpPointer(f:Float) = if pointer_start < 0 then 0f else (pointerValue+f)/getTimerMax
 
     @SideOnly(Side.CLIENT)
     override def createGui(gate:SequentialGateICTile):ICTileGui = new ICTimerGateGui(gate)
@@ -725,8 +725,8 @@ class TransparentLatch(gate:SequentialGateICTile) extends SequentialGateTileLogi
 {
     var stateReg = -1
 
-    override def outputMask(shape:Int) = if (shape == 0) 3 else 9
-    override def inputMask(shape:Int) = if (shape == 0) 0xC else 6
+    override def outputMask(shape:Int) = if shape == 0 then 3 else 9
+    override def inputMask(shape:Int) = if shape == 0 then 0xC else 6
 
     override def cycleShape(gate:SequentialGateICTile) =
     {
@@ -734,36 +734,36 @@ class TransparentLatch(gate:SequentialGateICTile) extends SequentialGateTileLogi
         true
     }
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](127))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val output1Reg = outputRegs(0)
-        val output2Reg = if (gate.shape == 0) outputRegs(1) else outputRegs(3)
-        val dataInReg = if (gate.shape == 0) inputRegs(3) else inputRegs(1)
+        val output2Reg = if gate.shape == 0 then outputRegs(1) else outputRegs(3)
+        val dataInReg = if gate.shape == 0 then inputRegs(3) else inputRegs(1)
         val wrEnableReg = inputRegs(2)
         val stateReg = this.stateReg
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
 
                 def dataWrHi = ic.getRegVal[Byte](wrEnableReg) != 0
 
-                def enterLockState() {
+                def enterLockState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                 }
 
-                def enterWriteState() {
+                def enterWriteState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     writeData()
                 }
 
-                def writeData() {
+                def writeData(): Unit = {
                     val data = ic.getRegVal[Byte](dataInReg)
                     ic.queueRegVal[Byte](output1Reg, data)
                     ic.queueRegVal[Byte](output2Reg, data)
@@ -771,15 +771,15 @@ class TransparentLatch(gate:SequentialGateICTile) extends SequentialGateTileLogi
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //lock state
-                        if (dataWrHi)
+                        if dataWrHi then
                             enterWriteState()
                     case 1 => //wr state
-                        if (dataWrHi)
+                        if dataWrHi then
                             writeData()
                         else
                             enterLockState()
                     case 127 => //initial state
-                        if (dataWrHi)
+                        if dataWrHi then
                             enterWriteState()
                         else
                             enterLockState()
@@ -800,7 +800,7 @@ class Timer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) wit
     override def outputMask(shape:Int) = 0xB
     override def inputMask(shape:Int) = 0xE
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](2))
@@ -809,7 +809,7 @@ class Timer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) wit
         linker.addRegister(timerStartReg, new StandardRegister[Long](-1))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val output1Reg = outputRegs(3)
         val output2Reg = outputRegs(0)
@@ -825,7 +825,7 @@ class Timer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) wit
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
                 val sysTime = ic.getRegVal[Long](REG_SYSTIME)
                 val pointerVal = sysTime-ic.getRegVal[Long](timerStartReg) match {
                     case 0 => 0
@@ -836,31 +836,31 @@ class Timer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) wit
                         ic.getRegVal[Byte](input2Reg) != 0 ||
                         ic.getRegVal[Byte](input3Reg) != 0
 
-                def setOutputs(v:Byte) {
+                def setOutputs(v:Byte): Unit = {
                     ic.queueRegVal[Byte](output1Reg, v)
                     ic.queueRegVal[Byte](output2Reg, v)
                     ic.queueRegVal[Byte](output3Reg, v)
                 }
 
-                def startCounter() {
+                def startCounter(): Unit = {
                     ic.queueRegVal[Long](timerStartReg, sysTime)
                 }
 
-                def stopCounter() {
+                def stopCounter(): Unit = {
                     ic.queueRegVal[Long](timerStartReg, -1)
                 }
 
-                def enterCountState() {
+                def enterCountState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                     setOutputs(0)
                 }
 
-                def enterTickState() {
+                def enterTickState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     setOutputs(1)
                 }
 
-                def enterHaltState() {
+                def enterHaltState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 2)
                     stopCounter()
                     setOutputs(0)
@@ -868,18 +868,18 @@ class Timer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) wit
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //Counting state
-                        if (inputHi)
+                        if inputHi then
                             enterHaltState()
-                        else if (pointerVal >= timerMax-2)
+                        else if pointerVal >= timerMax-2 then
                             enterTickState()
                     case 1 => //Tick state
-                        if (pointerVal >= timerMax)
-                            if (!inputHi)
+                        if pointerVal >= timerMax then
+                            if !inputHi then
                                 enterCountState()
                             else
                                 enterHaltState()
                     case 2 => //Halt state
-                        if (!inputHi) {
+                        if !inputHi then {
                             enterCountState()
                             startCounter()
                         }
@@ -906,18 +906,18 @@ class Sequencer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         true
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("pmax", pointer_max)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         pointer_max = tag.getInteger("pmax")
     }
 
-    override def writeDesc(packet:MCDataOutput){ packet.writeInt(pointer_max) }
-    override def readDesc(packet:MCDataInput){ pointer_max = packet.readInt() }
+    override def writeDesc(packet:MCDataOutput): Unit ={ packet.writeInt(pointer_max) }
+    override def readDesc(packet:MCDataInput): Unit ={ pointer_max = packet.readInt() }
 
     override def read(packet:MCDataInput, key:Int) = key match
     {
@@ -925,15 +925,15 @@ class Sequencer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         case _ =>
     }
 
-    def sendPointerMaxUpdate(){ gate.writeStreamOf(12).writeInt(pointer_max) }
+    def sendPointerMaxUpdate(): Unit ={ gate.writeStreamOf(12).writeInt(pointer_max) }
 
     override def getTimerMax = pointer_max
-    override def setTimerMax(gate:GateICTile, time:Int)
+    override def setTimerMax(gate:GateICTile, time:Int): Unit =
     {
         var t = time
         val minTime = math.max(4, Configurator.minTimerTicks)
-        if (t < minTime) t = minTime
-        if (t != pointer_max) {
+        if t < minTime then t = minTime
+        if t != pointer_max then {
             pointer_max = t
             sendPointerMaxUpdate()
             gate.editor.network.markSave()
@@ -945,15 +945,15 @@ class Sequencer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     override def createGui(gate:SequentialGateICTile):ICTileGui = new ICTimerGateGui(gate)
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String])
+    override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(gate, buffer)
         buffer += GRAY.toString+"interval: "+"%.2f".format(getTimerMax*0.05)+"s"
     }
 
-    override def allocInternalRegisters(linker:ISELinker){}
+    override def allocInternalRegisters(linker:ISELinker): Unit ={}
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val output1Reg = outputRegs(0)
         val output2Reg = outputRegs(1)
@@ -965,12 +965,12 @@ class Sequencer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
                 val quadron = ic.getRegVal[Long](REG_SYSTIME)%(timerMax*4)/timerMax
-                ic.queueRegVal[Byte](output1Reg, if (quadron == 0) 1 else 0)
-                ic.queueRegVal[Byte](if (reflect) output4Reg else output2Reg, if (quadron == 1) 1 else 0)
-                ic.queueRegVal[Byte](output3Reg, if (quadron == 2) 1 else 0)
-                ic.queueRegVal[Byte](if (reflect) output2Reg else output4Reg, if (quadron == 3) 1 else 0)
+                ic.queueRegVal[Byte](output1Reg, if quadron == 0 then 1 else 0)
+                ic.queueRegVal[Byte](if reflect then output4Reg else output2Reg, if quadron == 1 then 1 else 0)
+                ic.queueRegVal[Byte](output3Reg, if quadron == 2 then 1 else 0)
+                ic.queueRegVal[Byte](if reflect then output2Reg else output4Reg, if quadron == 3 then 1 else 0)
             }
         }
 
@@ -1003,7 +1003,7 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         true
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("val", value)
         tag.setInteger("max", max)
@@ -1011,7 +1011,7 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         tag.setInteger("dec", decr)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         value = tag.getInteger("val")
         max = tag.getInteger("max")
@@ -1020,12 +1020,12 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         currentValue = value //for blueprint render
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeInt(value).writeInt(max).writeInt(incr).writeInt(decr).writeInt(currentValue)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         value = packet.readInt()
         max = packet.readInt()
@@ -1044,11 +1044,11 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         case _ =>
     }
 
-    def sendValueUpdate(){ gate.writeStreamOf(11).writeInt(value) }
-    def sendMaxUpdate(){ gate.writeStreamOf(12).writeInt(max) }
-    def sendIncrUpdate(){ gate.writeStreamOf(13).writeInt(incr) }
-    def sendDecrUpdate(){ gate.writeStreamOf(14).writeInt(decr) }
-    def sendCurrentValueUpdate(){ gate.writeStreamOf(15).writeInt(currentValue) }
+    def sendValueUpdate(): Unit ={ gate.writeStreamOf(11).writeInt(value) }
+    def sendMaxUpdate(): Unit ={ gate.writeStreamOf(12).writeInt(max) }
+    def sendIncrUpdate(): Unit ={ gate.writeStreamOf(13).writeInt(incr) }
+    def sendDecrUpdate(): Unit ={ gate.writeStreamOf(14).writeInt(decr) }
+    def sendCurrentValueUpdate(): Unit ={ gate.writeStreamOf(15).writeInt(currentValue) }
 
     override def getCounterStart = value
     override def getCounterMax = max
@@ -1056,27 +1056,27 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
     override def getCounterDecr = decr
     override def getCounterValue = currentValue
 
-    override def setCounterStart(gate:GateICTile, i:Int)
+    override def setCounterStart(gate:GateICTile, i:Int): Unit =
     {
         val oldVal = value
         value = math.min(max, math.max(0, i))
-        if (value != oldVal) {
+        if value != oldVal then {
             sendValueUpdate()
             gate.editor.network.markSave()
             gate.onSchematicChanged()
         }
     }
 
-    override def setCounterMax(gate:GateICTile, i:Int)
+    override def setCounterMax(gate:GateICTile, i:Int): Unit =
     {
         val oldMax = max
         max =  math.min(32767, math.max(1, i))
-        if (max != oldMax) {
+        if max != oldMax then {
             sendMaxUpdate()
 
             val oldVal = value
             value = math.min(value, math.max(0, i))
-            if (value != oldVal)
+            if value != oldVal then
                 sendValueUpdate()
 
             gate.editor.network.markSave()
@@ -1084,22 +1084,22 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         }
     }
 
-    override def setCounterIncr(gate:GateICTile, i:Int)
+    override def setCounterIncr(gate:GateICTile, i:Int): Unit =
     {
         val oldIncr = incr
         incr = math.min(max, math.max(1, i))
-        if (incr != oldIncr) {
+        if incr != oldIncr then {
             sendIncrUpdate()
             gate.editor.network.markSave()
             gate.onSchematicChanged()
         }
     }
 
-    override def setCounterDecr(gate:GateICTile, i:Int)
+    override def setCounterDecr(gate:GateICTile, i:Int): Unit =
     {
         val oldDecr = decr
         decr = math.min(max, math.max(1, i))
-        if (decr != oldDecr) {
+        if decr != oldDecr then {
             sendDecrUpdate()
             gate.editor.network.markSave()
             gate.onSchematicChanged()
@@ -1110,7 +1110,7 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
     override def createGui(gate:SequentialGateICTile):ICTileGui = new ICCounterGateGui(gate)
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String])
+    override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(gate, buffer)
         buffer += GRAY.toString + s"value: $getCounterValue"
@@ -1119,7 +1119,7 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         buffer += GRAY.toString + s"decr to 0 by $getCounterDecr"
     }
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         valueReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(valueReg, new StandardRegister[Int](value))
@@ -1128,12 +1128,12 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         linker.addRegister(prevInputMaskReg, new StandardRegister[Byte](0))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val outputMaxReg = outputRegs(0)
         val outputMinReg = outputRegs(2)
-        val inputIncrReg = if (gate.shape == 0) inputRegs(1) else inputRegs(3)
-        val inputDecrReg = if (gate.shape == 0) inputRegs(3) else inputRegs(1)
+        val inputIncrReg = if gate.shape == 0 then inputRegs(1) else inputRegs(3)
+        val inputDecrReg = if gate.shape == 0 then inputRegs(3) else inputRegs(1)
 
         val valueReg = this.valueReg
         val prevInputMaskReg = this.prevInputMaskReg
@@ -1144,17 +1144,17 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
+            override def compute(ic:SEIntegratedCircuit): Unit = {
 
                 var counterVal = ic.getRegVal[Int](valueReg)
-                val inputMask = (if (ic.getRegVal[Byte](inputDecrReg) != 0) 2 else 0) | (if (ic.getRegVal[Byte](inputIncrReg) != 0) 1 else 0)
+                val inputMask = (if ic.getRegVal[Byte](inputDecrReg) != 0 then 2 else 0) | (if ic.getRegVal[Byte](inputIncrReg) != 0 then 1 else 0)
                 val hiMask = inputMask & ~ic.getRegVal[Byte](prevInputMaskReg)
 
-                def recalcOutput() {
-                    if (counterVal == maxVal) {
+                def recalcOutput(): Unit = {
+                    if counterVal == maxVal then {
                         ic.queueRegVal[Byte](outputMaxReg, 1)
                         ic.queueRegVal[Byte](outputMinReg, 0)
-                    } else if (counterVal == 0) {
+                    } else if counterVal == 0 then {
                         ic.queueRegVal[Byte](outputMaxReg, 0)
                         ic.queueRegVal[Byte](outputMinReg, 1)
                     } else {
@@ -1163,9 +1163,9 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
                     }
                 }
 
-                if (hiMask == 1) { //increment register went hi
+                if hiMask == 1 then { //increment register went hi
                     counterVal =  math.min(counterVal+incrVal, maxVal)
-                } else if (hiMask == 2) { //decrement register went hi
+                } else if hiMask == 2 then { //decrement register went hi
                     counterVal =  math.max(counterVal-decrVal, 0)
                 }
 
@@ -1180,12 +1180,12 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
         linker.addGate(gateID, calculation, Seq(inputIncrReg, inputDecrReg), Seq(outputMaxReg, outputMinReg, valueReg, prevInputMaskReg))
     }
 
-    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int]): Unit =
     {
         super.onRegistersChanged(gate, regIDs)
         val oldVal = currentValue
         currentValue = gate.editor.simEngineContainer.simEngine.getRegVal[Int](valueReg)
-        if (oldVal != currentValue)
+        if oldVal != currentValue then
             sendCurrentValueUpdate()
     }
 }
@@ -1197,8 +1197,8 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     /* registers */
     var stateReg = -1
 
-    override def outputMask(shape:Int) = if (gate.shape == 0) 9 else 3
-    override def inputMask(shape:Int) = if (gate.shape == 0) 6 else 12
+    override def outputMask(shape:Int) = if gate.shape == 0 then 9 else 3
+    override def inputMask(shape:Int) = if gate.shape == 0 then 6 else 12
 
     override def cycleShape(gate:SequentialGateICTile) =
     {
@@ -1206,13 +1206,13 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         true
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeBoolean(isRunning)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         isRunning = packet.readBoolean()
@@ -1224,9 +1224,9 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         case _ => super.read(packet, key)
     }
 
-    def sendIsRunningUpdate(){ gate.writeStreamOf(14).writeBoolean(isRunning)}
+    def sendIsRunningUpdate(): Unit ={ gate.writeStreamOf(14).writeBoolean(isRunning)}
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](0))
@@ -1235,12 +1235,12 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
         linker.addRegister(timerStartReg, new StandardRegister[Long](-1))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
-        val outputStateRun = if (gate.shape == 0) outputRegs(3) else outputRegs(1)
+        val outputStateRun = if gate.shape == 0 then outputRegs(3) else outputRegs(1)
         val outputStateNext = outputRegs(0)
         val inputStartReg = inputRegs(2)
-        val inputResetReg = if (gate.shape == 0) inputRegs(1) else inputRegs(3)
+        val inputResetReg = if gate.shape == 0 then inputRegs(1) else inputRegs(3)
 
         val stateReg = this.stateReg
         val timerStartReg = this.timerStartReg
@@ -1249,7 +1249,7 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit)
+            override def compute(ic:SEIntegratedCircuit): Unit =
             {
                 val sysTime = ic.getRegVal[Long](REG_SYSTIME)
                 val pointerVal = sysTime-ic.getRegVal[Long](timerStartReg)
@@ -1258,19 +1258,19 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
                 def resetInputHi = ic.getRegVal[Byte](inputResetReg) != 0
 
-                def enterIdleState() {
+                def enterIdleState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                     ic.queueRegVal[Byte](outputStateRun, 0)
                     ic.queueRegVal[Byte](outputStateNext, 0)
                 }
 
-                def enterRunningState() {
+                def enterRunningState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     ic.queueRegVal[Byte](outputStateRun, 1)
                     ic.queueRegVal[Byte](outputStateNext, 0)
                 }
 
-                def enterTickState() {
+                def enterTickState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 2)
                     ic.queueRegVal[Byte](outputStateRun, 0)
                     ic.queueRegVal[Byte](outputStateNext, 1)
@@ -1278,33 +1278,33 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
 
                 def timerRunning = ic.getRegVal[Long](timerStartReg) > -1
 
-                def startTimer() {
+                def startTimer(): Unit = {
                     ic.queueRegVal[Long](timerStartReg, sysTime)
                 }
 
-                def stopTimer() {
+                def stopTimer(): Unit = {
                     ic.queueRegVal[Long](timerStartReg, -1)
                 }
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //Idle state
-                        if (startInputHi)
+                        if startInputHi then
                             enterRunningState()
 
                     case 1 => //Running state
-                        if (timerRunning) {
-                            if (startInputHi || resetInputHi)
+                        if timerRunning then {
+                            if startInputHi || resetInputHi then
                                 stopTimer()
-                            else if (pointerVal >= timerMax-2)
+                            else if pointerVal >= timerMax-2 then
                                 enterTickState()
                         } else {
-                            if (!startInputHi && !resetInputHi)
+                            if !startInputHi && !resetInputHi then
                                 startTimer()
                         }
                     case 2 => //Tick state
-                        if (pointerVal >= timerMax) {
+                        if pointerVal >= timerMax then {
                             stopTimer()
-                            if (startInputHi)
+                            if startInputHi then
                                 enterRunningState()
                             else
                                 enterIdleState()
@@ -1318,12 +1318,12 @@ class StateCell(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
             Seq(outputStateRun, outputStateNext, stateReg, timerStartReg))
     }
 
-    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int]): Unit =
     {
         super.onRegistersChanged(gate, regIDs)
         val wasRunning = isRunning
         isRunning = gate.editor.simEngineContainer.simEngine.getRegVal[Byte](stateReg) == 1
-        if (wasRunning != isRunning)
+        if wasRunning != isRunning then
             sendIsRunningUpdate()
     }
 }
@@ -1340,13 +1340,13 @@ class Synchronizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(ga
     override def outputMask(shape:Int) = 1
     override def inputMask(shape:Int) = 14
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(bitState)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         bitState = packet.readByte()
@@ -1358,9 +1358,9 @@ class Synchronizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(ga
         case _ => super.read(packet, key)
     }
 
-    def sendBitStateUpdate(){ gate.writeStreamOf(14).writeByte(bitState) }
+    def sendBitStateUpdate(): Unit ={ gate.writeStreamOf(14).writeByte(bitState) }
 
-    override def allocInternalRegisters(linker:ISELinker)
+    override def allocInternalRegisters(linker:ISELinker): Unit =
     {
         stateReg = linker.allocateRegisterID(Set(gate.pos))
         linker.addRegister(stateReg, new StandardRegister[Byte](0))
@@ -1372,7 +1372,7 @@ class Synchronizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(ga
         linker.addRegister(timerStartReg, new StandardRegister[Long](-1))
     }
 
-    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker)
+    override def declareOperations(gate:SequentialGateICTile, linker:ISELinker): Unit =
     {
         val outputReg = outputRegs(0)
         val input1Reg = inputRegs(1)
@@ -1385,39 +1385,39 @@ class Synchronizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(ga
 
         val calculation = new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit)
+            override def compute(ic:SEIntegratedCircuit): Unit =
             {
-                val inputMask = (if (ic.getRegVal[Byte](input2Reg) != 0) 2 else 0) | (if (ic.getRegVal[Byte](input1Reg) != 0) 1 else 0)
+                val inputMask = (if ic.getRegVal[Byte](input2Reg) != 0 then 2 else 0) | (if ic.getRegVal[Byte](input1Reg) != 0 then 1 else 0)
                 val hiMask = inputMask & ~ic.getRegVal[Byte](prevInputMaskReg)
 
                 def isResetHi = ic.getRegVal[Byte](inputResetReg) != 0
                 def isTimerDone = ic.getRegVal[Long](REG_SYSTIME)-ic.getRegVal[Long](timerStartReg) >= 2
 
-                def startTimer() {
+                def startTimer(): Unit = {
                     ic.queueRegVal[Long](timerStartReg, ic.getRegVal[Long](REG_SYSTIME))
                 }
 
-                def stopTimer() {
+                def stopTimer(): Unit = {
                     ic.queueRegVal[Long](timerStartReg, -1)
                 }
 
-                def enterIdleState() {
+                def enterIdleState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 0)
                     ic.queueRegVal[Byte](outputReg, 0)
                     stopTimer()
                 }
 
-                def enterRightState() {
+                def enterRightState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 1)
                     ic.queueRegVal[Byte](outputReg, 0)
                 }
 
-                def enterLeftState() {
+                def enterLeftState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 2)
                     ic.queueRegVal[Byte](outputReg, 0)
                 }
 
-                def enterTickState() {
+                def enterTickState(): Unit = {
                     ic.queueRegVal[Byte](stateReg, 3)
                     ic.queueRegVal[Byte](outputReg, 1)
                     startTimer()
@@ -1425,24 +1425,24 @@ class Synchronizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(ga
 
                 ic.getRegVal[Byte](stateReg) match {
                     case 0 => //idle
-                        if (!isResetHi) hiMask match {
+                        if !isResetHi then hiMask match {
                             case 1 => enterRightState()
                             case 2 => enterLeftState()
                             case 3 => enterTickState()
                             case _ =>
                         }
                     case 1 => //right enable
-                        if (isResetHi)
+                        if isResetHi then
                             enterIdleState()
-                        else if ((hiMask&2) != 0)
+                        else if (hiMask&2) != 0 then
                             enterTickState()
                     case 2 => //left enable
-                        if (isResetHi)
+                        if isResetHi then
                             enterIdleState()
-                        else if ((hiMask&1) != 0)
+                        else if (hiMask&1) != 0 then
                             enterTickState()
                     case 3 => //tick
-                        if (isTimerDone)
+                        if isTimerDone then
                             enterIdleState()
                 }
 
@@ -1456,12 +1456,12 @@ class Synchronizer(gate:SequentialGateICTile) extends SequentialGateTileLogic(ga
 
     }
 
-    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:SequentialGateICTile, regIDs:Set[Int]): Unit =
     {
         super.onRegistersChanged(gate, regIDs)
         val oldState = bitState
         bitState = gate.editor.simEngineContainer.simEngine.getRegVal[Byte](stateReg)
-        if (oldState != bitState)
+        if oldState != bitState then
             sendBitStateUpdate()
     }
 }

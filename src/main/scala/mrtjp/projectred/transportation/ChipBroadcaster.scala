@@ -15,7 +15,7 @@ trait TActiveBroadcastStack extends RoutingChip
 {
     private var orders = Seq[BroadcastObject]()
 
-    def addOrder(stack:ItemKeyStack, requester:IRouterContainer, priority:Priorities.Priority)
+    def addOrder(stack:ItemKeyStack, requester:IRouterContainer, priority:Priorities.Priority): Unit =
     {
         orders.find(p => p.stack.key == stack.key && p.requester == requester) match
         {
@@ -35,7 +35,7 @@ trait TActiveBroadcastStack extends RoutingChip
     {
         val BroadcastObject(stack, _) = orders.head
         stack.stackSize -= amount
-        if (stack.stackSize <= 0)
+        if stack.stackSize <= 0 then
         {
             orders = orders.tail
             true
@@ -50,23 +50,23 @@ trait TActiveBroadcastStack extends RoutingChip
         out
     }
 
-    def restackOrders()
+    def restackOrders(): Unit =
     {
         orders = orders.tail :+ orders.head
     }
 
     def peek =
-        if (orders.isEmpty) null
+        if orders.isEmpty then null
         else orders.head
 
     def hasOrders = orders.nonEmpty
 
     def getDeliveryCount(item:ItemKey) = orders.foldLeft(0)(
-        (b, p) => b+(if (p.stack.key == item) p.stack.stackSize else 0))
+        (b, p) => b+(if p.stack.key == item then p.stack.stackSize else 0))
 
     def getTotalDeliveryCount = orders.foldLeft(0)((b, p) => b+p.stack.stackSize)
 
-    def onOrdersChanged(){}
+    def onOrdersChanged(): Unit ={}
 
     def getStacksToExtract:Int
 
@@ -76,29 +76,29 @@ trait TActiveBroadcastStack extends RoutingChip
 
     def timeOutOnFailedExtract:Boolean
 
-    def doExtractOperation()
+    def doExtractOperation(): Unit =
     {
-        if (!hasOrders) return
+        if !hasOrders then return
 
         var stacksRemaining = getStacksToExtract
         var itemsRemaining = getItemsToExtract
 
         val wh, cont = new scala.util.control.Breaks
         wh.breakable {
-            while (hasOrders && stacksRemaining > 0 && itemsRemaining > 0) cont.breakable
-            {
+            while hasOrders && stacksRemaining > 0 && itemsRemaining > 0 do cont.breakable
+              {
                 val bObj = peek
                 val BroadcastObject(stack, req) = bObj
 
                 val real = invProvider.getInventory
-                if (real == null)
+                if real == null then
                 {
                     popAll()
                     req.postNetworkEvent(TrackedPayloadCancelledEvent(stack.key, stack.stackSize, router))
                     cont.break()
                 }
 
-                if (!router.getRouter.canRouteTo(req.getRouter.getIPAddress, stack.key, bObj.priority))
+                if !router.getRouter.canRouteTo(req.getRouter.getIPAddress, stack.key, bObj.priority) then
                 {
                     popAll()
                     req.postNetworkEvent(TrackedPayloadCancelledEvent(stack.key, stack.stackSize, router))
@@ -112,10 +112,10 @@ trait TActiveBroadcastStack extends RoutingChip
                 var restack = false
 
                 val dspace = req.getActiveFreeSpace(stack.key)
-                if (dspace < toExtract)
+                if dspace < toExtract then
                 {
                     toExtract = dspace
-                    if (toExtract <= 0)
+                    if toExtract <= 0 then
                     {
                         restackOrders()
                         wh.break()
@@ -124,16 +124,16 @@ trait TActiveBroadcastStack extends RoutingChip
                 }
 
                 val removed = extractItem(stack.key, toExtract)
-                if (removed <= 0 && timeOutOnFailedExtract) {
+                if removed <= 0 && timeOutOnFailedExtract then {
                     popAll()
                     req.postNetworkEvent(TrackedPayloadCancelledEvent(stack.key, stack.stackSize, router))
                     cont.break()
                 }
 
-                if (removed > 0)
+                if removed > 0 then
                     router.queueStackToSend(stack.key, removed, bObj.priority, req.getRouter.getIPAddress)
 
-                if (!pop(removed) && restack) restackOrders()
+                if !pop(removed) && restack then restackOrders()
 
                 stacksRemaining -= 1
                 itemsRemaining -= removed
@@ -159,7 +159,7 @@ class ChipBroadcaster extends RoutingChip with TChipFilter with TChipOrientation
     override def extractItem(item:ItemKey, amount:Int) =
     {
         val real = invProvider.getInventory(extractSide)
-        if (real != null)
+        if real != null then
         {
             val inv = applyFilter(real)
             inv.extractItem(item, amount)
@@ -167,68 +167,68 @@ class ChipBroadcaster extends RoutingChip with TChipFilter with TChipOrientation
         else 0
     }
 
-    override def update()
+    override def update(): Unit =
     {
         timeRemaining -= 1
-        if (timeRemaining > 0) return
+        if timeRemaining > 0 then return
         timeRemaining = operationDelay
 
         doExtractOperation()
     }
 
-    override def requestPromise(request:RequestBranchNode, existingPromises:Int)
+    override def requestPromise(request:RequestBranchNode, existingPromises:Int): Unit =
     {
         val real = invProvider.getInventory(extractSide)
-        if (real == null) return
+        if real == null then return
 
         val inv = applyFilter(real)
         val filt = applyFilter(InvWrapper.wrapInternal(filter), hide=false)
 
         val requested = request.getRequestedPackage
 
-        for ((key, amount) <- inv.getAllItemStacks.filter{p => requested.matches(p._1) && filt.hasItem(p._1) != filterExclude})
+        for (key, amount) <- inv.getAllItemStacks.filter{p => requested.matches(p._1) && filt.hasItem(p._1) != filterExclude} do
         {
             val available = amount-request.root.getExistingPromisesFor(router, key)
             val toAdd = math.min(request.getMissingCount, available)
-            if (toAdd > 0) request.addPromise(
+            if toAdd > 0 then request.addPromise(
                 new DeliveryPromise(key, toAdd, router)
             )
         }
     }
 
-    override def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer)
+    override def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer): Unit =
     {
         addOrder(ItemKeyStack.get(promise.item, promise.size), requester, Priorities.ACTIVEB)
     }
 
-    override def getBroadcasts(col:ItemQueue)
+    override def getBroadcasts(col:ItemQueue): Unit =
     {
         val real = invProvider.getInventory(extractSide)
-        if (real == null) return
+        if real == null then return
 
         val inv = applyFilter(real)
         val filt = applyFilter(InvWrapper.wrapInternal(filter), hide=false)
 
         val items = inv.getAllItemStacks
-        for ((k, v) <- items) if (filt.hasItem(k) != filterExclude)
+        for (k, v) <- items do if filt.hasItem(k) != filterExclude then
         {
             val toAdd = v-getDeliveryCount(k)
-            if (toAdd > 0) col += k -> toAdd
+            if toAdd > 0 then col += k -> toAdd
         }
     }
 
     override def getBroadcastPriority = preference
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
-        while (hasOrders)
+        while hasOrders do
         {
             val BroadcastObject(s, r) = popAll()
             r.postNetworkEvent(TrackedPayloadCancelledEvent(s.key, s.stackSize, router))
         }
     }
 
-    override def infoCollection(list:ListBuffer[String])
+    override def infoCollection(list:ListBuffer[String]): Unit =
     {
         super.infoCollection(list)
         addPriorityInfo(list)

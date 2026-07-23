@@ -18,7 +18,7 @@ object AbstractPipePayload
 
     def claimID() =
     {
-        if (maxID < Short.MaxValue) maxID += 1
+        if maxID < Short.MaxValue then maxID += 1
         else maxID = 0
         maxID
     }
@@ -40,7 +40,7 @@ object AbstractPipePayload
 class AbstractPipePayload(val payloadID:Int)
 {
     var payload:ItemKeyStack = null
-    var parent:PayloadPipePart[_] = null
+    var parent:PayloadPipePart[?] = null
 
     // 0000 0000 PPPP PPPP SSSS SSSS 0EOO OIII
     // I = input
@@ -51,45 +51,45 @@ class AbstractPipePayload(val payloadID:Int)
     var data = 0
 
     private var wanderThroughs = 0
-    def tickPayloadWander(){
-        if (Configurator.maxPipesWandered > 0)
+    def tickPayloadWander(): Unit ={
+        if Configurator.maxPipesWandered > 0 then
             wanderThroughs += 1
     }
 
     def isEntering = ((data>>6)&1) != 0
-    def isEntering_=(b:Boolean){ if (b) data |= 0x40 else data &= ~0x40 }
+    def isEntering_=(b:Boolean): Unit ={ if b then data |= 0x40 else data &= ~0x40 }
 
     def speed = ((data>>8)&0xFF)/100.0F
-    def speed_=(f:Float){ data = data&0xFFFF00FF|((f*100).toInt&0xFF)<<8 }
+    def speed_=(f:Float): Unit ={ data = data&0xFFFF00FF|((f*100).toInt&0xFF)<<8 }
 
     def progress = ((data>>16)&0xFF)/100.0F
-    def progress_=(f:Float){ data = data&0xFF00FFFF|((f*100).toInt&0xFF)<<16 }
+    def progress_=(f:Float): Unit ={ data = data&0xFF00FFFF|((f*100).toInt&0xFF)<<16 }
 
     def input = data&0x7
-    def input_=(i:Int){ data = (data& ~0x7)|(i&0x7) }
+    def input_=(i:Int): Unit ={ data = (data& ~0x7)|(i&0x7) }
 
     def output = (data>>3)&0x7
-    def output_=(i:Int){ data = (data& ~0x38)|(i&0x7)<<3 }
+    def output_=(i:Int): Unit ={ data = (data& ~0x38)|(i&0x7)<<3 }
 
-    def bind(p:PayloadPipePart[_]){ parent = p }
+    def bind(p:PayloadPipePart[?]): Unit ={ parent = p }
 
-    def reset()
+    def reset(): Unit =
     {
         isEntering = true
         input = 6
         output = 6
     }
 
-    def preItemRemove(){}
+    def preItemRemove(): Unit ={}
 
-    def moveProgress(prog:Float)
+    def moveProgress(prog:Float): Unit =
     {
         progress += prog
     }
 
     def getItemStack = payload.makeStack
 
-    def setItemStack(item:ItemStack)
+    def setItemStack(item:ItemStack): Unit =
     {
         payload = ItemKeyStack.get(item)
     }
@@ -105,7 +105,7 @@ class AbstractPipePayload(val payloadID:Int)
 
     override def hashCode() = payloadID
 
-    def save(tag:NBTTagCompound)
+    def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("idata", data)
         val tag2 = new NBTTagCompound
@@ -113,19 +113,19 @@ class AbstractPipePayload(val payloadID:Int)
         tag.setTag("Item", tag2)
     }
 
-    def load(tag:NBTTagCompound)
+    def load(tag:NBTTagCompound): Unit =
     {
         data = tag.getInteger("idata")
         setItemStack(new ItemStack(tag.getCompoundTag("Item")))
     }
 
-    def writeDesc(packet:MCDataOutput)
+    def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeItemStack(getItemStack)
         packet.writeInt(data)
     }
 
-    def readDesc(packet:MCDataInput)
+    def readDesc(packet:MCDataInput): Unit =
     {
         setItemStack(packet.readItemStack())
         data = packet.readInt()
@@ -135,7 +135,7 @@ class AbstractPipePayload(val payloadID:Int)
     def getEntityForDrop(pos: BlockPos):EntityItem = getEntityForDrop(pos.getX, pos.getY, pos.getZ)
     def getEntityForDrop(x:Int, y:Int, z:Int):EntityItem =
     {
-        val dir = if (isEntering) input else output
+        val dir = if isEntering then input else output
         val prog = progress
         var deltaX = x+0.5D
         var deltaY = y+0.25D
@@ -183,29 +183,29 @@ class PressurePayload(payloadID:Int) extends AbstractPipePayload(payloadID)
     // P = progress
     // C = colour ******
     def travelData = data>>>24
-    def travelData_=(i:Int){ data = (data& ~0xFF000000)|i<<24 }
+    def travelData_=(i:Int): Unit ={ data = (data& ~0xFF000000)|i<<24 }
 
     var colour:Byte = -1
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("col", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         colour = tag.getByte("col")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(colour)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         colour = packet.readByte()
@@ -223,9 +223,9 @@ class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
     // P = progress
     // N = priority index ******
     def priorityIndex = (data>>24)&0xF
-    def priorityIndex_=(i:Int){ data = (data& ~0xF000000)|(i&0xF)<<24 }
+    def priorityIndex_=(i:Int): Unit ={ data = (data& ~0xF000000)|(i&0xF)<<24 }
 
-    override def preItemRemove()
+    override def preItemRemove(): Unit =
     {
         resetTrip()
     }
@@ -241,16 +241,16 @@ class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
         destinationIP = ip
         priorityIndex = p.ordinal
         val router = RouterServices.getRouter(ip)
-        if (router != null) destinationUUID = router.getID
+        if router != null then destinationUUID = router.getID
         else destinationIP = -1
         this
     }
 
-    def resetTrip()
+    def resetTrip(): Unit =
     {
-        if (destinationIP > -1) {
+        if destinationIP > -1 then {
             val r = RouterServices.getRouter(destinationIP)
-            if (r != null) //r.getParent.itemLost(payload)
+            if r != null then //r.getParent.itemLost(payload)
                 r.getContainer.postNetworkEvent(PayloadLostEnrouteEvent(payload.key, payload.stackSize))
         }
         destinationIP = -1
@@ -259,16 +259,16 @@ class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
         priorityIndex = Priorities.WANDERING.ordinal
     }
 
-    def refreshIP()
+    def refreshIP(): Unit =
     {
         val router = RouterServices.getRouter(destinationIP)
-        if (router == null || router.getID != destinationUUID) destinationIP = RouterServices.getIPforUUID(destinationUUID)
+        if router == null || router.getID != destinationUUID then destinationIP = RouterServices.getIPforUUID(destinationUUID)
     }
 }
 
 class PayloadMovement[T <: AbstractPipePayload]
 {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     var delegate = HashSet[T]()
     var inputQueue = HashSet[T]()
     var outputQueue = HashSet[T]()
@@ -281,7 +281,7 @@ class PayloadMovement[T <: AbstractPipePayload]
     def getOrElseUpdate(id:Int, f:Unit => T):T =
     {
         val payload = get(id)
-        if (payload == null)
+        if payload == null then
         {
             val newInput = f(())
             add(newInput)
@@ -290,22 +290,22 @@ class PayloadMovement[T <: AbstractPipePayload]
         else payload
     }
 
-    def scheduleLoad(item:T)
+    def scheduleLoad(item:T): Unit =
     {
         delay = 10
         inputQueue += item
     }
 
-    def executeLoad()
+    def executeLoad(): Unit =
     {
         delay -= 1
-        if (delay > 0) return
+        if delay > 0 then return
 
         delegate ++= inputQueue
         inputQueue = HashSet[T]()
     }
 
-    def exececuteRemove()
+    def exececuteRemove(): Unit =
     {
         delegate --= outputQueue
         outputQueue = HashSet[T]()
@@ -313,7 +313,7 @@ class PayloadMovement[T <: AbstractPipePayload]
 
     def scheduleRemoval(item:T) =
     {
-        if (outputQueue.contains(item)) false
+        if outputQueue.contains(item) then false
         else
         {
             outputQueue += item
@@ -323,7 +323,7 @@ class PayloadMovement[T <: AbstractPipePayload]
 
     def unscheduleRemoval(item:T) =
     {
-        if (outputQueue.contains(item))
+        if outputQueue.contains(item) then
         {
             outputQueue -= item
             true
@@ -331,7 +331,7 @@ class PayloadMovement[T <: AbstractPipePayload]
         else false
     }
 
-    def add(e:T)
+    def add(e:T): Unit =
     {
         delegate += e
     }

@@ -1,12 +1,12 @@
 package mrtjp.projectred.transportation
 
-import java.util.{PriorityQueue => JPriorityQueue}
+import java.util.{PriorityQueue as JPriorityQueue}
 
 import mrtjp.core.item.{ItemEquality, ItemKey, ItemKeyStack, ItemQueue}
 import net.minecraft.item.ItemStack
 
 import scala.collection.immutable.TreeSet
-import scala.collection.mutable.{HashMap => MHashMap, Map => MMap, MultiMap => MMultiMap, Set => MSet}
+import scala.collection.mutable.{HashMap as MHashMap, Map as MMap, MultiMap as MMultiMap, Set as MSet}
 
 object RequestFlags extends Enumeration
 {
@@ -22,7 +22,7 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
 {
     val root:RequestRoot =
     {
-        if (parent != null) {
+        if parent != null then {
             parent.subRequests :+= this
             parent.root
         }
@@ -39,14 +39,14 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
 
     private var promisedCount = 0
 
-    if (parentCrafter != null) if (!recurse_IsCrafterUsed(parentCrafter)) usedCrafters += parentCrafter
+    if parentCrafter != null then if !recurse_IsCrafterUsed(parentCrafter) then usedCrafters += parentCrafter
 
     {
-        def doRequest()
+        def doRequest(): Unit =
         {
-            if (opt.contains(RequestFlags.PULL) && doPullReq()) return
-            if (opt.contains(RequestFlags.CRAFT) && doExcessReq()) return
-            if (opt.contains(RequestFlags.CRAFT) && doCraftReq()) return
+            if opt.contains(RequestFlags.PULL) && doPullReq() then return
+            if opt.contains(RequestFlags.CRAFT) && doExcessReq() then return
+            if opt.contains(RequestFlags.CRAFT) && doCraftReq() then return
         }
         doRequest()
     }
@@ -56,11 +56,11 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
     def getRequestedPackage = equality(stack.key)
     def isDone = getMissingCount <= 0
 
-    def addPromise(promise:DeliveryPromise)
+    def addPromise(promise:DeliveryPromise): Unit =
     {
         assert(getRequestedPackage.matches(promise.item))
 
-        if (promise.size > getMissingCount)
+        if promise.size > getMissingCount then
         {
             val more = promise.size-getMissingCount
             promise.size = getMissingCount
@@ -68,7 +68,7 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
             excessPromises :+= excess
         }
 
-        if (promise.size <= 0) return
+        if promise.size <= 0 then return
         promises :+= promise
         promisedCount += promise.size
         root.promiseAdded(promise)
@@ -78,14 +78,14 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
     {
         val allRouters = requester.getRouter
             .getFilteredRoutesByCost(p => p.flagRouteFrom && p.allowBroadcast && p.allowItem(stack.key))
-            .sorted(PathOrdering.metric)
-        def search()
+            .sorted(using PathOrdering.metric)
+        def search(): Unit =
         {
-            for (l <- allRouters)
-                if (isDone) return
+            for l <- allRouters do
+                if isDone then return
                 else {
                     val end = l.end.getContainer
-                    if (!LogisticPathFinder.sharesInventory(requester.getPipe, end.getPipe)) {
+                    if !LogisticPathFinder.sharesInventory(requester.getPipe, end.getPipe) then {
                         val prev = root.getExistingPromisesFor(end, stack.key)
                         end.requestPromise(this, prev)
                     }
@@ -98,15 +98,15 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
     def doExcessReq() =
     {
         val all = root.gatherExcessFor(stack.key)
-        def locate()
+        def locate(): Unit =
         {
-            import scala.util.control.Breaks._
-            for (excess <- all) if (isDone) return else if (excess.size > 0) breakable
-            {
+            import scala.util.control.Breaks.*
+            for excess <- all do if isDone then return else if excess.size > 0 then breakable
+              {
                 val pathsToThat = requester.getRouter.getRouteTable(excess.from.getRouter.getIPAddress)
                 val pathsFromThat = excess.from.getRouter.getRouteTable(requester.getRouter.getIPAddress)
-                for (from <- pathsFromThat) if (from != null && from.flagRouteTo)
-                    for (to <- pathsToThat) if (to != null && to.flagRouteFrom)
+                for from <- pathsFromThat do if from != null && from.flagRouteTo then
+                    for to <- pathsToThat do if to != null && to.flagRouteFrom then
                     {
                         excess.size = math.min(excess.size, getMissingCount)
                         addPromise(excess)
@@ -122,16 +122,16 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
     {
         val allRouters = requester.getRouter
             .getFilteredRoutesByCost(p => p.flagRouteFrom && p.allowCrafting && p.allowItem(stack.key))
-            .sorted(PathOrdering.load)
+            .sorted(using PathOrdering.load)
 
         var jobs = Vector.newBuilder[CraftingPromise]
-        for (l <- allRouters) {
+        for l <- allRouters do {
 
             val wc = l.end.getContainer
             val item = recurse_GetCrafterItem(wc)
-            if (item == null || item == stack.key) { //dont use a crafter that has been used for a different item in this request tree
+            if item == null || item == stack.key then { //dont use a crafter that has been used for a different item in this request tree
                 val cpl = wc.requestCraftPromise(this)
-                for (cp <- cpl) jobs += cp
+                for cp <- cpl do jobs += cp
             }
         }
 
@@ -145,53 +145,53 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
 
         val outer, inner = new scala.util.control.Breaks
         outer.breakable
-        {
-            while (!finished) inner.breakable
-            {
-                if (it.hasNext)
+          {
+            while !finished do inner.breakable
+              {
+                if it.hasNext then
                 {
-                    if (lastCrafter == null) lastCrafter = it.next()
+                    if lastCrafter == null then lastCrafter = it.next()
                 }
-                else if (lastCrafter == null) finished = true
+                else if lastCrafter == null then finished = true
 
                 var itemsNeeded = getMissingCount
 
-                if (lastCrafter != null && (balanced.isEmpty || priority == lastCrafter.priority))
+                if lastCrafter != null && (balanced.isEmpty || priority == lastCrafter.priority) then
                 {
                     priority = lastCrafter.priority
                     val crafter = lastCrafter
                     lastCrafter = null
-                    if (recurse_IsCrafterUsed(crafter)) outer.break()
+                    if recurse_IsCrafterUsed(crafter) then outer.break()
 
                     val ci = new CraftingInitializer(crafter, itemsNeeded, this)
                     balanced.add(ci)
                     inner.break()
                 }
 
-                if (unbalanced.isEmpty && balanced.isEmpty) inner.break()
+                if unbalanced.isEmpty && balanced.isEmpty then inner.break()
 
-                if (balanced.size == 1)
+                if balanced.size == 1 then
                 {
                     unbalanced :+= balanced.poll()
                     unbalanced(0).addAdditionalItems(itemsNeeded)
                 }
                 else
                 {
-                    if (!balanced.isEmpty) unbalanced :+= balanced.poll
-                    while (unbalanced.nonEmpty && itemsNeeded > 0)
+                    if !balanced.isEmpty then unbalanced :+= balanced.poll
+                    while unbalanced.nonEmpty && itemsNeeded > 0 do
                     {
-                        while (!balanced.isEmpty && balanced.peek.toDo <= unbalanced(0).toDo)
+                        while !balanced.isEmpty && balanced.peek.toDo <= unbalanced(0).toDo do
                             unbalanced :+= balanced.poll
 
-                        var cap = if (!balanced.isEmpty) balanced.peek.toDo else Int.MaxValue
+                        var cap = if !balanced.isEmpty then balanced.peek.toDo else Int.MaxValue
 
                         val floor = unbalanced(0).toDo
                         cap = math.min(cap, floor+(itemsNeeded+unbalanced.size-1)/unbalanced.size)
 
-                        for (crafter <- unbalanced)
+                        for crafter <- unbalanced do
                         {
                             val request = Math.min(itemsNeeded, cap-floor)
-                            if (request > 0) itemsNeeded -= crafter.addAdditionalItems(request)
+                            if request > 0 then itemsNeeded -= crafter.addAdditionalItems(request)
                         }
                     }
                 }
@@ -199,26 +199,26 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
                 unbalanced = unbalanced.filterNot(c => c.setsRequested > 0 && !c.finalizeInteraction())
 
                 itemsNeeded = getMissingCount
-                if (itemsNeeded <= 0) outer.break()
-                if (unbalanced.nonEmpty) finished = false
+                if itemsNeeded <= 0 then outer.break()
+                if unbalanced.nonEmpty then finished = false
             }
         }
 
         isDone
     }
 
-    def destroy()
+    def destroy(): Unit =
     {
         parent.remove(this)
     }
 
-    protected def remove(subNode:RequestBranchNode)
+    protected def remove(subNode:RequestBranchNode): Unit =
     {
         subRequests = subRequests.filterNot(_ == subNode)
         subNode.recurse_RemoveSubPromisses()
     }
 
-    protected def recurse_RemoveSubPromisses()
+    protected def recurse_RemoveSubPromisses(): Unit =
     {
         promises.foreach(root.promiseRemoved)
         subRequests.foreach(_.recurse_RemoveSubPromisses())
@@ -234,36 +234,36 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
     }
     protected def recurse_IsCrafterUsed(crafter:CraftingPromise):Boolean =
     {
-        if (usedCrafters.contains(crafter)) true
+        if usedCrafters.contains(crafter) then true
         else parent != null && parent.recurse_IsCrafterUsed(crafter)
     }
-    protected def recurse_GatherExcess(item:ItemKey, excessMap:MHashMap[IRouterContainer, Vector[DeliveryPromise]])
+    protected def recurse_GatherExcess(item:ItemKey, excessMap:MHashMap[IRouterContainer, Vector[DeliveryPromise]]): Unit =
     {
-        for (excess <- excessPromises) if (excess.item == item)
+        for excess <- excessPromises do if excess.item == item then
         {
             var prev = excessMap.getOrElse(excess.from, Vector[DeliveryPromise]())
             prev :+= excess.copy
             excessMap += excess.from -> prev
         }
-        for (subNode <- subRequests) subNode.recurse_GatherExcess(item, excessMap)
+        for subNode <- subRequests do subNode.recurse_GatherExcess(item, excessMap)
     }
-    protected def recurse_RemoveUnusableExcess(item:ItemKey, excessMap:MHashMap[IRouterContainer, Vector[DeliveryPromise]])
+    protected def recurse_RemoveUnusableExcess(item:ItemKey, excessMap:MHashMap[IRouterContainer, Vector[DeliveryPromise]]): Unit =
     {
-        for (promise <- promises) if (promise.item == item && promise.isInstanceOf[DeliveryPromise])
+        for promise <- promises do if promise.item == item && promise.isInstanceOf[DeliveryPromise] then
         {
             val epromise = promise.asInstanceOf[DeliveryPromise]
-            if (!epromise.used)
+            if !epromise.used then
             {
                 var usedcount = epromise.size
                 var extras = excessMap.getOrElse(epromise.from, null)
-                if (extras != null)
+                if extras != null then
                 {
                     var toRem = Vector[DeliveryPromise]()
-                    def remove()
+                    def remove(): Unit =
                     {
-                        for (e <- extras)
+                        for e <- extras do
                         {
-                            if (e.size >= usedcount)
+                            if e.size >= usedcount then
                             {
                                 e.size -= usedcount
                                 return
@@ -281,34 +281,34 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
                 }
             }
         }
-        for (subNode <- subRequests) subNode.recurse_RemoveUnusableExcess(item, excessMap)
+        for subNode <- subRequests do subNode.recurse_RemoveUnusableExcess(item, excessMap)
     }
 
-    def recurse_StartDelivery()
+    def recurse_StartDelivery(): Unit =
     {
         subRequests.foreach(_.recurse_StartDelivery())
-        for (p <- promises) p.from.deliverPromise(p, requester)
-        for (p <- excessPromises) p.from.registerExcess(p)
+        for p <- promises do p.from.deliverPromise(p, requester)
+        for p <- excessPromises do p.from.registerExcess(p)
     }
 
-    def recurse_RebuildParityTree()
+    def recurse_RebuildParityTree(): Unit =
     {
-        if (isDone) return
-        if (parityBranch == null) return
+        if isDone then return
+        if parityBranch == null then return
 
         val setsNeeded = (getMissingCount+parityBranch.getSizeForSet-1)/parityBranch.getSizeForSet
         val components = parityBranch.getScaledIngredients(setsNeeded)
 
-        for ((s, eq, d) <- components) new RequestBranchNode(parityBranch, s, eq, d, this, RequestFlags.default)
+        for (s, eq, d) <- components do new RequestBranchNode(parityBranch, s, eq, d, this, RequestFlags.default)
 
         addPromise(parityBranch.getScaledPromise(setsNeeded))
         subRequests.foreach(_.recurse_RebuildParityTree())
     }
 
-    def recurse_GatherStatisticsMissing(map:MHashMap[ItemKey, Int])
+    def recurse_GatherStatisticsMissing(map:MHashMap[ItemKey, Int]): Unit =
     {
         val missing = getMissingCount
-        if (missing > 0)
+        if missing > 0 then
         {
             val item = stack.key
             val count = map.getOrElse(item, 0)+missing
@@ -320,18 +320,18 @@ class RequestBranchNode(parentCrafter:CraftingPromise, stack:ItemKeyStack, equal
 
 class RequestRoot(thePackage:ItemKeyStack, equality:ItemEquality, requester:IRouterContainer, opt:RequestFlags.ValueSet) extends RequestBranchNode(null, thePackage, equality:ItemEquality, requester, null, opt)
 {
-    var tableOfPromises:MMap[IRouterContainer, ItemQueue] = _
+    var tableOfPromises:MMap[IRouterContainer, ItemQueue] = scala.compiletime.uninitialized
 
     def getExistingPromisesFor(b:IRouterContainer, item:ItemKey) =
     {
-        if (tableOfPromises == null) tableOfPromises = MMap[IRouterContainer, ItemQueue]()
+        if tableOfPromises == null then tableOfPromises = MMap[IRouterContainer, ItemQueue]()
         tableOfPromises.get(b) match {
             case Some(queue) => queue(item)
             case _ => 0
         }
     }
 
-    def promiseAdded(p:DeliveryPromise)
+    def promiseAdded(p:DeliveryPromise): Unit =
     {
         tableOfPromises.getOrElseUpdate(p.from, new ItemQueue).add(p.item, p.size)
     }
@@ -348,7 +348,7 @@ class RequestRoot(thePackage:ItemKeyStack, equality:ItemEquality, requester:IRou
         all.result()
     }
 
-    def promiseRemoved(p:DeliveryPromise)
+    def promiseRemoved(p:DeliveryPromise): Unit =
     {
         tableOfPromises.getOrElseUpdate(p.from, new ItemQueue).remove(p.item, p.size)
     }
@@ -375,10 +375,10 @@ class PathOrdering(distanceWeight:Double) extends Ordering[StartEndPath]
         val p1 = wr1.getBroadcastPriority
         val p2 = wr2.getBroadcastPriority
 
-        if (p1 != p2) return if (p2 > p1) 1 else -1
+        if p1 != p2 then return if p2 > p1 then 1 else -1
 
         var switchKey = 1
-        if (x.end.getIPAddress-y.end.getIPAddress > 0)
+        if x.end.getIPAddress-y.end.getIPAddress > 0 then
         {
             switchKey = -1
             val temp = x
@@ -392,8 +392,8 @@ class PathOrdering(distanceWeight:Double) extends Ordering[StartEndPath]
         c = l1-l2
         c += (x.distance-y.distance)*distanceWeight
 
-        if (c == 0) -switchKey //if same distance lower id is preferred
-        else if (c > 0) (c+0.5D).toInt*switchKey //round up
+        if c == 0 then -switchKey //if same distance lower id is preferred
+        else if c > 0 then (c+0.5D).toInt*switchKey //round up
         else (c-0.5D).toInt*switchKey //round down
     }
 }
@@ -407,9 +407,9 @@ class CraftingPromise(val result:ItemKeyStack, val crafter:IRouterContainer, val
 {
     var ingredients2 = Seq.empty[(ItemKeyStack, ItemEquality, IRouterContainer)]
 
-    def addIngredient(stack:ItemKeyStack, eq:ItemEquality, destination:IRouterContainer)
+    def addIngredient(stack:ItemKeyStack, eq:ItemEquality, destination:IRouterContainer): Unit =
     {
-        for ((s, e, d) <- ingredients2) if (s.key == stack.key && d == destination)
+        for (s, e, d) <- ingredients2 do if s.key == stack.key && d == destination then
         {
             s.stackSize += stack.stackSize
             return
@@ -422,7 +422,7 @@ class CraftingPromise(val result:ItemKeyStack, val crafter:IRouterContainer, val
     def getScaledIngredients(sets:Int) =
     {
         var components = Seq.newBuilder[(ItemKeyStack, ItemEquality, IRouterContainer)]
-        for ((stack, eq, dest) <- ingredients2)
+        for (stack, eq, dest) <- ingredients2 do
         {
             val copy = stack.copy
             copy.stackSize *= sets
@@ -434,8 +434,8 @@ class CraftingPromise(val result:ItemKeyStack, val crafter:IRouterContainer, val
     override def compare(that:CraftingPromise) =
     {
         var c = priority-that.priority
-        if (c == 0) c = result.compare(that.result)
-        if (c == 0) c = crafter.getRouter.compare(that.crafter.getRouter)
+        if c == 0 then c = result.compare(that.result)
+        if c == 0 then c = crafter.getRouter.compare(that.crafter.getRouter)
         c
     }
 
@@ -457,9 +457,9 @@ class CraftingInitializer(crafter:CraftingPromise, maxToCraft:Int, branch:Reques
     private def calculateMaxPotentialSets(maxSets:Int):Int =
     {
         var needed = 0
-        if (maxSets > 0) needed = maxSets
+        if maxSets > 0 then needed = maxSets
         else needed = (branch.getMissingCount+setSize-1)/setSize
-        if (needed <= 0) return 0
+        if needed <= 0 then return 0
         getPotentialSubPromises(needed, crafter)
     }
 
@@ -474,10 +474,10 @@ class CraftingInitializer(crafter:CraftingPromise, maxToCraft:Int, branch:Reques
     {
         val setsToCraft = math.min(setsRequested, maxSetsAvailable)
         val setsAbleToCraft = calculateMaxPotentialSets(setsToCraft)
-        if (setsAbleToCraft > 0)
+        if setsAbleToCraft > 0 then
         {
             val delivery = crafter.getScaledPromise(setsAbleToCraft)
-            if (delivery.size != setsAbleToCraft*setSize) return false
+            if delivery.size != setsAbleToCraft*setSize then return false
             branch.addPromise(delivery)
         }
         val isDone = setsToCraft == setsAbleToCraft
@@ -494,20 +494,20 @@ class CraftingInitializer(crafter:CraftingPromise, maxToCraft:Int, branch:Reques
         var subs = Seq.newBuilder[RequestBranchNode]
         val ingredients = crafter.getScaledIngredients(numberOfSets)
 
-        for ((stack, eq, dest) <- ingredients)
+        for (stack, eq, dest) <- ingredients do
         {
             val req = new RequestBranchNode(crafter, stack, eq, dest, branch, RequestFlags.default)
             subs += req
-            if (!req.isDone) failed = true
+            if !req.isDone then failed = true
         }
 
-        if (failed)
+        if failed then
         {
             val children = subs.result()
             children.foreach(_.destroy())
 
             branch.parityBranch = crafter
-            for (i <- ingredients.indices)
+            for i <- ingredients.indices do
                 potentialSets = math.min(potentialSets,
                     children(i).getPromisedCount/(ingredients(i)._1.stackSize/numberOfSets))
 
@@ -519,19 +519,19 @@ class CraftingInitializer(crafter:CraftingPromise, maxToCraft:Int, branch:Reques
     def getAbsoluteSubPromises(numberOfSets:Int, crafter:CraftingPromise):Int =
     {
         var children = Vector.newBuilder[RequestBranchNode]
-        if (numberOfSets > 0)
+        if numberOfSets > 0 then
         {
             val ingredients = crafter.getScaledIngredients(numberOfSets)
             var failed = false
 
-            for ((stack, eq, dest) <- ingredients)
+            for (stack, eq, dest) <- ingredients do
             {
                 val req = new RequestBranchNode(crafter, stack, eq, dest, branch, RequestFlags.default)
                 children += req
-                if (!req.isDone) failed = true
+                if !req.isDone then failed = true
             }
 
-            if (failed)
+            if failed then
             {
                 children.result().foreach(_.destroy())
                 return 0
@@ -584,24 +584,24 @@ class RequestConsole(opt:RequestFlags.ValueSet)
 
     def startRequest():RequestConsole =
     {
-        if (branch.isDone || opt.contains(RequestFlags.PARTIAL) && branch.getPromisedCount > 0)
+        if branch.isDone || opt.contains(RequestFlags.PARTIAL) && branch.getPromisedCount > 0 then
         {
             requested = branch.getPromisedCount
-            if (!opt.contains(RequestFlags.SIMULATE)) branch.recurse_StartDelivery()
+            if !opt.contains(RequestFlags.SIMULATE) then branch.recurse_StartDelivery()
         }
         this
     }
 
     private var parityBuilt = false
-    private def rebuildParity()
+    private def rebuildParity(): Unit =
     {
-        if (!parityBuilt) branch.recurse_RebuildParityTree()
+        if !parityBuilt then branch.recurse_RebuildParityTree()
         parityBuilt = true
     }
 
-    private def gatherMissing()
+    private def gatherMissing(): Unit =
     {
-        if (missing == null)
+        if missing == null then
         {
             rebuildParity()
             val m = new MHashMap[ItemKey, Int]
@@ -612,7 +612,7 @@ class RequestConsole(opt:RequestFlags.ValueSet)
 
     def getMissing =
     {
-        if (missing == null) gatherMissing()
+        if missing == null then gatherMissing()
         missing
     }
 

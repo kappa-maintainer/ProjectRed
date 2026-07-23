@@ -1,7 +1,7 @@
 package mrtjp.projectred.fabrication
 
 import scala.collection.mutable
-import scala.collection.mutable.{ListBuffer, Set => MSet}
+import scala.collection.mutable.{ListBuffer, Set as MSet}
 
 class SEIntegratedCircuit(
     $registers:Seq[ISERegister], //Registers in the circuit, indexed by regID
@@ -14,7 +14,7 @@ class SEIntegratedCircuit(
 
     val regDependents:Array[Array[Int]] = {
         val b = mutable.ArrayBuilder.make[Array[Int]]
-        for (i <- 0 until registers.length)
+        for i <- 0 until registers.length do
             b += $regDependents.getOrElse(i, Seq.empty).toArray
         b.result()
     }
@@ -25,7 +25,7 @@ class SEIntegratedCircuit(
 
     def computeAll():Boolean =
     {
-        for (i <- gates)
+        for i <- gates do
             i.compute(this)
         propagate(null)
         changeQueue.isEmpty
@@ -33,9 +33,9 @@ class SEIntegratedCircuit(
 
     def getRegVal[T](regID:Int):T = registers(regID).getVal[T]
 
-    def queueRegVal[T](regID:Int, newVal:T)
+    def queueRegVal[T](regID:Int, newVal:T): Unit =
     {
-        if (registers(regID).queueVal[T](newVal))
+        if registers(regID).queueVal[T](newVal) then
             changeQueue += regID
     }
 
@@ -50,16 +50,16 @@ class SEIntegratedCircuit(
         var hasOverflow = false
         var overflowGateID = -1
 
-        def fetch() {
+        def fetch(): Unit = {
             changes = changeQueue.result()
             changeQueue.clear()
             allChanges ++= changes
         }
 
-        def checkOverflow() {
-            for (i <- computes) {
+        def checkOverflow(): Unit = {
+            for i <- computes do {
                 allComputes(i) += 1
-                if (allComputes(i) > 32) {
+                if allComputes(i) > 32 then {
                     hasOverflow = true
                     overflowGateID = i
                     return
@@ -71,13 +71,13 @@ class SEIntegratedCircuit(
 
         fetch()
 
-        do {
-            for (regID <- changes)
+        while { {
+            for regID <- changes do
                 registers(regID).pushVal(this)
 
-            for (regID <- changes) {
-                for (gateID <- regDependents(regID)) {
-                    if (!computes(gateID)) {
+            for regID <- changes do {
+                for gateID <- regDependents(regID) do {
+                    if !computes(gateID) then {
                         gates(gateID).compute(this)
                         computes += gateID
                     }
@@ -87,15 +87,15 @@ class SEIntegratedCircuit(
             fetch()
             checkOverflow()
         }
-        while (changes.nonEmpty && !hasOverflow)
+        ; changes.nonEmpty && !hasOverflow} do ()
 
-        if (hasOverflow)
-            if (callback != null) callback.icDidThrowErrorFlag(
+        if hasOverflow then
+            if callback != null then callback.icDidThrowErrorFlag(
                 SEIntegratedCircuit.COMPUTE_OVERFLOW, changes, Seq(overflowGateID))
 
         val ch = allChanges.result()
-        if (ch.nonEmpty) {
-            if (callback != null) callback.registersDidChange(ch)
+        if ch.nonEmpty then {
+            if callback != null then callback.registersDidChange(ch)
             true
         } else
             false
@@ -105,7 +105,7 @@ class SEIntegratedCircuit(
         val builder = new mutable.StringBuilder()
         builder.append("SEIntegratedCircuit: DUMP\n")
         builder.append("=== Registers ===\n")
-        for (i <- 0 until registers.length) {
+        for i <- 0 until registers.length do {
             val reg = registers(i)
             builder.append(s"reg[$i] = ")
             reg match {
@@ -141,9 +141,9 @@ object SEIntegratedCircuit
 
 trait ISEICDelegate
 {
-    def registersDidChange(registers:Set[Int])
+    def registersDidChange(registers:Set[Int]): Unit 
 
-    def icDidThrowErrorFlag(flag:Int, registers:Seq[Int], gates:Seq[Int])
+    def icDidThrowErrorFlag(flag:Int, registers:Seq[Int], gates:Seq[Int]): Unit 
 }
 
 trait ISERegister
@@ -152,12 +152,12 @@ trait ISERegister
 
     def queueVal[T](newVal:T):Boolean
 
-    def pushVal(ic:SEIntegratedCircuit)
+    def pushVal(ic:SEIntegratedCircuit): Unit 
 }
 
 trait ISEGate
 {
-    def compute(ic:SEIntegratedCircuit)
+    def compute(ic:SEIntegratedCircuit): Unit 
 }
 
 case class StandardRegister[Type](var value:Type) extends ISERegister
@@ -172,7 +172,7 @@ case class StandardRegister[Type](var value:Type) extends ISERegister
         value != queuedVal
     }
 
-    override def pushVal(ic:SEIntegratedCircuit)
+    override def pushVal(ic:SEIntegratedCircuit): Unit =
     {
         value = queuedVal
     }
@@ -182,5 +182,5 @@ case class ConstantRegister[Type](c:Type) extends ISERegister
 {
     override def getVal[T] = c.asInstanceOf[T]
     override def queueVal[T](newVal:T) = false
-    override def pushVal(ic:SEIntegratedCircuit){}
+    override def pushVal(ic:SEIntegratedCircuit): Unit ={}
 }

@@ -35,24 +35,24 @@ class ICTileGui(val part:IGuiICTile) extends Gui with TNode
         addChild(close)
     }
 
-    override def frameUpdate_Impl(mouse:Point, rframe:Float)
+    override def frameUpdate_Impl(mouse:Point, rframe:Float): Unit =
     {
-        if (mouseDown)
+        if mouseDown then
         {
             position += mouse-mouseInit
             mouseInit = mouse
         }
 
-        if (part.editor == null) removeFromParent()
+        if part.editor == null then removeFromParent()
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         GuiLib.drawGuiBox(position.x, position.y, size.width, size.height, 0)
         GuiDraw.drawRect(moverFrame.x, moverFrame.y, moverFrame.width, moverFrame.height, EnumColour.LIGHT_GRAY.argb)
     }
 
-    override def drawFront_Impl(mouse:Point, rframe:Float)
+    override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
     {
         val from = linePointerCalc()
         val to = from.clamp(frame)
@@ -63,17 +63,17 @@ class ICTileGui(val part:IGuiICTile) extends Gui with TNode
 
     override def mouseClicked_Impl(p:Point, button:Int, consumed:Boolean):Boolean =
     {
-        if (parent == null) false //we cant check for consume here, so manually check if closed
+        if parent == null then false //we cant check for consume here, so manually check if closed
         else hitTest(p).find(_.isInstanceOf[ICTileGui]) match
         {
             case Some(gui) if gui == this =>
                 val guis = parent.childrenByZ.collect{case g:ICTileGui => g}
                 val otherGuis = guis.filter(_ != this)
-                for (i <- otherGuis.indices)
+                for i <- otherGuis.indices do
                     otherGuis(i).pushZTo(0.1*i)
                 pushZTo(0.1*otherGuis.size)
 
-                if (moverFrame.contains(p))
+                if moverFrame.contains(p) then
                 {
                     mouseDown = true
                     mouseInit = p
@@ -90,7 +90,7 @@ class ICTileGui(val part:IGuiICTile) extends Gui with TNode
     }
 
     override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
-        if (!consumed && keycode == Keyboard.KEY_ESCAPE)
+        if !consumed && keycode == Keyboard.KEY_ESCAPE then
         {
             removeFromParent()
             true
@@ -105,7 +105,7 @@ trait TGateGui extends ICTileGui
 
     def gate:GateICTile
 
-    abstract override def drawBack_Impl(mouse:Point, rframe:Float)
+    abstract override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
 
@@ -159,7 +159,7 @@ class ICTimerGateGui(override val gate:SequentialGateICTile) extends ICTileGui(g
         conf.clickDelegate = {() => gate.sendClientPacket(_.writeByte(1))}
         addChild(conf)
 
-        def createButton(x:Int, y:Int, w:Int, h:Int, text:String, delta:Int)
+        def createButton(x:Int, y:Int, w:Int, h:Int, text:String, delta:Int): Unit =
         {
             val b = new MCButtonNode
             b.position = Point(x, y)
@@ -187,7 +187,7 @@ class ICTimerGateGui(override val gate:SequentialGateICTile) extends ICTileGui(g
 
     def getLogic = gate.getLogic[ITimerGuiLogic]
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
         val s = "Interval: "+"%.2f".format(getLogic.getTimerMax*0.05)+"s"
@@ -227,12 +227,12 @@ class ICCounterGateGui(override val gate:SequentialGateICTile) extends ICTileGui
         sw.clickDelegate = {() => valID = (valID+1)%4}
         addChild(sw)
 
-        def createButton(x:Int, y:Int, w:Int, h:Int, delta:Int)
+        def createButton(x:Int, y:Int, w:Int, h:Int, delta:Int): Unit =
         {
             val b = new MCButtonNode
             b.position = Point(x, y)
             b.size = Size(w, h)
-            b.text = (if (delta < 0) "" else "+")+delta
+            b.text = (if delta < 0 then "" else "+")+delta
             b.clickDelegate = {() => gate.sendClientPacket(_.writeByte(4).writeByte(valID).writeShort(delta))}
             addChild(b)
         }
@@ -255,7 +255,7 @@ class ICCounterGateGui(override val gate:SequentialGateICTile) extends ICTileGui
 
     def getLogic = gate.getLogic[ICounterGuiLogic]
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
         val s = s"Value: ${getLogic.getCounterValue}"
@@ -284,7 +284,7 @@ class ICIOGateGui(override val gate:IOGateICTile) extends ICTileGui(gate) with T
         addChild(conf)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
 
@@ -324,7 +324,7 @@ class ICIOFreqGateGui(override val gate:IOGateICTile) extends ICTileGui(gate) wi
         addChild(plus)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
 

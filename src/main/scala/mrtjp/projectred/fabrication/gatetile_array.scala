@@ -8,9 +8,9 @@ trait TArrayGateICTile extends RedstoneGateICTile with IRedwireICPart with IWire
 
     override def isNetOutput(r:Int):Boolean =
     {
-        if (maskConnects(r)) getStraight(r) match {
+        if maskConnects(r) then getStraight(r) match {
             case gate:IRedwireICGate =>
-                if(gate.canInputFrom(rotFromStraight(r))) return true
+                if gate.canInputFrom(rotFromStraight(r)) then return true
             case _ =>
         }
         false
@@ -18,9 +18,9 @@ trait TArrayGateICTile extends RedstoneGateICTile with IRedwireICPart with IWire
 
     override def isNetInput(r:Int):Boolean =
     {
-        if (maskConnects(r)) getStraight(r) match {
+        if maskConnects(r) then getStraight(r) match {
             case gate:IRedwireICGate =>
-                if (gate.canOutputTo(rotFromStraight(r))) return true
+                if gate.canOutputTo(rotFromStraight(r)) then return true
             case _ =>
         }
         false
@@ -41,7 +41,7 @@ trait TArrayGateICTile extends RedstoneGateICTile with IRedwireICPart with IWire
         wireNet
     }
 
-    override def cacheStateRegisters(linker:ISELinker){}
+    override def cacheStateRegisters(linker:ISELinker): Unit ={}
 }
 
 trait TArrayGateTileLogic[T <: TArrayGateICTile] extends RedstoneGateTileLogic[T]
@@ -67,9 +67,9 @@ class ArrayGateICTile extends RedstoneGateICTile with TComplexGateICTile with TA
 {
     var logic:ArrayGateTileLogic = null
 
-    override def assertLogic()
+    override def assertLogic(): Unit =
     {
-        if (logic == null) logic = ArrayGateTileLogic.create(this, subID)
+        if logic == null then logic = ArrayGateTileLogic.create(this, subID)
     }
 
     override def getLogic[T]:T = logic.asInstanceOf[T]
@@ -79,7 +79,7 @@ class ArrayGateICTile extends RedstoneGateICTile with TComplexGateICTile with TA
 
 object ArrayGateTileLogic
 {
-    import mrtjp.projectred.fabrication.{ICGateDefinition => defs}
+    import mrtjp.projectred.fabrication.{ICGateDefinition as defs}
 
     def create(gate:ArrayGateICTile, subID:Int):ArrayGateTileLogic = subID match
     {
@@ -101,21 +101,21 @@ abstract class ArrayGateTileLogicCrossing(gate:ArrayGateICTile) extends ArrayGat
     override def getInputColourMask(r:Int) = 0xFFFF
     override def getOutputColourMask(r:Int) = 0xFFFF
 
-    override def getPropMask(r:Int) = if (r%2 == 0) 0x5 else 0xA
+    override def getPropMask(r:Int) = if r%2 == 0 then 0x5 else 0xA
 
     val inputRegs = Array(-1, -1, -1, -1)
     val outputRegs = Array(-1, -1, -1, -1)
     val stateRegs = Array(-1, -1, -1, -1)
 
-    def cacheIORegisters(linker:ISELinker)
+    def cacheIORegisters(linker:ISELinker): Unit =
     {
-        for (r <- 0 until 4) {
+        for r <- 0 until 4 do {
             inputRegs(r) =
-                    if (canInput(gate, r)) gate.getInputRegister(r, linker) else -1
+                    if canInput(gate, r) then gate.getInputRegister(r, linker) else -1
             outputRegs(r) =
-                    if (canOutput(gate, r)) gate.getOutputRegister(r, linker) else -1
+                    if canOutput(gate, r) then gate.getOutputRegister(r, linker) else -1
             stateRegs(r) =
-                    if (getPropMask(r) != 0) gate.getStateRegister(r, linker) else -1
+                    if getPropMask(r) != 0 then gate.getStateRegister(r, linker) else -1
         }
 //
 //        import SEIntegratedCircuit._
@@ -128,8 +128,8 @@ abstract class ArrayGateTileLogicCrossing(gate:ArrayGateICTile) extends ArrayGat
     private def pullInput(mask:Int) = //Pull the input from the sim engine
     {
         var input = 0
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
-            if (gate.editor.simEngineContainer.simEngine.getRegVal[Byte](inputRegs(r)) > 0) input |= 1<<r
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+            if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](inputRegs(r)) > 0 then input |= 1<<r
         }
         input
     }
@@ -137,8 +137,8 @@ abstract class ArrayGateTileLogicCrossing(gate:ArrayGateICTile) extends ArrayGat
     private def pullOutput(mask:Int) = //Pull the output form the sim engine
     {
         var output = 0
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
-            if (gate.editor.simEngineContainer.simEngine.getRegVal[Byte](outputRegs(r)) > 0) output |= 1<<r
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+            if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](outputRegs(r)) > 0 then output |= 1<<r
         }
         output
     }
@@ -146,44 +146,44 @@ abstract class ArrayGateTileLogicCrossing(gate:ArrayGateICTile) extends ArrayGat
     private def pullWireState(mask:Int) = //Pull the raw wire state from the sim engine
     {
         var state = 0
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
-            if (gate.editor.simEngineContainer.simEngine.getRegVal[Byte](stateRegs(r)) > 0) state |= 1<<r
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
+            if gate.editor.simEngineContainer.simEngine.getRegVal[Byte](stateRegs(r)) > 0 then state |= 1<<r
         }
         state
     }
 
-    def pullIOStateFromSim()
+    def pullIOStateFromSim(): Unit =
     {
         val oldState = gate.state
         val wireState = pullWireState(0xF)
         var newState = pullInput(inputMask(gate.shape))&0xF | pullOutput(outputMask(gate.shape))<<4
         newState |= wireState | wireState<<4
 
-        if (oldState != newState) {
+        if oldState != newState then {
             gate.setState(newState)
             gate.sendStateUpdate()
         }
     }
 
-    override def allocateOrFindRegisters(gate:ArrayGateICTile, linker:ISELinker)
+    override def allocateOrFindRegisters(gate:ArrayGateICTile, linker:ISELinker): Unit =
     {
         cacheIORegisters(linker)
         allocInternalRegisters(linker)
     }
 
-    override def onRegistersChanged(gate:ArrayGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:ArrayGateICTile, regIDs:Set[Int]): Unit =
     {
         pullIOStateFromSim()
     }
 
-    def allocInternalRegisters(linker:ISELinker)
+    def allocInternalRegisters(linker:ISELinker): Unit 
 }
 
 class NullCell(gate:ArrayGateICTile) extends ArrayGateTileLogicCrossing(gate)
 {
-    override def allocInternalRegisters(linker:ISELinker){}
+    override def allocInternalRegisters(linker:ISELinker): Unit ={}
 
-    override def declareOperations(gate:ArrayGateICTile, linker:ISELinker){}
+    override def declareOperations(gate:ArrayGateICTile, linker:ISELinker): Unit ={}
 }
 
 //abstract class ArrayGateTileLogic(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)

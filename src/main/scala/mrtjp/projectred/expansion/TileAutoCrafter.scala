@@ -11,7 +11,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.{TInventory, TInventoryCapablilityTile}
 import mrtjp.core.vec.{Point, Size}
 import mrtjp.projectred.ProjectRedExpansion
@@ -35,7 +35,7 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
     private var cycleTimer1 = getUnpoweredCycleTimer
     private var cycleTimer2 = getPoweredCycleTimer
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         saveInv(tag)
@@ -43,7 +43,7 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
         tag.setInteger("cyt2", cycleTimer2)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         loadInv(tag)
@@ -57,7 +57,7 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
         case _ => super.read(in, key)
     }
 
-    def sendCyclePlanSlot()
+    def sendCyclePlanSlot(): Unit =
     {
         writeStream(2).sendToServer()
     }
@@ -86,42 +86,42 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
     override def canInsertItem(slot:Int, item:ItemStack, side:EnumFacing) = 9 until 27 contains slot
     override def getSlotsForFace(side:EnumFacing) = (9 until 27).toArray
 
-    override def updateServer()
+    override def updateServer(): Unit =
     {
         super.updateServer()
 
-        if (cond.canWork) {
+        if cond.canWork then {
             cycleTimer2 -= 1
-            if (cycleTimer2%(getPoweredCycleTimer/getCraftsPerPowerCycle) == 0)
-                if (tryCraft()) cond.drawPower(1000)
-            if (cycleTimer2 <= 0) {
+            if cycleTimer2%(getPoweredCycleTimer/getCraftsPerPowerCycle) == 0 then
+                if tryCraft() then cond.drawPower(1000)
+            if cycleTimer2 <= 0 then {
                 cycleTimer2 = getPoweredCycleTimer
                 cyclePlanSlot()
                 cond.drawPower(100)
             }
         } else {
             cycleTimer1 -= 1
-            if (cycleTimer1 <= 0) {
+            if cycleTimer1 <= 0 then {
                 cycleTimer1 = getUnpoweredCycleTimer
                 tryCraft()
             }
         }
     }
 
-    def cyclePlanSlot()
+    def cyclePlanSlot(): Unit =
     {
         val start = planSlot
-        do planSlot = (planSlot+1)%9
-        while (planSlot != start && getStackInSlot(planSlot).isEmpty)
-        if (planSlot != start) refreshRecipe()
+        while { planSlot = (planSlot+1)%9
+        ; planSlot != start && getStackInSlot(planSlot).isEmpty} do ()
+        if planSlot != start then refreshRecipe()
     }
 
-    def refreshRecipe()
+    def refreshRecipe(): Unit =
     {
         craftHelper.clear()
 
         val plan = getStackInSlot(planSlot)
-        if (!plan.isEmpty && ItemPlan.hasRecipeInside(plan)) {
+        if !plan.isEmpty && ItemPlan.hasRecipeInside(plan) then {
             val inputs = ItemPlan.loadPlanInputs(plan)
 
             craftHelper.loadInputs(inputs)
@@ -129,7 +129,7 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
         }
     }
 
-    override def markDirty()
+    override def markDirty(): Unit =
     {
         super.markDirty()
         recipeNeedsRefresh = true
@@ -137,14 +137,14 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
 
     def tryCraft():Boolean =
     {
-        if (recipeNeedsRefresh) {
+        if recipeNeedsRefresh then {
             refreshRecipe()
             recipeNeedsRefresh = false
         }
 
-        if (craftHelper.recipe != null) {
+        if craftHelper.recipe != null then {
             craftHelper.loadStorage((9 until 27).map(getStackInSlot).toArray, true)
-            if (craftHelper.consumeAndCraftToStorage(world, 64)) {
+            if craftHelper.consumeAndCraftToStorage(world, 64) then {
                 craftHelper.unloadStorage(this, {_ + 9})
                 return true
             }
@@ -153,13 +153,13 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
         false
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
     }
 
-    override def openGui(player:EntityPlayer)
+    override def openGui(player:EntityPlayer): Unit =
     {
         GuiAutoCrafter.open(player, createContainer(player), _.writePos(getPos))
     }
@@ -170,7 +170,7 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
 class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends ContainerPoweredMachine(tile)
 {
     {
-        for (((x, y), i) <- GuiLib.createSlotGrid(98, 22, 3, 3, 0, 0).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createSlotGrid(98, 22, 3, 3, 0, 0).zipWithIndex do
         {
             val s = new Slot3(tile, i, x, y)
             s.canPlaceDelegate = {s =>
@@ -179,7 +179,7 @@ class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends Co
             addSlotToContainer(s)
         }
 
-        for (((x, y), i) <- GuiLib.createSlotGrid(8, 80, 9, 2, 0, 0).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createSlotGrid(8, 80, 9, 2, 0, 0).zipWithIndex do
             addSlotToContainer(new Slot3(tile, i+9, x, y))
 
         addPlayerInv(player, 8, 130)
@@ -187,15 +187,15 @@ class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends Co
 
     var slot = -1
 
-    override def detectAndSendChanges()
+    override def detectAndSendChanges(): Unit =
     {
         super.detectAndSendChanges()
-        import scala.jdk.CollectionConverters._
-        for (i <- listeners.asScala)
+        import scala.jdk.CollectionConverters.*
+        for i <- listeners.asScala do
         {
             val ic = i
 
-            if (slot != tile.planSlot) ic.sendWindowProperty(this, 3, tile.planSlot)
+            if slot != tile.planSlot then ic.sendWindowProperty(this, 3, tile.planSlot)
             slot = tile.planSlot
         }
     }
@@ -208,25 +208,25 @@ class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends Co
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
     {
-        if (0 until 9 contains from) //plan slots
+        if 0 until 9 contains from then //plan slots
         {
-            if (tryMergeItemStack(stack, 36, 63, false)) return true //to player inv
-            if (tryMergeItemStack(stack, 27, 36, false)) return true //to hotbar
+            if tryMergeItemStack(stack, 36, 63, false) then return true //to player inv
+            if tryMergeItemStack(stack, 27, 36, false) then return true //to hotbar
         }
-        else if (9 until 27 contains from) //storage
+        else if 9 until 27 contains from then //storage
         {
-            if (stack.getItem.isInstanceOf[ItemPlan])
-                if (tryMergeItemStack(stack, 0, 9, false)) return true //merge to plan
+            if stack.getItem.isInstanceOf[ItemPlan] then
+                if tryMergeItemStack(stack, 0, 9, false) then return true //merge to plan
 
-            if (tryMergeItemStack(stack, 27, 36, true)) return true //to hotbar reversed
-            if (tryMergeItemStack(stack, 36, 63, true)) return true //to player inv reversed
+            if tryMergeItemStack(stack, 27, 36, true) then return true //to hotbar reversed
+            if tryMergeItemStack(stack, 36, 63, true) then return true //to player inv reversed
         }
-        else if (27 until 63 contains from) //player inventory
+        else if 27 until 63 contains from then //player inventory
         {
-            if (stack.getItem.isInstanceOf[ItemPlan]) {
-                if (tryMergeItemStack(stack, 0, 9, false)) return true //merge to plan
+            if stack.getItem.isInstanceOf[ItemPlan] then {
+                if tryMergeItemStack(stack, 0, 9, false) then return true //merge to plan
             } else
-                if (tryMergeItemStack(stack, 9, 27, false)) return true //merge to storage
+                if tryMergeItemStack(stack, 9, 27, false) then return true //merge to storage
         }
 
         false
@@ -237,7 +237,7 @@ class GuiAutoCrafter(tile:TileAutoCrafter, c:ContainerAutoCrafter) extends NodeG
 {
     {
         val cycle = new IconButtonNode {
-            override def drawButton(mouseover:Boolean) {
+            override def drawButton(mouseover:Boolean): Unit = {
                 TextureUtils.changeTexture(GuiAutoCrafter.background)
                 drawTexturedModalRect(position.x, position.y, 176, 0, 14, 14)
             }
@@ -248,30 +248,30 @@ class GuiAutoCrafter(tile:TileAutoCrafter, c:ContainerAutoCrafter) extends NodeG
         addChild(cycle)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         TextureUtils.changeTexture(GuiAutoCrafter.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
-        if (tile.cond.canWork)
+        if tile.cond.canWork then
             GuiDraw.drawTexturedModalRect(16, 16, 177, 18, 7, 9)
         GuiLib.drawVerticalTank(16, 26, 177, 27, 7, 48, tile.cond.getChargeScaled(48))
 
-        if (tile.cond.flow == -1)
+        if tile.cond.flow == -1 then
             GuiDraw.drawTexturedModalRect(27, 16, 185, 18, 7, 9)
         GuiLib.drawVerticalTank(27, 26, 185, 27, 7, 48, tile.cond.getFlowScaled(48))
 
         val plan = tile.getStackInSlot(tile.planSlot)
-        if (!plan.isEmpty && ItemPlan.hasRecipeInside(plan))
+        if !plan.isEmpty && ItemPlan.hasRecipeInside(plan) then
             ItemDisplayNode.renderItem(Point(152, 58), Size(16, 16), zPosition, true, ItemPlan.loadPlanOutput(plan))
 
         GuiDraw.drawString("Auto Crafting Bench", 8, 6, EnumColour.GRAY.argb, false)
         GuiDraw.drawString("Inventory", 8, 120, EnumColour.GRAY.argb, false)
     }
 
-    override def drawFront_Impl(mouse:Point, rframe:Float)
+    override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
     {
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+        if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then
             GuiProjectBench.drawPlanOutputOverlay(c.slots)
 
         TextureUtils.changeTexture(GuiAutoCrafter.background)
@@ -302,12 +302,12 @@ object RenderAutoCrafter extends SimpleBlockRenderer
 {
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var side2:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT:UVTransformation = _
+    var iconT:UVTransformation = scala.compiletime.uninitialized
 
     override def getWorldTransforms(state: IExtendedBlockState) = Triple.of(0, 0, iconT)
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT)
@@ -320,7 +320,7 @@ object RenderAutoCrafter extends SimpleBlockRenderer
         case _ => side1
     }
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/autobench/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/autobench/top"))

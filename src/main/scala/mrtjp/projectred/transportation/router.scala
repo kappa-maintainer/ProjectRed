@@ -2,14 +2,14 @@ package mrtjp.projectred.transportation
 
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.{UUID, PriorityQueue => JPriorityQueue}
+import java.util.{UUID, PriorityQueue as JPriorityQueue}
 
 import mrtjp.core.item.ItemKey
 import mrtjp.projectred.core.Configurator
 import mrtjp.projectred.transportation.Priorities.NetworkPriority
 
 import scala.collection.immutable.{BitSet, HashMap}
-import scala.collection.mutable.{BitSet => MBitSet}
+import scala.collection.mutable.{BitSet as MBitSet}
 
 object RouterServices
 {
@@ -20,30 +20,30 @@ object RouterServices
 
     def getRouter(id:Int) =
     {
-        if (routers.isDefinedAt(id)) routers(id)
+        if routers.isDefinedAt(id) then routers(id)
         else null
     }
 
     def getIPforUUID(id:UUID):Int =
     {
-        if (id == null) return -1
+        if id == null then return -1
         UUIDTable.getOrElse(id, -1)
     }
 
-    def removeRouter(id:Int)
+    def removeRouter(id:Int): Unit =
     {
-        if (routers.isDefinedAt(id)) routers(id) = null
+        if routers.isDefinedAt(id) then routers(id) = null
     }
 
     def getOrCreateRouter(uu:UUID, holder:IRouterContainer):Router =
     {
         routers synchronized {
-            for (r <- routers) if (r != null && r.getContainer == holder) return r
+            for r <- routers do if r != null && r.getContainer == holder then return r
             val r = Router(uu, holder)
 
             val newLease = r.getIPAddress
-            if (routers.length <= newLease)
-                while (routers.length <= (newLease*1.5).asInstanceOf[Int]+1) routers :+= null
+            if routers.length <= newLease then
+                while routers.length <= (newLease*1.5).asInstanceOf[Int]+1 do routers :+= null
 
             routers(newLease) = r
             UUIDTable += (r.getID -> r.getIPAddress)
@@ -53,11 +53,11 @@ object RouterServices
 
     def routerExists(ip:Int) =
     {
-        if (routers.isDefinedAt(ip)) routers(ip) != null
+        if routers.isDefinedAt(ip) then routers(ip) != null
         else false
     }
 
-    def reboot()
+    def reboot(): Unit =
     {
         routers = Array[Router]()
         UUIDTable = HashMap[UUID, Int]()
@@ -90,7 +90,7 @@ object Router
     {
         val ip = {
             var i = nextIP
-            while (usedIPs(i)) i+=1
+            while usedIPs(i) do i+=1
             i
         }
         nextIP = ip+1
@@ -98,15 +98,15 @@ object Router
         ip
     }
 
-    private def releaseIPAddress(ip:Int)
+    private def releaseIPAddress(ip:Int): Unit =
     {
         usedIPs -= ip
-        if (ip < nextIP) nextIP = ip
+        if ip < nextIP then nextIP = ip
     }
 
     def getEndOfIPPool = usedIPs.lastKey
 
-    def reboot()
+    def reboot(): Unit =
     {
         LSADatabasewriteLock.lock()
         LSADatabase = new Array[LSA](0)
@@ -120,14 +120,14 @@ object Router
     def apply(ID:UUID, parent:IRouterContainer) =
     {
         /*** Construct ***/
-        val ID2 = if (ID == null) UUID.randomUUID else ID
+        val ID2 = if ID == null then UUID.randomUUID else ID
         val ip = Router.claimIPAddress()
         val r = new Router(ID2, ip, parent)
         LSADatabasewriteLock.lock()
-        if (LSADatabase.length <= ip) {
+        if LSADatabase.length <= ip then {
             val newLength = (ip*1.5).asInstanceOf[Int]+1
-            while (LSADatabase.length <= newLength) LSADatabase :+= null
-            while (LegacyLinkStateID.length <= newLength) LegacyLinkStateID :+= -1
+            while LSADatabase.length <= newLength do LSADatabase :+= null
+            while LegacyLinkStateID.length <= newLength do LegacyLinkStateID :+= -1
         }
         LegacyLinkStateID(ip) = 0
         LSADatabase(ip) = r.LSA
@@ -164,27 +164,27 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
     def getLinkStateID = linkStateID
     def getContainer = parent
 
-    def update(time:Long)
+    def update(time:Long): Unit =
     {
-        if ((time%Configurator.detectionFrequency) == (getIPAddress%Configurator.detectionFrequency)) {
-            if (updateLSAIfNeeded()) startLSAFloodfill()
+        if (time%Configurator.detectionFrequency) == (getIPAddress%Configurator.detectionFrequency) then {
+            if updateLSAIfNeeded() then startLSAFloodfill()
             refreshRouteTableIfNeeded(false)
             val r = getContainer
-            if (r != null) r.refreshState(routedExits)
+            if r != null then r.refreshState(routedExits)
             return
         }
-        if (Configurator.routerUpdateThreadCount > 0) refreshRouteTableIfNeeded(false)
+        if Configurator.routerUpdateThreadCount > 0 then refreshRouteTableIfNeeded(false)
     }
 
     private def updateLSAIfNeeded():Boolean =
     {
         var adjacentChanged = false
-        if (!isLoaded) return false
+        if !isLoaded then return false
 
         val newAdjacent = parent.searchForLinks.filter(_.end.isLoaded)
         adjacentChanged = adjacentLinks != newAdjacent
 
-        if (adjacentChanged) {
+        if adjacentChanged then {
             adjacentLinks = newAdjacent
             routedExits = newAdjacent.foldLeft(0)((b, p) => (b|1<<p.hopDir)&0x3F)
 
@@ -195,35 +195,35 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
         adjacentChanged
     }
 
-    private def startLSAFloodfill()
+    private def startLSAFloodfill(): Unit =
     {
         val prev = MBitSet(Router.getEndOfIPPool)
         prev += IPAddress
-        for (p <- adjacentLinks) p.end.LSAUpdateFloodfill(prev)
+        for p <- adjacentLinks do p.end.LSAUpdateFloodfill(prev)
         prev.clear()
         prev += IPAddress
 
         flagForRoutingUpdate()
-        for (p <- adjacentLinks) p.end.adjacentUpdateFloodfill(prev)
+        for p <- adjacentLinks do p.end.adjacentUpdateFloodfill(prev)
     }
 
-    private def LSAUpdateFloodfill(prev:MBitSet)
+    private def LSAUpdateFloodfill(prev:MBitSet): Unit =
     {
-        if (prev(IPAddress)) return
+        if prev(IPAddress) then return
         prev += IPAddress
         updateLSAIfNeeded()
-        for (p <- adjacentLinks) p.end.LSAUpdateFloodfill(prev)
+        for p <- adjacentLinks do p.end.LSAUpdateFloodfill(prev)
     }
 
-    private def adjacentUpdateFloodfill(prev:MBitSet)
+    private def adjacentUpdateFloodfill(prev:MBitSet): Unit =
     {
-        if (prev(IPAddress)) return
+        if prev(IPAddress) then return
         prev += IPAddress
         flagForRoutingUpdate()
-        for (p <- adjacentLinks) p.end.adjacentUpdateFloodfill(prev)
+        for p <- adjacentLinks do p.end.adjacentUpdateFloodfill(prev)
     }
 
-    private def flagForRoutingUpdate()
+    private def flagForRoutingUpdate(): Unit =
     {
         linkStateID += 1
     }
@@ -231,27 +231,27 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
     private def pathTo(destination:Int, item:ItemKey, priority:NetworkPriority):StartEndPath =
     {
         val rt = getRouteTable
-        if (rt.isDefinedAt(destination) && RouterServices.routerExists(destination)) {
+        if rt.isDefinedAt(destination) && RouterServices.routerExists(destination) then {
             val paths = rt(destination)
-            if (paths != null)
-                for (path <- paths) if (path.flagRouteTo)
-                    if (priority.isPathUsable(path) && path.allowItem(item))
+            if paths != null then
+                for path <- paths do if path.flagRouteTo then
+                    if priority.isPathUsable(path) && path.allowItem(item) then
                         return path
         }
         null
     }
 
-    private def refreshRouteTableIfNeeded(force:Boolean)
+    private def refreshRouteTableIfNeeded(force:Boolean): Unit =
     {
-        if (linkStateID > Router.LegacyLinkStateID(IPAddress)) {
-            if (Configurator.routerUpdateThreadCount > 0 && !force) TableUpdateThread.add(this)
+        if linkStateID > Router.LegacyLinkStateID(IPAddress) then {
+            if Configurator.routerUpdateThreadCount > 0 && !force then TableUpdateThread.add(this)
             else refreshRoutingTable(linkStateID)
         }
     }
 
-    private[transportation] def refreshRoutingTable(newVer:Int)
+    private[transportation] def refreshRoutingTable(newVer:Int): Unit =
     {
-        if (Router.LegacyLinkStateID(IPAddress) >= newVer) return
+        if Router.LegacyLinkStateID(IPAddress) >= newVer then return
         val sizeEstimate = Router.getEndOfIPPool match {
             case 0 => Router.LSADatabase.length
             case notZero => notZero
@@ -264,15 +264,15 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
 
         /** Filters of previously found paths **/
         var closedFilters = new Array[Vector[Set[PathFilter]]](Router.getEndOfIPPool+1)
-        def ensureClosed(size:Int){while (closedFilters.length <= size) closedFilters :+= null}
+        def ensureClosed(size:Int): Unit ={while closedFilters.length <= size do closedFilters :+= null}
 
         //Start by adding our info.
-        for (p <- adjacentLinks) openPaths.add(p)
+        for p <- adjacentLinks do openPaths.add(p)
         closedFilters(getIPAddress) = Vector(Set[PathFilter](PathFilter.default))
 
         Router.LSADatabasereadLock.lock()
-        import scala.util.control.Breaks._
-        while (!openPaths.isEmpty) breakable {
+        import scala.util.control.Breaks.*
+        while !openPaths.isEmpty do breakable {
             val dequeue = openPaths.poll()
             val deqIP = dequeue.end.getIPAddress
             ensureClosed(deqIP)
@@ -280,8 +280,8 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
 
             //Skip if we have already found a path with identical filters
             val filtSetsClosed = closedFilters(deqIP)
-            if (filtSetsClosed != null) for (filtsClosed <- filtSetsClosed)
-                if (filtsClosed.subsetOf(dequeue.filters)) break() //dequeue's filters contain all closed filters
+            if filtSetsClosed != null then for filtsClosed <- filtSetsClosed do
+                if filtsClosed.subsetOf(dequeue.filters) then break() //dequeue's filters contain all closed filters
 
             //Queue all of the neighbors of the end of this path for searching
             val lsa = deqIP match {
@@ -289,31 +289,31 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
                 case _ => null
             }
 
-            if (lsa != null) {
-                for (p <- lsa.neighbors) if ((pflags&p.pathFlags) != 0) openPaths.add(dequeue --> p)
+            if lsa != null then {
+                for p <- lsa.neighbors do if (pflags&p.pathFlags) != 0 then openPaths.add(dequeue --> p)
             }
 
             //Approve this candidate
-            if ((pflags&0x3) != 0) routersByCost2 :+= dequeue //if we can get to or come from using this path its a possibe route
-            closedFilters(deqIP) = if (filtSetsClosed != null) filtSetsClosed :+ dequeue.filters else Vector(dequeue.filters)
+            if (pflags&0x3) != 0 then routersByCost2 :+= dequeue //if we can get to or come from using this path its a possibe route
+            closedFilters(deqIP) = if filtSetsClosed != null then filtSetsClosed :+ dequeue.filters else Vector(dequeue.filters)
         }
         Router.LSADatabasereadLock.unlock()
 
         var routeTable2 = new Array[Vector[StartEndPath]](Router.getEndOfIPPool+1)
-        def ensureRT2(size:Int) {while (routeTable2.length <= size) routeTable2 :+= null}
+        def ensureRT2(size:Int): Unit = {while routeTable2.length <= size do routeTable2 :+= null}
 
-        for (p <- routersByCost2) {
+        for p <- routersByCost2 do {
             val endIP = p.end.getIPAddress
             ensureRT2(endIP)
             val prev = routeTable2(endIP)
-            routeTable2(endIP) = if (prev != null) prev :+ p else Vector(p)
+            routeTable2(endIP) = if prev != null then prev :+ p else Vector(p)
         }
 
         // Set the new routing tables.
         routingTableWriteLock.lock()
-        if (newVer == linkStateID) {
+        if newVer == linkStateID then {
             Router.LSADatabasereadLock.lock()
-            if (Router.LegacyLinkStateID(IPAddress) < newVer) {
+            if Router.LegacyLinkStateID(IPAddress) < newVer then {
                 Router.LegacyLinkStateID(IPAddress) = newVer
                 routeTable = routeTable2.toVector
                 routersByCost = routersByCost2
@@ -325,10 +325,10 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
 
     def isLoaded =
     {
-        if (decommisioned ||
+        if decommisioned ||
             parent == null ||
             parent.getPipe.tile == null ||
-            parent.getPipe.tile.isInvalid) false
+            parent.getPipe.tile.isInvalid then false
         else true
     }
 
@@ -338,10 +338,10 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
 
     override def toString = "Router(["+IPAddress+"] "+ID+")"
 
-    def decommision()
+    def decommision(): Unit =
     {
         Router.LSADatabasewriteLock.lock()
-        if (Router.LSADatabase.isDefinedAt(IPAddress)) Router.LSADatabase(IPAddress) = null
+        if Router.LSADatabase.isDefinedAt(IPAddress) then Router.LSADatabase(IPAddress) = null
         Router.LSADatabasewriteLock.unlock()
 
         RouterServices.removeRouter(IPAddress)
@@ -371,10 +371,10 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
     def isInNetwork(destination:Int):Boolean =
     {
         val rt = getRouteTable
-        if (rt.isDefinedAt(destination) && RouterServices.routerExists(destination))
+        if rt.isDefinedAt(destination) && RouterServices.routerExists(destination) then
         {
             val paths = rt(destination)
-            if (paths != null) return true
+            if paths != null then return true
         }
         false
     }
@@ -385,7 +385,7 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
     {
         r.refreshIP()
 
-        if (r.destinationIP <= 0 || r.hasArrived) { //route unrouted payloads
+        if r.destinationIP <= 0 || r.hasArrived then { //route unrouted payloads
             r.resetTrip()
 
             LogisticPathFinder.clear()
@@ -394,26 +394,26 @@ class Router(ID:UUID, IPAddress:Int, parent:IRouterContainer) extends Ordered[Ro
             val result = LogisticPathFinder.result()
             LogisticPathFinder.clear()
 
-            if (result != null) {
+            if result != null then {
                 r.setDestination(result.responder, result.priority)
-                if (r.destinationUUID == getID)
+                if r.destinationUUID == getID then
                     return RecievePayload()
 
                 val path = pathTo(r.destinationIP, r.payload.key, r.netPriority)
-                if (path != null) {
+                if path != null then {
                     return RoutePayload(path.hopDir)
                 }
             }
         }
 
-        if (r.destinationIP > 0 && r.destinationUUID == getID) { //accept if they are for this router
+        if r.destinationIP > 0 && r.destinationUUID == getID then { //accept if they are for this router
             r.hasArrived = true
             return RecievePayload()
         }
 
-        if (r.destinationUUID != getID) { //relay if they are not
+        if r.destinationUUID != getID then { //relay if they are not
             val path = pathTo(r.destinationIP, r.payload.key, r.netPriority)
-            if (path != null)
+            if path != null then
                 return RelayPayload(path.hopDir)
         }
 
@@ -428,7 +428,7 @@ object TableUpdateThread
 
     val avgSync = new AnyRef
 
-    def add(r:Router)
+    def add(r:Router): Unit =
     {
         updateCalls.add(new RouteLayerUpdater(r))
     }
@@ -437,7 +437,7 @@ object TableUpdateThread
 
     def size = updateCalls.size
 
-    def getAverage = avgSync synchronized average
+    def getAverage = avgSync `synchronized` average
 }
 
 class TableUpdateThread(i:Int) extends Thread("PR RoutingThread #"+i)
@@ -446,19 +446,19 @@ class TableUpdateThread(i:Int) extends Thread("PR RoutingThread #"+i)
     setPriority(Thread.NORM_PRIORITY)
     start()
 
-    override def run()
+    override def run(): Unit =
     {
-        import TableUpdateThread._
+        import TableUpdateThread.*
 
         var job:RouteLayerUpdater = null
         try {
-            while ({job = updateCalls.take; job} != null) {
+            while {job = updateCalls.take; job} != null do {
                 val starttime = System.nanoTime
                 job.run()
                 val took = System.nanoTime-starttime
 
                 TableUpdateThread.avgSync synchronized {
-                    if (TableUpdateThread.average == 0) TableUpdateThread.average = took
+                    if TableUpdateThread.average == 0 then TableUpdateThread.average = took
                     else TableUpdateThread.average = (TableUpdateThread.average*999L+took)/1000L
                 }
             }
@@ -467,23 +467,23 @@ class TableUpdateThread(i:Int) extends Thread("PR RoutingThread #"+i)
     }
 }
 
-private[this] class RouteLayerUpdater(val router:Router) extends Runnable with Ordered[RouteLayerUpdater]
+private class RouteLayerUpdater(val router:Router) extends Runnable with Ordered[RouteLayerUpdater]
 {
     private val newVersion = router.getLinkStateID
     private var complete = false
 
-    def run()
+    def run(): Unit =
     {
-        if (complete) return
+        if complete then return
         try {
-            if (router.getContainer == null) {
+            if router.getContainer == null then {
                 var i = 0
-                while (i < 10 && !router.isLoaded) {
+                while i < 10 && !router.isLoaded do {
                     Thread.sleep(10)
                     i += 1
                 }
             }
-            if (!router.isLoaded) return
+            if !router.isLoaded then return
             router.refreshRoutingTable(newVersion)
         }
         catch {case e:Exception => e.printStackTrace()}
@@ -493,9 +493,9 @@ private[this] class RouteLayerUpdater(val router:Router) extends Runnable with O
     override def compare(that:RouteLayerUpdater) =
     {
         var c = 0
-        if (that.newVersion <= 0) c = newVersion-that.newVersion
-        if (c == 0) c = router.getIPAddress-that.router.getIPAddress
-        if (c == 0) c = that.newVersion-newVersion
+        if that.newVersion <= 0 then c = newVersion-that.newVersion
+        if c == 0 then c = router.getIPAddress-that.router.getIPAddress
+        if c == 0 then c = that.newVersion-newVersion
         c
     }
 }

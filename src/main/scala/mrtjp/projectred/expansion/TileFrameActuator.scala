@@ -31,20 +31,20 @@ class TileFrameActuator extends TileMachine with TMotorTile
 
 object RenderFrameActuator extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var sidea:TextureAtlasSprite = _
-    var sideb:TextureAtlasSprite = _
-    var sidec:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var sidea:TextureAtlasSprite = scala.compiletime.uninitialized
+    var sideb:TextureAtlasSprite = scala.compiletime.uninitialized
+    var sidec:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
-    var iconT3:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
+    var iconT3:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos) = world.getTileEntity(pos) match {
         case t:TileFrameActuator =>
@@ -63,8 +63,8 @@ object RenderFrameActuator extends SimpleBlockRenderer
         val isWorking = state.getValue(UNLISTED_WORKING_PROPERTY)
         val isCharged = state.getValue(UNLISTED_CHARGED_PROPERTY)
         Triple.of(side, rotation,
-            if (isWorking && isCharged) iconT3
-            else if (isCharged) iconT2
+            if isWorking && isCharged then iconT3
+            else if isCharged then iconT2
             else iconT1)
     }
 
@@ -72,7 +72,7 @@ object RenderFrameActuator extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/actuator/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/actuator/top"))

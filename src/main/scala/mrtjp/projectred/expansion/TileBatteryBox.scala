@@ -11,7 +11,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.MultiIconTransformation
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.{TInventory, TInventoryCapablilityTile}
 import mrtjp.core.vec.Point
 import mrtjp.projectred.ProjectRedExpansion
@@ -32,25 +32,25 @@ trait TPowerStorage extends TileMachine with TPoweredMachine with TInventoryCapa
 {
     var powerStored = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setInteger("storage", powerStored)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         powerStored = tag.getInteger("storage")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeInt(powerStored)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         powerStored = in.readInt()
@@ -64,7 +64,7 @@ trait TPowerStorage extends TileMachine with TPoweredMachine with TInventoryCapa
         case _ => super.read(in, key)
     }
 
-    def sendStorage()
+    def sendStorage(): Unit =
     {
         writeStream(5).writeInt(powerStored).sendToChunk(this)
     }
@@ -76,18 +76,18 @@ trait TPowerStorage extends TileMachine with TPoweredMachine with TInventoryCapa
     def getDrawCeil:Int
     def getDrawFloor:Int
 
-    abstract override def updateServer()
+    abstract override def updateServer(): Unit =
     {
         super.updateServer()
 
-        if (cond.charge > getDrawCeil && powerStored < getMaxStorage)
+        if cond.charge > getDrawCeil && powerStored < getMaxStorage then
         {
             var n = math.min(cond.charge-getDrawCeil, getDrawSpeed)/10
             n = math.min(n, getMaxStorage-powerStored)
             cond.drawPower(n*1000)
             powerStored += n
         }
-        else if (cond.charge < getDrawFloor && powerStored > 0)
+        else if cond.charge < getDrawFloor && powerStored > 0 then
         {
             var n = math.min(getDrawFloor-cond.charge, getDrawSpeed)/10
             n = math.min(n, powerStored)
@@ -99,13 +99,13 @@ trait TPowerStorage extends TileMachine with TPoweredMachine with TInventoryCapa
 
 class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine with TInventory with ISidedInventory
 {
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         saveInv(tag)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         loadInv(tag)
@@ -132,26 +132,26 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
 
     override def doesRotate = false
 
-    override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack)
+    override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack): Unit =
     {
         super.onBlockPlaced(side, player, stack)
-        if (stack.hasTagCompound)
+        if stack.hasTagCompound then
         {
             val tag = stack.getTagCompound
             powerStored = tag.getInteger("storage")
         }
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
     }
 
-    override def addHarvestContents(ist:ListBuffer[ItemStack])
+    override def addHarvestContents(ist:ListBuffer[ItemStack]): Unit =
     {
         val stack = new ItemStack(getBlock, 1, getBlockMetadata)
-        if (powerStored > 0)
+        if powerStored > 0 then
         {
             val tag = new NBTTagCompound
             tag.setInteger("storage", powerStored)
@@ -161,7 +161,7 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
         ist += stack
     }
 
-    override def updateServer()
+    override def updateServer(): Unit =
     {
         super.updateServer()
 
@@ -172,10 +172,10 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
     }
 
     private var s = 0
-    def updateRendersIfNeeded()
+    def updateRendersIfNeeded(): Unit =
     {
         val s2 = getStorageScaled(8)
-        if (s != s2) sendStorage()
+        if s != s2 then sendStorage()
         s = s2
     }
 
@@ -185,10 +185,10 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
     override def getDrawFloor = 800
     def getChargeSpeed = 25
 
-    def tryDischargeBattery()
+    def tryDischargeBattery(): Unit =
     {
         val stack = getStackInSlot(1)
-        if (!stack.isEmpty) stack.getItem match
+        if !stack.isEmpty then stack.getItem match
         {
             case b:TItemBattery =>
                 val toDraw = math.min(getMaxStorage-powerStored, getChargeSpeed)
@@ -199,10 +199,10 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
         }
     }
 
-    def tryChargeBattery()
+    def tryChargeBattery(): Unit =
     {
         val stack = getStackInSlot(0)
-        if (!stack.isEmpty) stack.getItem match
+        if !stack.isEmpty then stack.getItem match
         {
             case b:TItemBattery =>
                 val toAdd = math.min(powerStored, getChargeSpeed)
@@ -213,7 +213,7 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
         }
     }
 
-    override def openGui(player:EntityPlayer)
+    override def openGui(player:EntityPlayer): Unit =
     {
         GuiBatteryBox.open(player, createContainer(player), _.writePos(getPos))
     }
@@ -231,13 +231,13 @@ class ContainerBatteryBox(p:EntityPlayer, tile:TileBatteryBox) extends Container
     }
 
     private var st = -1
-    override def detectAndSendChanges()
+    override def detectAndSendChanges(): Unit =
     {
         super.detectAndSendChanges()
-        import scala.jdk.CollectionConverters._
-        for (i <- listeners.asScala)
+        import scala.jdk.CollectionConverters.*
+        for i <- listeners.asScala do
         {
-            if (st != tile.powerStored) i
+            if st != tile.powerStored then i
                 .sendWindowProperty(this, 3, tile.powerStored)
         }
         st = tile.powerStored
@@ -251,9 +251,9 @@ class ContainerBatteryBox(p:EntityPlayer, tile:TileBatteryBox) extends Container
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
     {
-        if (from == 0 || from == 1) {//if item in battery box
-            if (tryMergeItemStack(stack, 2, 11, true)) return true //to hotbar
-            if (tryMergeItemStack(stack, 11, 38, true)) return true //then to player inventory
+        if from == 0 || from == 1 then {//if item in battery box
+            if tryMergeItemStack(stack, 2, 11, true) then return true //to hotbar
+            if tryMergeItemStack(stack, 11, 38, true) then return true //then to player inventory
         }
 
         stack.getItem match {
@@ -265,22 +265,22 @@ class ContainerBatteryBox(p:EntityPlayer, tile:TileBatteryBox) extends Container
 
 class GuiBatteryBox(tile:TileBatteryBox, c:ContainerBatteryBox) extends NodeGui(c, 176, 171)
 {
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiBatteryBox.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
-        if (tile.cond.canWork)
+        if tile.cond.canWork then
             GuiDraw.drawTexturedModalRect(57, 16, 176, 1, 7, 9)
         GuiLib.drawVerticalTank(57, 26, 176, 10, 7, 48, tile.cond.getChargeScaled(48))
 
-        if (tile.powerStored == tile.getMaxStorage)
+        if tile.powerStored == tile.getMaxStorage then
             GuiDraw.drawTexturedModalRect(112, 16, 184, 1, 14, 9)
         GuiLib.drawVerticalTank(112, 26, 184, 10, 14, 48, tile.getStorageScaled(48))
 
-        if (tile.cond.charge > tile.getDrawCeil && tile.powerStored < tile.getMaxStorage)
+        if tile.cond.charge > tile.getDrawCeil && tile.powerStored < tile.getMaxStorage then
             GuiDraw.drawTexturedModalRect(65, 52, 199, 18, 48, 18)
-        else if (tile.cond.charge < tile.getDrawFloor && tile.powerStored > 0)
+        else if tile.cond.charge < tile.getDrawFloor && tile.powerStored > 0 then
             GuiDraw.drawTexturedModalRect(65, 30, 199, 0, 48, 18)
 
         GuiDraw.drawString("Battery Box", 8, 6, EnumColour.GRAY.argb, false)
@@ -306,13 +306,13 @@ object GuiBatteryBox extends TGuiFactory
 
 object RenderBatteryBox extends SimpleBlockRenderer
 {
-    import java.lang.{Integer => JInt}
+    import java.lang.{Integer as JInt}
 
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
     val sides = new Array[TextureAtlasSprite](9)
 
     override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos:BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
@@ -329,7 +329,7 @@ object RenderBatteryBox extends SimpleBlockRenderer
 
     override def getItemTransforms(stack: ItemStack) = {
         val sideIcon:TextureAtlasSprite =
-            if(stack.hasTagCompound && stack.getTagCompound.hasKey("rstorage"))
+            if stack.hasTagCompound && stack.getTagCompound.hasKey("rstorage") then
                 sides(stack.getTagCompound.getInteger("rstorage")) else sides(0)
 
         Triple.of(0,0, new MultiIconTransformation(bottom, top, sideIcon, sideIcon, sideIcon, sideIcon))
@@ -344,11 +344,11 @@ object RenderBatteryBox extends SimpleBlockRenderer
         case _ => sides(0)
     }
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/batterybox/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/batterybox/top"))
-        for (i <- 0 until 9)
+        for i <- 0 until 9 do
             sides(i) = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/batterybox/side"+i))
     }
 }

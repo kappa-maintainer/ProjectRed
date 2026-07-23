@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.fabrication
 
-import java.util.{ArrayList => JAList}
+import java.util.{ArrayList as JAList}
 
 import codechicken.lib.colour.EnumColour
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
@@ -16,11 +16,11 @@ import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.render.{CCModel, CCRenderState, OBJParser}
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.util.{TransformUtils, VertexDataUtils}
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.lib.vec.uv.{IconTransformation, MultiIconTransformation, UVTransformation}
 import com.google.common.collect.ImmutableList
 import com.mojang.realmsclient.gui.ChatFormatting.{BOLD, RED, RESET}
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.{InvWrapper, TInventory, TInventoryCapablilityTile}
 import mrtjp.core.item.{ItemKey, ItemKeyStack}
 import mrtjp.core.vec.{Point, Rect, Size, Vec2}
@@ -30,8 +30,8 @@ import mrtjp.projectred.integration.ComponentStore
 import mrtjp.projectred.transmission.WireDef
 import net.minecraft.block.state.BlockFaceShape
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager._
-import net.minecraft.client.renderer.block.model._
+import net.minecraft.client.renderer.GlStateManager.*
+import net.minecraft.client.renderer.block.model.*
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
@@ -46,10 +46,10 @@ import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
-import org.lwjgl.opengl.GL11._
+import org.lwjgl.opengl.GL11.*
 
-import scala.jdk.CollectionConverters._
-import scala.collection.mutable.{Map => MMap, Set => MSet}
+import scala.jdk.CollectionConverters.*
+import scala.collection.mutable.{Map as MMap, Set as MSet}
 
 class TileICPrinter extends TileICMachine with TInventory with TInventoryCapablilityTile
 {
@@ -66,7 +66,7 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
 
     override def getDisplayName = super.getDisplayName
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setFloat("prog", progress.toFloat)
@@ -76,7 +76,7 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         saveInv(tag)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         progress = tag.getFloat("prog")
@@ -86,7 +86,7 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         loadInv(tag)
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeFloat(progress.toFloat)
@@ -95,7 +95,7 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         out.writeByte(inputICState)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         progress = in.readFloat()
@@ -114,12 +114,12 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         case 6 => inputICState = in.readByte()
         case 7 =>
             externalItems = Set.empty
-            for (i <- 0 until in.readInt())
+            for i <- 0 until in.readInt() do
                 externalItems += ItemKey.get(in.readItemStack())
         case _ => super.read(in, key)
     }
 
-    def sendStartWorking()
+    def sendStartWorking(): Unit =
     {
         val out = writeStream(5)
         out.writeFloat(progress.toFloat)
@@ -127,20 +127,20 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         out.sendToChunk(this)
     }
 
-    def sendStopWorking()
+    def sendStopWorking(): Unit =
     {
         writeStream(4).sendToChunk(this)
     }
 
-    def sendInputICStateUpdate()
+    def sendInputICStateUpdate(): Unit =
     {
         writeStream(6).writeByte(inputICState).sendToChunk(this)
     }
 
-    def sendExternalItemMap(players:Iterable[EntityPlayer])
+    def sendExternalItemMap(players:Iterable[EntityPlayer]): Unit =
     {
         val out = writeStream(7).writeInt(externalItems.size)
-        for (item <- externalItems)
+        for item <- externalItems do
             out.writeItemStack(item.makeStack(1))
         out.sendToChunk(this)
     }
@@ -151,9 +151,9 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
     //20 = Output
     override def isItemValidForSlot(slot:Int, item:ItemStack) =
     {
-        if (slot == 18) item.getItem.isInstanceOf[ItemICBlueprint] && ItemICBlueprint.hasICInside(item)
-        else if (slot == 19) item.getItem.isInstanceOf[ItemICChip]
-        else if (slot == 20) false
+        if slot == 18 then item.getItem.isInstanceOf[ItemICBlueprint] && ItemICBlueprint.hasICInside(item)
+        else if slot == 19 then item.getItem.isInstanceOf[ItemICChip]
+        else if slot == 20 then false
         else true
     }
 
@@ -163,27 +163,27 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
 
     override def getBlockFaceShape(side:Int) = BlockFaceShape.UNDEFINED//TODO, Do the do with the thing and the do.
 
-    override def updateServer()
+    override def updateServer(): Unit =
     {
-        if (isWorking) {
-            if (world.getTotalWorldTime%10 == 0 && !canStart) {
+        if isWorking then {
+            if world.getTotalWorldTime%10 == 0 && !canStart then {
                 doStop()
             } else {
                 progress += speed
-                if (progress >= 1.0) {
+                if progress >= 1.0 then {
                     doStop()
-                    if (canStart) onFinished()
+                    if canStart then onFinished()
                 }
             }
         }
 
-        if (!isWorking && world.getTotalWorldTime%10 == 0 && canStart) //delay check, can be expensive
+        if !isWorking && world.getTotalWorldTime%10 == 0 && canStart then //delay check, can be expensive
             doStart()
     }
 
     def canStart =
     {
-        if (world.getTotalWorldTime%20 == 0)
+        if world.getTotalWorldTime%20 == 0 then
             checkIngredients() && checkOutputClear && checkInputIC && checkBlueprint && checkBlueprintFlags
         else checkOutputClear && checkInputIC && checkBlueprint && checkBlueprintFlags && checkIngredients() //use cheaper checks as fail-fast
     }
@@ -212,25 +212,25 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
     private def checkIngredients():Boolean =
     {
         val ic = getStackInSlot(19)
-        if (!ic.isEmpty && ic.getItemDamage == 1) return true
+        if !ic.isEmpty && ic.getItemDamage == 1 then return true
 
         val oldMap = externalItems
         val required = getRequiredResources
 
         var hasEnough = true
-        for (r <- required) if (!containsEnoughOf(r))
+        for r <- required do if !containsEnoughOf(r) then
             hasEnough = false
 
-        if (externalItems != oldMap) sendExternalItemMap(watchers)
+        if externalItems != oldMap then sendExternalItemMap(watchers)
         hasEnough
     }
 
     def getRequiredResources =
     {
-        if (requirementsDirty)
+        if requirementsDirty then
         {
             val stack = getStackInSlot(18)
-            requirements = if (!stack.isEmpty && ItemICBlueprint.hasICInside(stack))
+            requirements = if !stack.isEmpty && ItemICBlueprint.hasICInside(stack) then
             {
                 val ic = ItemICBlueprint.loadTileMap(stack)
                 TileICPrinter.resolveResources(ic)
@@ -244,30 +244,30 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
     def containsEnoughOf(stack:ItemKeyStack):Boolean =
     {
         var a = 0
-        for (i <- 0 until 18)
+        for i <- 0 until 18 do
         {
             val s = getStackInSlot(i)
-            if (!s.isEmpty && ItemKey.get(s) == stack.key)
+            if !s.isEmpty && ItemKey.get(s) == stack.key then
             {
                 a += s.getCount
-                if (a >= stack.stackSize) return true
+                if a >= stack.stackSize then return true
             }
         }
 
-        if (!world.isRemote)
+        if !world.isRemote then
         {
             externalItems -= stack.key
-            for (s <- 0 until 6 if s != 1)
+            for s <- 0 until 6 if s != 1 do
             {
                 val side = EnumFacing.VALUES(s)
                 val inv = InvWrapper.wrap(world, pos.offset(side), side.getOpposite)
-                if (inv != null)
+                if inv != null then
                 {
                     val in = inv.getItemCount(stack.key)
-                    if (in > 0)
+                    if in > 0 then
                     {
                         a += in
-                        if (a >= stack.stackSize)
+                        if a >= stack.stackSize then
                         {
                             externalItems += stack.key
                             return true
@@ -281,44 +281,44 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         false
     }
 
-    def eatResource(stack:ItemKeyStack)
+    def eatResource(stack:ItemKeyStack): Unit =
     {
         var left = stack.stackSize
-        for (i <- 0 until 18)
+        for i <- 0 until 18 do
         {
             val s = getStackInSlot(i)
-            if (!s.isEmpty && stack.key == ItemKey.get(s))
+            if !s.isEmpty && stack.key == ItemKey.get(s) then
             {
                 val toEat = math.min(left, s.getCount)
                 left -= toEat
                 s.shrink(toEat)
-                if (s.getCount <= 0) setInventorySlotContents(i, ItemStack.EMPTY)
+                if s.getCount <= 0 then setInventorySlotContents(i, ItemStack.EMPTY)
                 else setInventorySlotContents(i, s)
-                if (left <= 0) return
+                if left <= 0 then return
             }
         }
 
-        for (s <- 0 until 6 if s != 1)
+        for s <- 0 until 6 if s != 1 do
         {
             val side = EnumFacing.VALUES(s)
             val inv = InvWrapper.wrap(world, pos.offset(side), side.getOpposite)
-            if (inv != null)
+            if inv != null then
             {
                 left -= inv.extractItem(stack.key, left)
-                if (left <= 0) return
+                if left <= 0 then return
             }
         }
     }
 
-    def doStart()
+    def doStart(): Unit =
     {
         isWorking = true
         progress = 0.0
-        speed = if (getStackInSlot(19).getItemDamage == 1) 0.05 else 0.0005
+        speed = if getStackInSlot(19).getItemDamage == 1 then 0.05 else 0.0005
         sendStartWorking()
     }
 
-    def doStop()
+    def doStop(): Unit =
     {
         isWorking = false
         progress = 0.0
@@ -326,48 +326,48 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         sendStopWorking()
     }
 
-    def onFinished()
+    def onFinished(): Unit =
     {
 
         val bp = getStackInSlot(18)
         val chip = getStackInSlot(19)
 
-        if (chip.getItemDamage != 1) getRequiredResources.foreach(eatResource)
+        if chip.getItemDamage != 1 then getRequiredResources.foreach(eatResource)
 
         ItemICBlueprint.copyIC(bp, chip)
         setInventorySlotContents(19, ItemStack.EMPTY)
         setInventorySlotContents(20, chip)
     }
 
-    override def markDirty()
+    override def markDirty(): Unit =
     {
         super.markDirty()
         requirementsDirty = true
-        if (!world.isRemote)
+        if !world.isRemote then
         {
-            if (!canStart && isWorking) doStop()
+            if !canStart && isWorking then doStop()
             val oldICState = inputICState
 
-            if (!getStackInSlot(20).isEmpty) inputICState = 2
+            if !getStackInSlot(20).isEmpty then inputICState = 2
             else
             {
                 val s = getStackInSlot(19)
-                if (!s.isEmpty)
+                if !s.isEmpty then
                 {
-                    if (ItemICBlueprint.hasICInside(s)) inputICState = 2
+                    if ItemICBlueprint.hasICInside(s) then inputICState = 2
                     else inputICState = 1
                 }
                 else inputICState = 0
             }
 
-            if (inputICState != oldICState) sendInputICStateUpdate()
+            if inputICState != oldICState then sendInputICStateUpdate()
         }
     }
 
     override def onBlockActivated(player:EntityPlayer, side:Int):Boolean =
     {
-        if (super.onBlockActivated(player, side)) return true
-        if (!world.isRemote)
+        if super.onBlockActivated(player, side) then return true
+        if !world.isRemote then
             GuiICPrinter.open(player, createContainer(player), _.writePos(pos))
         true
     }
@@ -383,22 +383,22 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
         c
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
         dropInvContents(world, pos)
     }
 
     //Client-side render things
-    import TileICPrinter._
+    import TileICPrinter.*
     var lProgress = 1.0
     var lSpeed = 0.0
     var lState = LERPTOREST
     private var lerpCount = 0
 
-    override def updateClient()
+    override def updateClient(): Unit =
     {
-        if (isWorking) {
+        if isWorking then {
             progress += speed
             progress = math.min(progress, 1.0)
         }
@@ -407,24 +407,24 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
             case REST =>
                 lProgress = 0
                 lSpeed = 0
-                if (isWorking) lState = `REALTIME`
+                if isWorking then lState = `REALTIME`
             case LERPTOREST =>
                 lSpeed = -0.025
                 lProgress += lSpeed
-                if (lProgress <= 0) lState = REST
-                else if (isWorking) lState = LERPTOREALTIME
+                if lProgress <= 0 then lState = REST
+                else if isWorking then lState = LERPTOREALTIME
             case LERPTOREALTIME =>
-                if (lProgress > progress) {
+                if lProgress > progress then {
                     lSpeed = -0.16
                     lProgress += lSpeed
-                    if (lProgress <= progress) lState = REALTIME
+                    if lProgress <= progress then lState = REALTIME
                 } else {
                     lSpeed = 0.16
                     lProgress += lSpeed
-                    if (lProgress >= progress) lState = REALTIME
+                    if lProgress >= progress then lState = REALTIME
                 }
             case REALTIME =>
-                if (progress >= 1.0 || !isWorking) {
+                if progress >= 1.0 || !isWorking then {
                     lerpCount = 0
                     lState = FIN
                 } else {
@@ -434,7 +434,7 @@ class TileICPrinter extends TileICMachine with TInventory with TInventoryCapabli
             case FIN =>
                 lSpeed = 0
                 lerpCount += 1
-                if (lerpCount >= 25) lState = LERPTOREST
+                if lerpCount >= 25 then lState = LERPTOREST
         }
     }
 }
@@ -450,13 +450,13 @@ object TileICPrinter
 
     private var gRec = Map[(ItemKey), Seq[ItemKey]]()
 
-    def cacheRecipe(key:ItemKey)
+    def cacheRecipe(key:ItemKey): Unit =
     {
         val recipes = CraftingManager.REGISTRY.iterator
-        for (r <- recipes.asScala) try
+        for r <- recipes.asScala do try
         {
             val out = ItemKey.get(r.getRecipeOutput)
-            if (out == key)
+            if out == key then
             {
                 //TODO, We need to do proper ingredient matching.
                 val inputs = r.getIngredients.asScala.map(_.getMatchingStacks).filterNot(_ == null).map(i => ItemKey.get(i.head))
@@ -480,7 +480,7 @@ object TileICPrinter
 //
 //                    case _ => Seq.empty
 //                }
-                if (inputs.nonEmpty)
+                if inputs.nonEmpty then
                 {
                     gRec += key -> inputs.toSeq
                     return
@@ -497,7 +497,7 @@ object TileICPrinter
     def getOrCacheComponents(in:ItemStack):Seq[ItemKey] =
     {
         val key = ItemKey.get(in)
-        if (!gRec.contains(key)) cacheRecipe(key)
+        if !gRec.contains(key) then cacheRecipe(key)
         gRec(key)
     }
 
@@ -505,21 +505,21 @@ object TileICPrinter
     {
         val map = MMap[ItemKey, Double]()
 
-        import mrtjp.core.item.ItemKeyConversions._
-        def add(key:ItemKey, amount:Double)
+        import mrtjp.core.item.ItemKeyConversions.*
+        def add(key:ItemKey, amount:Double): Unit =
         {
             val c = map.getOrElse(key, 0.0)
             map(key) = c+amount
         }
 
-        def addComponents(stack:ItemStack)
+        def addComponents(stack:ItemStack): Unit =
         {
             getOrCacheComponents(stack).foreach(add(_, 0.25))
         }
 
-        import mrtjp.projectred.fabrication.{ICGateDefinition => gd}
+        import mrtjp.projectred.fabrication.{ICGateDefinition as gd}
 
-        for (part <- tmap.tiles.values) part match
+        for part <- tmap.tiles.values do part match
         {
 //            case p:TorchICPart => add(new ItemStack(Blocks.REDSTONE_TORCH), 0.25)
             case p:LeverICTile => add(new ItemStack(Blocks.LEVER), 0.25)
@@ -557,7 +557,7 @@ class ContainerPrinter(player:EntityPlayer, tile:TileICPrinter) extends NodeCont
 {
     {
         var i = 0
-        for ((x, y) <- GuiLib.createSlotGrid(8, 75, 9, 2, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(8, 75, 9, 2, 0, 0) do
         {
             addSlotToContainer(new Slot3(tile, i, x, y))
             i += 1
@@ -575,24 +575,24 @@ class ContainerPrinter(player:EntityPlayer, tile:TileICPrinter) extends NodeCont
     //20 = Output
     override def doMerge(stack:ItemStack, from:Int):Boolean =
     {
-        if (from == 20)
+        if from == 20 then
         {
-            if (tryMergeItemStack(stack, 21, 57, true)) return true
+            if tryMergeItemStack(stack, 21, 57, true) then return true
         }
-        else if (0 until 20 contains from)
+        else if 0 until 20 contains from then
         {
-            if (tryMergeItemStack(stack, 21, 57, false)) return true
+            if tryMergeItemStack(stack, 21, 57, false) then return true
         }
         else
         {
             stack.getItem match
             {
-                case i:ItemICBlueprint => if (tryMergeItemStack(stack, 18, 19, false)) return true
-                case i:ItemICChip => if (tryMergeItemStack(stack, 19, 20, false)) return true
+                case i:ItemICBlueprint => if tryMergeItemStack(stack, 18, 19, false) then return true
+                case i:ItemICChip => if tryMergeItemStack(stack, 19, 20, false) then return true
                 case _ =>
             }
 
-            if (tryMergeItemStack(stack, 0, 18, false)) return true
+            if tryMergeItemStack(stack, 0, 18, false) then return true
         }
         false
     }
@@ -623,7 +623,7 @@ class GuiICPrinter(c:ContainerPrinter, tile:TileICPrinter) extends NodeGui(c, 17
         list.displayNodeFactory = {stack =>
             val d = new ItemDisplayNode
             d.zPosition = -0.01
-            d.backgroundColour = if (tile.containsEnoughOf(stack))
+            d.backgroundColour = if tile.containsEnoughOf(stack) then
                 EnumColour.LIME.argb(0x44) else EnumColour.RED.argb(0x44)
             d
         }
@@ -632,9 +632,9 @@ class GuiICPrinter(c:ContainerPrinter, tile:TileICPrinter) extends NodeGui(c, 17
         list.reset()
     }
 
-    override def update_Impl()
+    override def update_Impl(): Unit =
     {
-        if (mcInst.world.getTotalWorldTime%10 == 0) {
+        if mcInst.world.getTotalWorldTime%10 == 0 then {
             list.items = tile.getRequiredResources
             list.reset()
         }
@@ -642,25 +642,25 @@ class GuiICPrinter(c:ContainerPrinter, tile:TileICPrinter) extends NodeGui(c, 17
         hasErrors = tile.checkBlueprint && !tile.checkBlueprintFlags
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         TextureUtils.changeTexture(GuiICPrinter.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, 176, 201)
-        if (tile.isWorking) {
+        if tile.isWorking then {
             val dx = 37*tile.progress
             GuiDraw.drawTexturedModalRect(86, 32, 176, 0, dx.toInt, 18)
         }
-        if (hasErrors)
+        if hasErrors then
             GuiDraw.drawTexturedModalRect(flagBox.x, flagBox.y, 176, 19, flagBox.width, flagBox.height) //draw the error symbol
 
         GuiDraw.drawString("IC Printer", 8, 6, EnumColour.GRAY.argb, false)
     }
 
-    override def drawFront_Impl(mouse:Point, rframe:Float)
+    override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
     {
-        if (hasErrors) {
+        if hasErrors then {
             val m2 = convertPointFromScreen(mouse)
-            if (flagBox.contains(m2))
+            if flagBox.contains(m2) then
                 GuiDraw.drawMultiLineTip(ItemStack.EMPTY, m2.x+12, m2.y-12,
                     Seq(s"$RED$BOLD" + "X" + s"$RESET blueprint contains errors").asJava)
         }
@@ -685,17 +685,17 @@ object GuiICPrinter extends TGuiFactory
 
 object RenderICPrinter extends SimpleBlockRenderer
 {
-    import java.lang.{Integer => JInt}
-    import java.util.{List => JList}
+    import java.lang.{Integer as JInt}
+    import java.util.{List as JList}
 
-    import BlockICMachine._
+    import BlockICMachine.*
     import org.apache.commons.lang3.tuple.Triple
 
     val lowerBoxes =
     {
         val array = new Array[CCModel](4)
         val box = CCModel.quadModel(24).generateBlock(0, new Cuboid6(0, 0, 0, 1, 10/16D, 1))
-        for (r <- 0 until 4) {
+        for r <- 0 until 4 do {
             val m = box.copy.apply(Rotation.quarterRotations(r).at(Vector3.center))
             m.computeNormals()
             m.shrinkUVs(0.0005)
@@ -704,13 +704,13 @@ object RenderICPrinter extends SimpleBlockRenderer
         array
     }
 
-    var headIcon:TextureAtlasSprite = _
-    var bottom:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var side2:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
+    var headIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT:UVTransformation = _
+    var iconT:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state:IExtendedBlockState, world: IBlockAccess, pos: BlockPos):IExtendedBlockState = world.getTileEntity(pos) match {
         case t:TileICPrinter =>
@@ -740,9 +740,9 @@ object RenderICPrinter extends SimpleBlockRenderer
         buffer.finishDrawing()
 
         val quads = buffer.bake
-        if (face == null && !shouldCull)
+        if face == null && !shouldCull then
             return quads
-        else if (face != null)
+        else if face != null then
             return VertexDataUtils.sortFaceData(quads).get(face)
 
         ImmutableList.of()
@@ -760,14 +760,14 @@ object RenderICPrinter extends SimpleBlockRenderer
         buffer.finishDrawing()
 
         val quads = buffer.bake
-        if (face == null && !shouldCull)
+        if face == null && !shouldCull then
             return quads
-        else if (face != null)
+        else if face != null then
             return VertexDataUtils.sortFaceData(quads).get(face)
         ImmutableList.of()
     }
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         def register(t:String) = reg.registerSprite(new ResourceLocation("projectred:blocks/fabrication/printer/"+t))
 
@@ -803,7 +803,7 @@ object RenderICPrinterDynamic extends TileEntitySpecialRenderer[TileICPrinter]
     var icState = 0
     var rasterMode = false
 
-    override def render(tile:TileICPrinter, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float)
+    override def render(tile:TileICPrinter, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float): Unit =
     {
         val ptile = tile.asInstanceOf[TileICPrinter]
 
@@ -830,27 +830,27 @@ object RenderICPrinterDynamic extends TileEntitySpecialRenderer[TileICPrinter]
         disableBlend()
     }
 
-    def renderPrinter(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation)
+    def renderPrinter(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation): Unit =
     {
-        if (icState != 0) renderICChip(ccrs, t)
+        if icState != 0 then renderICChip(ccrs, t)
         renderFrame(ccrs, t, iconT)
         renderShaft(ccrs, t, iconT)
         renderGlass(ccrs, t, iconT)
     }
 
-    def renderICChip(ccrs:CCRenderState, t:Transformation)
+    def renderICChip(ccrs:CCRenderState, t:Transformation): Unit =
     {
-        import ComponentStore._
+        import ComponentStore.*
         icChip.render(ccrs, Rotation.quarterRotations(2) `with` new Translation(0.5, 9.5/16D, 0.5) `with` t,
-            new IconTransformation(if (icState == 1) icChipIconOff else icChipIcon))
+            new IconTransformation(if icState == 1 then icChipIconOff else icChipIcon))
     }
 
-    def renderFrame(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation)
+    def renderFrame(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation): Unit =
     {
         models("frame").render(ccrs, t, iconT)
     }
 
-    def renderShaft(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation)
+    def renderShaft(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation): Unit =
     {
         val min = -4.5/16D
         val max = 4.5/16D
@@ -861,17 +861,17 @@ object RenderICPrinterDynamic extends TileEntitySpecialRenderer[TileICPrinter]
         renderHead(ccrs, subT, iconT)
     }
 
-    def renderHead(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation)
+    def renderHead(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation): Unit =
     {
         val amp = 3.5/16D
         val freq = 900
         val p = progress+speed*frame
-        val trans = if (rasterMode) math.cos(p*freq)*amp else amp*2*p-amp
+        val trans = if rasterMode then math.cos(p*freq)*amp else amp*2*p-amp
         val subT = new Translation(trans, 0, 0) `with` t
         models("head").render(ccrs, subT, iconT)
     }
 
-    def renderGlass(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation)
+    def renderGlass(ccrs:CCRenderState, t:Transformation, iconT:UVTransformation): Unit =
     {
         models("glass").render(ccrs, t, iconT)
     }
@@ -880,18 +880,18 @@ object RenderICPrinterItem extends IItemRenderer {
 
     //A single instance of this across reloads is fine.
     val wrapped = new CCBakeryModel()
-    var entity:EntityLivingBase = _
-    var world:World = _
+    var entity:EntityLivingBase = scala.compiletime.uninitialized
+    var world:World = scala.compiletime.uninitialized
 
     lazy val overrideList = new ItemOverrideList() {
         override def handleItemState(originalModel: IBakedModel, stack: ItemStack, world: World, entity: EntityLivingBase) = {
             RenderICPrinterItem.entity = entity
-            RenderICPrinterItem.world = if(world == null) if(entity == null) null else entity.world else null
+            RenderICPrinterItem.world = if world == null then if entity == null then null else entity.world else null
             originalModel
         }
     }
 
-    override def renderItem(stack: ItemStack, transformType: ItemCameraTransforms.TransformType) {
+    override def renderItem(stack: ItemStack, transformType: ItemCameraTransforms.TransformType): Unit = {
         val model = wrapped.getOverrides.handleItemState(wrapped, stack, world, entity)
         Minecraft.getMinecraft.getRenderItem.renderModel(model, stack)
         val ccrs = CCRenderState.instance()

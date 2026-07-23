@@ -6,12 +6,12 @@ import java.util.Random
 import codechicken.lib.block.property.PropertyString
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.vec.{Cuboid6, Vector3}
-import mrtjp.core.block._
+import mrtjp.core.block.*
 import mrtjp.core.math.MathLib
 import mrtjp.core.world.WorldLib
 import mrtjp.projectred.ProjectRedExploration
 import mrtjp.projectred.core.PartDefs
-import mrtjp.projectred.exploration.BlockProperties._
+import mrtjp.projectred.exploration.BlockProperties.*
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
 import net.minecraft.block.{Block, BlockFenceGate, BlockWall}
@@ -37,20 +37,20 @@ class BlockOre extends BlockCore(Material.ROCK) with TSimplePropertyString
     override def getDrops(world:IBlockAccess, pos:BlockPos, state:IBlockState, fortune:Int) =
     {
         val meta = state.getBlock.getMetaFromState(state)
-        if (OreDefs.isDefinedAt(meta))
+        if OreDefs.isDefinedAt(meta) then
         {
             val rand = world match {
                 case w:World => w.rand
                 case _ => Block.RANDOM
             }
             val odef = OreDefs(meta)
-            import odef._
+            import odef.*
             var count = rand.nextInt(fortune+max)
-            if (count > max) count = max
-            if (count < min) count = min
+            if count > max then count = max
+            if count < min then count = min
 
             val array = new util.ArrayList[ItemStack]()
-            if (hasDrop) array.add(makeDropStack(count))
+            if hasDrop then array.add(makeDropStack(count))
             else array.add(makeStack(count))
             array
         }
@@ -60,7 +60,7 @@ class BlockOre extends BlockCore(Material.ROCK) with TSimplePropertyString
     override def getExpDrop(state:IBlockState, world:IBlockAccess, pos:BlockPos, fortune:Int) =
     {
         val meta = state.getBlock.getMetaFromState(state)
-        if (OreDefs.isDefinedAt(meta))
+        if OreDefs.isDefinedAt(meta) then
         {
             val odef = OreDefs(meta)
             MathLib.randomFromIntRange(odef.minXP to odef.maxXP)
@@ -70,9 +70,9 @@ class BlockOre extends BlockCore(Material.ROCK) with TSimplePropertyString
 
     override def damageDropped(state:IBlockState) = state.getBlock.getMetaFromState(state)
 
-    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        for (o <- OreDefs.values)
+        for o <- OreDefs.values do
             list.add(o.makeStack)
     }
 
@@ -89,14 +89,14 @@ object OreDefs extends BlockDefinition
     override type EnumVal = OreVal
     override def getBlock = ProjectRedExploration.blockOres
 
-    val ORERUBY = new OreVal("ruby_ore", 2, PartDefs.RUBY.makeStack _, 1, 4, 2, 7)
-    val ORESAPPHIRE = new OreVal("sapphire_ore", 2, PartDefs.SAPPHIRE.makeStack _, 1, 4, 2, 7)
-    val OREPERIDOT = new OreVal("peridot_ore", 2, PartDefs.PERIDOT.makeStack _, 1, 4, 2, 7)
+    val ORERUBY = new OreVal("ruby_ore", 2, (() => PartDefs.RUBY.makeStack), 1, 4, 2, 7)
+    val ORESAPPHIRE = new OreVal("sapphire_ore", 2, (() => PartDefs.SAPPHIRE.makeStack), 1, 4, 2, 7)
+    val OREPERIDOT = new OreVal("peridot_ore", 2, (() => PartDefs.PERIDOT.makeStack), 1, 4, 2, 7)
 
     val ORECOPPER = new OreVal("copper_ore", 1, null, 1, 1, 0, 0)
     val ORETIN = new OreVal("tin_ore", 1, null, 1, 1, 0, 0)
     val ORESILVER = new OreVal("silver_ore", 2, null, 1, 1, 0, 0)
-    val OREELECTROTINE = new OreVal("electrotine_ore", 2, PartDefs.ELECTROTINE.makeStack _, 1, 8, 1, 5)
+    val OREELECTROTINE = new OreVal("electrotine_ore", 2, (() => PartDefs.ELECTROTINE.makeStack), 1, 8, 1, 5)
 
     class OreVal(variantName:String, val harvest:Int, val dropFactory:()=>ItemStack, val min:Int, val max:Int, val minXP:Int, val maxXP:Int) extends BlockDef(variantName)
     {
@@ -121,7 +121,7 @@ class BlockDecorativeStone extends BlockCore(Material.ROCK) with TSimpleProperty
     override def getBlockHardness(state:IBlockState, w:World, pos:BlockPos) =
     {
         val meta = state.getBlock.getMetaFromState(state)
-        if (DecorativeStoneDefs.isDefinedAt(meta)) DecorativeStoneDefs(meta).hardness
+        if DecorativeStoneDefs.isDefinedAt(meta) then DecorativeStoneDefs(meta).hardness
         else super.getBlockHardness(state, w, pos)
     }
 
@@ -129,18 +129,18 @@ class BlockDecorativeStone extends BlockCore(Material.ROCK) with TSimpleProperty
     {
         val state = w.getBlockState(pos)
         val meta = state.getBlock.getMetaFromState(state)
-        if (DecorativeStoneDefs.isDefinedAt(meta)) DecorativeStoneDefs(meta).explosion
+        if DecorativeStoneDefs.isDefinedAt(meta) then DecorativeStoneDefs(meta).explosion
         else super.getExplosionResistance(w, pos, exploder, explosion)
     }
 
     override def getDrops(world:IBlockAccess, pos:BlockPos, state:IBlockState, fortune:Int) =
     {
         val meta = state.getBlock.getMetaFromState(state)
-        if (DecorativeStoneDefs.isDefinedAt(meta))
+        if DecorativeStoneDefs.isDefinedAt(meta) then
         {
             val ddef = DecorativeStoneDefs(meta)
             val array = new util.ArrayList[ItemStack]()
-            if (ddef.hasDrop) array.add(ddef.makeDropStack)
+            if ddef.hasDrop then array.add(ddef.makeDropStack)
             else array.add(ddef.makeStack)
             array
         }
@@ -149,9 +149,9 @@ class BlockDecorativeStone extends BlockCore(Material.ROCK) with TSimpleProperty
 
     override def damageDropped(state:IBlockState) = state.getBlock.getMetaFromState(state)
 
-    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        for (s <- DecorativeStoneDefs.values)
+        for s <- DecorativeStoneDefs.values do
             list.add(s.makeStack)
     }
 
@@ -168,7 +168,7 @@ object DecorativeStoneDefs extends BlockDefinition
     val MARBLE = new StoneVal("marble", 2, 1.0F, 14.0F, null)
     val MARBLEBRICK = new StoneVal("marble_brick", 2, 1.0F, 14.0F, null)
     val BASALTCOBBLE = new StoneVal("basalt_cobble", 2, 2.5F, 14.0F, null)
-    val BASALT = new StoneVal("basalt", 2, 2.5F, 16, BASALTCOBBLE.makeStack _)
+    val BASALT = new StoneVal("basalt", 2, 2.5F, 16, (() => BASALTCOBBLE.makeStack))
     val BASALTBRICK = new StoneVal("basalt_brick", 2, 2.5F, 20, null)
     val RUBYBLOCK = new StoneVal("ruby_block", 2, 5.0F, 10.0F, null)
     val SAPPHIREBLOCK = new StoneVal("sapphire_block", 2, 5.0F, 10.0F, null)
@@ -195,15 +195,15 @@ object DecorativeStoneDefs extends BlockDefinition
 //Sadly we cant subclass BlockWall anymore, there is too much hardcoded in to the constructor we cant override.. notibly setDefaultState..
 class BlockDecorativeWall extends BlockCore(Material.ROCK) with TSimplePropertyString
 {
-    import net.minecraft.block.BlockWall._
-    import java.lang.{Boolean =>JBool}
+    import net.minecraft.block.BlockWall.*
+    import java.lang.{Boolean  as JBool}
 
     setCreativeTab(ProjectRedExploration.tabExploration)
     setDefaultState(getDefaultState.withProperty(UP, JBool.FALSE).withProperty(NORTH, JBool.FALSE).withProperty(SOUTH, JBool.FALSE).withProperty(EAST, JBool.FALSE).withProperty(WEST, JBool.FALSE).withProperty(getTypeProperty, "marble"))
 
-    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        for (s <- DecorativeStoneDefs.values)
+        for s <- DecorativeStoneDefs.values do
             list.add(new ItemStack(ProjectRedExploration.blockDecorativeWall, 1, s.meta))
     }
 
@@ -214,10 +214,10 @@ class BlockDecorativeWall extends BlockCore(Material.ROCK) with TSimplePropertyS
 
     private def getAABBIndex(state: IBlockState) = {
         var i = 0
-        if (state.getValue(NORTH).booleanValue) i |= 1 << EnumFacing.NORTH.getHorizontalIndex
-        if (state.getValue(EAST).booleanValue) i |= 1 << EnumFacing.EAST.getHorizontalIndex
-        if (state.getValue(SOUTH).booleanValue) i |= 1 << EnumFacing.SOUTH.getHorizontalIndex
-        if (state.getValue(WEST).booleanValue) i |= 1 << EnumFacing.WEST.getHorizontalIndex
+        if state.getValue(NORTH).booleanValue then i |= 1 << EnumFacing.NORTH.getHorizontalIndex
+        if state.getValue(EAST).booleanValue then i |= 1 << EnumFacing.EAST.getHorizontalIndex
+        if state.getValue(SOUTH).booleanValue then i |= 1 << EnumFacing.SOUTH.getHorizontalIndex
+        if state.getValue(WEST).booleanValue then i |= 1 << EnumFacing.WEST.getHorizontalIndex
         i
     }
 
@@ -226,7 +226,7 @@ class BlockDecorativeWall extends BlockCore(Material.ROCK) with TSimplePropertyS
     {
         val state = w.getBlockState(pos)
         val b = state.getBlock
-        if (b != this && !b.isInstanceOf[BlockFenceGate]) b != null && state.getMaterial.isOpaque && state.isFullCube && state.getMaterial != Material.GROUND
+        if b != this && !b.isInstanceOf[BlockFenceGate] then b != null && state.getMaterial.isOpaque && state.isFullCube && state.getMaterial != Material.GROUND
         else true
     }
 

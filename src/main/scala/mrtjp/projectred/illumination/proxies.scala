@@ -7,7 +7,7 @@ import codechicken.lib.texture.TextureUtils
 import codechicken.multipart.MultiPartRegistry
 import codechicken.multipart.api.IPartFactory
 import mrtjp.core.block.MultiTileBlock
-import mrtjp.projectred.ProjectRedIllumination._
+import mrtjp.projectred.ProjectRedIllumination.*
 import mrtjp.projectred.core.IProxy
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.client.renderer.block.statemap.StateMap
@@ -22,7 +22,7 @@ class IlluminationProxy_server extends IProxy with IPartFactory
 {
     val lights = Seq(LightFactoryLantern, LightFactoryFixture, LightFactoryFallout, LightFactoryCage)
 
-    override def preinit()
+    override def preinit(): Unit =
     {
         blockLamp = new BlockLamp
         blockLamp.setTranslationKey("projectred.illumination.lamp")
@@ -48,12 +48,12 @@ class IlluminationProxy_server extends IProxy with IPartFactory
         MultiPartRegistry.registerParts(this, Array(LightButtonPart.typeID, FLightButtonPart.typeID))
     }
 
-    override def init()
+    override def init(): Unit =
     {
         LightMicroMaterial.register()
     }
 
-    override def postinit(){}
+    override def postinit(): Unit ={}
 
     override def createPart(name:ResourceLocation, client:Boolean) = name match
     {
@@ -67,7 +67,7 @@ class IlluminationProxy_client extends IlluminationProxy_server
 {
 
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
 
@@ -91,7 +91,7 @@ class IlluminationProxy_client extends IlluminationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
 //        MinecraftForgeClient.registerItemRenderer(itemPartIllumarButton, RenderButton)

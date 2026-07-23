@@ -9,7 +9,7 @@ import codechicken.lib.colour.EnumColour
 import codechicken.lib.gui.GuiDraw
 import codechicken.lib.texture.TextureUtils
 import com.mojang.realmsclient.gui.ChatFormatting
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.vec.{Point, Size}
 import net.minecraft.util.ResourceLocation
 
@@ -19,11 +19,11 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
 {
     size = Size(115, 75)
 
-    override def onAddedToParent_Impl()
+    override def onAddedToParent_Impl(): Unit =
     {
 
         var s = getContainer.indexMap(classOf[TChipFilter])
-        for ((x, y) <- GuiLib.createSlotGrid(12, 12, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(12, 12, 3, 3, 0, 0) do
         {
             val slot = new InventorySlotNode
             slot.position = Point(x, y)
@@ -34,17 +34,17 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
 
         val b = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
-                drawTexturedModalRect(position.x, position.y, if(chip.filterExclude) 1 else 17, 102, 14, 14)
+                drawTexturedModalRect(position.x, position.y, if chip.filterExclude then 1 else 17, 102, 14, 14)
             }
         }
         b.position = Point(88, 16)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "Filter mode"
-            list += (ChatFormatting.GRAY.toString + "Items are " + (if(chip.filterExclude) "blacklisted" else "whitelisted"))
+            list += (ChatFormatting.GRAY.toString + "Items are " + (if chip.filterExclude then "blacklisted" else "whitelisted"))
         }
         b.clickDelegate = {() =>
             chip.toggleExcludeMode()
@@ -52,21 +52,21 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
         }
         addChild(b)
 
-        if (chip.enablePatterns)
+        if chip.enablePatterns then
         {
             var b = new IconButtonNode
             {
-                override def drawButton(mouseover:Boolean)
+                override def drawButton(mouseover:Boolean): Unit =
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
-                    drawTexturedModalRect(position.x, position.y, if (chip.metaMatch) 49 else 65, 118, 14, 14)
+                    drawTexturedModalRect(position.x, position.y, if chip.metaMatch then 49 else 65, 118, 14, 14)
                 }
             }
             b.position = Point(70, 16)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "Metadata matching"
-                list += (ChatFormatting.GRAY.toString+"Meta is "+(if (chip.metaMatch) "checked" else "ignored"))
+                list += (ChatFormatting.GRAY.toString+"Meta is "+(if chip.metaMatch then "checked" else "ignored"))
             }
             b.clickDelegate = {() =>
                 chip.toggleMetaMode()
@@ -76,17 +76,17 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
 
             b = new IconButtonNode
             {
-                override def drawButton(mouseover:Boolean)
+                override def drawButton(mouseover:Boolean): Unit =
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
-                    drawTexturedModalRect(position.x, position.y, if (chip.nbtMatch) 33 else 49, 102, 14, 14)
+                    drawTexturedModalRect(position.x, position.y, if chip.nbtMatch then 33 else 49, 102, 14, 14)
                 }
             }
             b.position = Point(70, 32)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "NBT matching"
-                list += (ChatFormatting.GRAY.toString+"NBT is "+(if (chip.nbtMatch) "checked" else "ignored"))
+                list += (ChatFormatting.GRAY.toString+"NBT is "+(if chip.nbtMatch then "checked" else "ignored"))
             }
             b.clickDelegate = {() =>
                 chip.toggleNBTMode()
@@ -96,17 +96,17 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
 
             b = new IconButtonNode
             {
-                override def drawButton(mouseover:Boolean)
+                override def drawButton(mouseover:Boolean): Unit =
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
-                    drawTexturedModalRect(position.x, position.y, if (chip.oreMatch) 81 else 97, 118, 14, 14)
+                    drawTexturedModalRect(position.x, position.y, if chip.oreMatch then 81 else 97, 118, 14, 14)
                 }
             }
             b.position = Point(70, 48)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "Ore Dictionary matching"
-                list += (ChatFormatting.GRAY.toString+"Ore Dictionary is "+(if (chip.oreMatch) "checked" else "ignored"))
+                list += (ChatFormatting.GRAY.toString+"Ore Dictionary is "+(if chip.oreMatch then "checked" else "ignored"))
             }
             b.clickDelegate = {() =>
                 chip.toggleOreMode()
@@ -116,7 +116,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
 
             b = new IconButtonNode
             {
-                override def drawButton(mouseover:Boolean)
+                override def drawButton(mouseover:Boolean): Unit =
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
                     val u = chip.damageGroupMode*22+1
@@ -141,11 +141,11 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             addChild(b)
         }
 
-        if (chip.enableHiding)
+        if chip.enableHiding then
         {
             val b = new IconButtonNode
             {
-                override def drawButton(mouseover:Boolean)
+                override def drawButton(mouseover:Boolean): Unit =
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
                     val u = chip.hideMode*16+1
@@ -156,7 +156,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "Item hiding"
-                list += (ChatFormatting.GRAY.toString+"Hide "+(if (chip.hideMode == 0) "nothing" else chip.hide(chip.hideMode)))
+                list += (ChatFormatting.GRAY.toString+"Hide "+(if chip.hideMode == 0 then "nothing" else chip.hide(chip.hideMode)))
             }
             b.clickDelegate = {() =>
                 chip.shiftHiding()
@@ -172,16 +172,16 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
 
     override def isPanelVisible = chip.enableFilter
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Filter"
         chip.addFilterInfo(list)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
-        for ((x, y) <- GuiLib.createSlotGrid(position.x+12, position.y+12, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(position.x+12, position.y+12, 3, 3, 0, 0) do
             GuiLib.drawSlotBackground(x-1, y-1)
     }
 }
@@ -193,14 +193,14 @@ class OrientChipPanel(chip:TChipOrientation) extends ChipPanelNode(chip)
 
         val sideWidget = new SideSelectNode(12, 12, 30, 30)
         {
-            override def onSideChanged(oldside:Int)
+            override def onSideChanged(oldside:Int): Unit =
             {
-                chip.extractOrient = if (sides != 0) Integer.numberOfTrailingZeros(sides) else -1
+                chip.extractOrient = if sides != 0 then Integer.numberOfTrailingZeros(sides) else -1
                 getContainer.saveChip()
             }
         }
         sideWidget.exclusiveSides = true
-        if (chip.extractOrient >= 0) sideWidget.sides = 1<<chip.extractOrient
+        if chip.extractOrient >= 0 then sideWidget.sides = 1<<chip.extractOrient
         addChild(sideWidget)
     }
 
@@ -210,7 +210,7 @@ class OrientChipPanel(chip:TChipOrientation) extends ChipPanelNode(chip)
 
     override def isPanelVisible = true
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Orientation"
         chip.addOrientInfo(list)
@@ -218,13 +218,13 @@ class OrientChipPanel(chip:TChipOrientation) extends ChipPanelNode(chip)
 
     private val names = Seq("bottom", "top", "North", "South", "West", "East")
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
         val xOff = 52
         val yOff = 16
         GuiDraw.drawString("Extraction is", position.x+xOff, position.y+yOff, EnumColour.GRAY.rgb, false)
-        if (chip.extractOrient == -1) GuiDraw.drawString("not simulated", position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
+        if chip.extractOrient == -1 then GuiDraw.drawString("not simulated", position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
         else
         {
             GuiDraw.drawString("simulated from", position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
@@ -265,13 +265,13 @@ class PriorityChipPanel(chip:TChipPriority) extends ChipPanelNode(chip)
 
     override def isPanelVisible = chip.prefScale > 0
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Priority"
         chip.addPriorityInfo(list)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
         GuiDraw.drawStringC(chip.preference.toString, position.x+32, position.y+28, EnumColour.GRAY.argb, false)
@@ -280,12 +280,12 @@ class PriorityChipPanel(chip:TChipPriority) extends ChipPanelNode(chip)
 
 class StockChipPanel(chip:TChipStock) extends ChipPanelNode(chip)
 {
-    override def onAddedToParent_Impl()
+    override def onAddedToParent_Impl(): Unit =
     {
         size = Size(105, 75)
 
         var s = getContainer.indexMap(classOf[TChipStock])
-        for ((x, y) <- GuiLib.createSlotGrid(12, 12, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(12, 12, 3, 3, 0, 0) do
         {
             val slot = new InventorySlotNode
             slot.position = Point(x, y)
@@ -296,7 +296,7 @@ class StockChipPanel(chip:TChipStock) extends ChipPanelNode(chip)
 
         val b = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
                 drawTexturedModalRect(position.x, position.y, 81+16*chip.requestMode, 102, 14, 14)
@@ -326,16 +326,16 @@ class StockChipPanel(chip:TChipStock) extends ChipPanelNode(chip)
 
     override def isPanelVisible = true
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Stock"
         chip.addStockInfo(list)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
-        for ((x, y) <- GuiLib.createSlotGrid(position.x+12, position.y+12, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(position.x+12, position.y+12, 3, 3, 0, 0) do
             GuiLib.drawSlotBackground(x-1, y-1)
     }
 }
@@ -344,10 +344,10 @@ class CraftChipPanel(chip:TChipCrafter) extends ChipPanelNode(chip)
 {
     size = Size(140, 78)
 
-    override def onAddedToParent_Impl()
+    override def onAddedToParent_Impl(): Unit =
     {
         var s = getContainer.indexMap(classOf[TChipCrafter])
-        for ((x, y) <- GuiLib.createSlotGrid(12, 12, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(12, 12, 3, 3, 0, 0) do
         {
             val slot = new InventorySlotNode
             slot.position = Point(x, y)
@@ -368,13 +368,13 @@ class CraftChipPanel(chip:TChipCrafter) extends ChipPanelNode(chip)
 
     override def isPanelVisible = true
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Matrix"
         chip.addMatrixInfo(list)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
         TextureUtils.changeTexture("textures/gui/container/crafting_table.png")
@@ -386,11 +386,11 @@ class CraftExtPanel(chip:TChipCrafter) extends ChipPanelNode(chip)
 {
     size = Size(72, 72)
 
-    override def onAddedToParent_Impl()
+    override def onAddedToParent_Impl(): Unit =
     {
 
         var s = getContainer.indexMap(classOf[TChipCrafter])+10
-        for ((x, y) <- GuiLib.createSlotGrid(10, 10, 3, 3, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(10, 10, 3, 3, 0, 0) do
         {
             val slot = new InventorySlotNode
             slot.position = Point(x, y)
@@ -406,13 +406,13 @@ class CraftExtPanel(chip:TChipCrafter) extends ChipPanelNode(chip)
 
     override def isPanelVisible = true
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Extensions"
         chip.addExtInfo(list)
     }
 
-    override def drawBackgroundBox()
+    override def drawBackgroundBox(): Unit =
     {
         TextureUtils.changeTexture(CraftExtPanel.backgroundImage)
         GuiDraw.drawTexturedModalRect(position.x, position.y, 0, 0, size.width, size.height)
@@ -436,17 +436,17 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
 
         var b = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
-                GuiDraw.drawTexturedModalRect(position.x, position.y, if (chip.matchMeta(idx)) 49 else 65, 118, 14, 14)
+                GuiDraw.drawTexturedModalRect(position.x, position.y, if chip.matchMeta(idx) then 49 else 65, 118, 14, 14)
             }
         }
         b.position = Point(70, 12)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "Metadata matching"
-            list += (ChatFormatting.GRAY.toString+"Meta is "+(if (chip.matchMeta(idx)) "checked" else "ignored"))
+            list += (ChatFormatting.GRAY.toString+"Meta is "+(if chip.matchMeta(idx) then "checked" else "ignored"))
         }
         b.clickDelegate = {() =>
             chip.toggleMatchMeta(idx)
@@ -457,17 +457,17 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
 
         b = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
-                GuiDraw.drawTexturedModalRect(position.x, position.y, if (chip.matchNBT(idx)) 33 else 49, 102, 14, 14)
+                GuiDraw.drawTexturedModalRect(position.x, position.y, if chip.matchNBT(idx) then 33 else 49, 102, 14, 14)
             }
         }
         b.position = Point(70, 28)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "NBT matching"
-            list += (ChatFormatting.GRAY.toString+"NBT is "+(if (chip.matchNBT(idx)) "checked" else "ignored"))
+            list += (ChatFormatting.GRAY.toString+"NBT is "+(if chip.matchNBT(idx) then "checked" else "ignored"))
         }
         b.clickDelegate = {() =>
             chip.toggleMatchNBT(idx)
@@ -478,17 +478,17 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
 
         b = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
-                GuiDraw.drawTexturedModalRect(position.x, position.y, if (chip.matchOre(idx)) 81 else 97, 118, 14, 14)
+                GuiDraw.drawTexturedModalRect(position.x, position.y, if chip.matchOre(idx) then 81 else 97, 118, 14, 14)
             }
         }
         b.position = Point(70, 44)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "Ore Dictionary matching"
-            list += (ChatFormatting.GRAY.toString+"Ore Dictionary is "+(if (chip.matchOre(idx)) "checked" else "ignored"))
+            list += (ChatFormatting.GRAY.toString+"Ore Dictionary is "+(if chip.matchOre(idx) then "checked" else "ignored"))
         }
         b.clickDelegate = {() =>
             chip.toggleMatchOre(idx)
@@ -499,7 +499,7 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
 
         b = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
                 val u = chip.matchGroup(idx)*22+1
@@ -524,12 +524,12 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
         addChild(b)
         settingsButtons :+= b
 
-        for (((x, y), i) <- GuiLib.createGrid(10, 10, 3, 3, 18, 18).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createGrid(10, 10, 3, 3, 18, 18).zipWithIndex do
         {
             val button = new IconButtonNode {
-                override def drawButton(mouseover:Boolean) {
+                override def drawButton(mouseover:Boolean): Unit = {
                     val stack = chip.getMatchInventory.getStackInSlot(i)
-                    if (!stack.isEmpty)
+                    if !stack.isEmpty then
                         ItemDisplayNode.renderItem(position, size, 0, false, stack)
                 }
             }
@@ -554,17 +554,17 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
 
     override def isPanelVisible = true
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Match options"
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
     }
 
-    override def drawBackgroundBox()
+    override def drawBackgroundBox(): Unit =
     {
         TextureUtils.changeTexture(CraftExtPanel.backgroundImage)
         GuiDraw.drawTexturedModalRect(position.x, position.y, 0, 72, size.width, size.height)
@@ -593,13 +593,13 @@ class ExtensionIDPanel(chip:TChipCrafterExtension) extends ChipPanelNode(chip)
 
     override def isPanelVisible = true
 
-    override def buildDotTooltip(list:ListBuffer[String])
+    override def buildDotTooltip(list:ListBuffer[String]): Unit =
     {
         list += "Extension ID"
         chip.addExtIDInfo(list)
     }
 
-    override def drawBack_Impl(mouse:Point, rframe:Float)
+    override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
     {
         super.drawBack_Impl(mouse, rframe)
         val sec = chip.id.toString.split("-")
@@ -607,7 +607,7 @@ class ExtensionIDPanel(chip:TChipCrafterExtension) extends ChipPanelNode(chip)
 
         val prev = GuiDraw.fontRenderer.getUnicodeFlag
         GuiDraw.fontRenderer.setUnicodeFlag(true)
-        for (i <- groups.indices)
+        for i <- groups.indices do
             GuiDraw.drawString(groups(i), position.x+14, position.y+12+i*12, EnumColour.GRAY.argb, false)
         GuiDraw.fontRenderer.setUnicodeFlag(prev)
     }

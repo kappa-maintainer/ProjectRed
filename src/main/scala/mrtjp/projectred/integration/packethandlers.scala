@@ -45,20 +45,20 @@ object IntegrationSPH extends IntegrationPH with IServerPacketHandler
             case 2 => incCounter(sender.world, packet)
         }
 
-    private def incCounter(world:World, packet:PacketCustom)
+    private def incCounter(world:World, packet:PacketCustom): Unit =
     {
         readPartIndex(world, packet) match {
             case gate:GatePart if gate.getLogic.isInstanceOf[ICounterGuiLogic] =>
                 val t = gate.getLogic[ICounterGuiLogic]
                 val actionID = packet.readByte()
-                if (actionID == 0) t.setCounterMax(gate, t.getCounterMax+packet.readShort())
-                else if (actionID == 1) t.setCounterIncr(gate, t.getCounterIncr+packet.readShort())
-                else if (actionID == 2) t.setCounterDecr(gate, t.getCounterDecr+packet.readShort())
+                if actionID == 0 then t.setCounterMax(gate, t.getCounterMax+packet.readShort())
+                else if actionID == 1 then t.setCounterIncr(gate, t.getCounterIncr+packet.readShort())
+                else if actionID == 2 then t.setCounterDecr(gate, t.getCounterDecr+packet.readShort())
             case _ =>
         }
     }
 
-    private def incrTimer(world:World, packet:PacketCustom)
+    private def incrTimer(world:World, packet:PacketCustom): Unit =
     {
         readPartIndex(world, packet) match {
             case gate:GatePart if gate.getLogic.isInstanceOf[ITimerGuiLogic] =>

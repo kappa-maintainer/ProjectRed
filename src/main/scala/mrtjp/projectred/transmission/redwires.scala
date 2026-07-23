@@ -2,11 +2,11 @@ package mrtjp.projectred.transmission
 
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.vec.Rotation
-import codechicken.multipart._
+import codechicken.multipart.*
 import codechicken.multipart.scalatraits.TRedstoneTile
 import mrtjp.core.world.Messenger
 import mrtjp.projectred.api.IConnectable
-import mrtjp.projectred.core._
+import mrtjp.projectred.core.*
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -17,25 +17,25 @@ trait TRedwireCommons extends TWireCommons with TRSAcquisitionsCommons with TRSP
 {
     var signal:Byte = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("signal", signal)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         signal = tag.getByte("signal")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(signal)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         signal = packet.readByte
@@ -45,7 +45,7 @@ trait TRedwireCommons extends TWireCommons with TRSAcquisitionsCommons with TRSP
     {
         case 10 =>
             signal = packet.readByte()
-            if (Configurator.staticWires) tile.markRender()
+            if Configurator.staticWires then tile.markRender()
         case _ => super.read(packet, key)
     }
 
@@ -55,16 +55,16 @@ trait TRedwireCommons extends TWireCommons with TRSAcquisitionsCommons with TRSP
 
     def rsLevel =
     {
-        if (WirePropagator.redwiresProvidePower) ((signal&0xFF)+16)/17
+        if WirePropagator.redwiresProvidePower then ((signal&0xFF)+16)/17
         else 0
     }
 
     override def getRedwireSignal(side:Int) = getSignal
 
     override def getSignal = signal&0xFF
-    override def setSignal(sig:Int){ signal = sig.toByte }
+    override def setSignal(sig:Int): Unit ={ signal = sig.toByte }
 
-    override def onSignalUpdate()
+    override def onSignalUpdate(): Unit =
     {
         super.onSignalUpdate()
         getWriteStreamOf(10).writeByte(signal)
@@ -73,13 +73,13 @@ trait TRedwireCommons extends TWireCommons with TRSAcquisitionsCommons with TRSP
     override def debug(player:EntityPlayer) =
     {
         player.sendMessage(new TextComponentString(
-            (if (world.isRemote) "Client" else "Server")+" signal strength: "+getSignal))
+            (if world.isRemote then "Client" else "Server")+" signal strength: "+getSignal))
         true
     }
 
     override def test(player:EntityPlayer) =
     {
-        if (world.isRemote) Messenger.addMessage(pos.getX, pos.getY+0.5, pos.getZ, "/#f/#c[c] = "+getSignal)
+        if world.isRemote then Messenger.addMessage(pos.getX, pos.getY+0.5, pos.getZ, "/#f/#c[c] = "+getSignal)
         else {
             val packet = Messenger.createPacket
             packet.writeDouble(pos.getX+0.0D)
@@ -96,7 +96,7 @@ abstract class RedwirePart extends WirePart with TRedwireCommons with TFaceRSAcq
 {
     override def weakPowerLevel(side:Int) =
     {
-        if ((side&6) != (this.side&6) && (connMap&0x100<<Rotation.rotationTo(this.side, side)) != 0) 0
+        if (side&6) != (this.side&6) && (connMap&0x100<<Rotation.rotationTo(this.side, side)) != 0 then 0
         else rsLevel
     }
 
@@ -130,7 +130,7 @@ abstract class RedwirePart extends WirePart with TRedwireCommons with TFaceRSAcq
     override def calcStraightSignal(r:Int) =
     {
         val partsig = super.calcStraightSignal(r)
-        if (partsig > 0) partsig
+        if partsig > 0 then partsig
         else calcMaxSignal(r, true, true)
     }
 
@@ -149,18 +149,18 @@ abstract class RedwirePart extends WirePart with TRedwireCommons with TFaceRSAcq
         WirePropagator.setDustProvidePower(false)
         WirePropagator.redwiresProvidePower = false
         var s = 0
-        def raise(sig:Int){ if (sig > s) s = sig }
+        def raise(sig:Int): Unit ={ if sig > s then s = sig }
 
-        for (r <- 0 until 4) if (maskConnects(r))
-            if (maskConnectsCorner(r)) raise(calcCornerSignal(r))
+        for r <- 0 until 4 do if maskConnects(r) then
+            if maskConnectsCorner(r) then raise(calcCornerSignal(r))
             else
             {
-                if (maskConnectsStraight(r)) raise(calcStraightSignal(r))
+                if maskConnectsStraight(r) then raise(calcStraightSignal(r))
                 raise(calcInternalSignal(r)) //TODO else?
             }
 
         raise(calcUndersideSignal)
-        if (maskConnectsCenter) raise(calcCenterSignal)
+        if maskConnectsCenter then raise(calcCenterSignal)
 
         WirePropagator.setDustProvidePower(true)
         WirePropagator.redwiresProvidePower = true
@@ -193,9 +193,9 @@ abstract class FramedRedwirePart extends FramedWirePart with TRedwireCommons wit
         case _ => false
     }
 
-    override def propagateOther(mode:Int)
+    override def propagateOther(mode:Int): Unit =
     {
-        for (s <- 0 until 6) if (!maskConnects(s))
+        for s <- 0 until 6 do if !maskConnects(s) then
             WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(s)))
     }
 
@@ -204,12 +204,12 @@ abstract class FramedRedwirePart extends FramedWirePart with TRedwireCommons wit
         WirePropagator.setDustProvidePower(false)
         WirePropagator.redwiresProvidePower = false
         var s = 0
-        def raise(sig:Int) {if (sig > s) s = sig}
+        def raise(sig:Int): Unit = {if sig > s then s = sig}
 
-        for (s <- 0 until 6)
+        for s <- 0 until 6 do
         {
-            if (maskConnectsIn(s)) raise(calcInternalSignal(s))
-            else if (maskConnectsOut(s)) raise(calcStraightSignal(s))
+            if maskConnectsIn(s) then raise(calcInternalSignal(s))
+            else if maskConnectsOut(s) then raise(calcStraightSignal(s))
         }
 
         WirePropagator.setDustProvidePower(true)
@@ -227,7 +227,7 @@ abstract class FramedRedwirePart extends FramedWirePart with TRedwireCommons wit
     {
         val tp = getInternal(s)
         val sig = resolveSignal(tp, s^1)
-        if (sig > 0) sig
+        if sig > 0 then sig
         else tp match
         {
             case rp:IRedstonePart => Math.max(rp.strongPowerLevel(s^1), rp.weakPowerLevel(s^1))<<4
@@ -252,25 +252,25 @@ trait TRedAlloyCommons extends TRedwireCommons
 
 class RedAlloyWirePart extends RedwirePart with TRedAlloyCommons
 {
-    override def strongPowerLevel(side:Int) = if (side == this.side) rsLevel else 0
+    override def strongPowerLevel(side:Int) = if side == this.side then rsLevel else 0
 
     override def redstoneConductionMap = 0x1F
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
-        if (!world.isRemote) tile.notifyNeighborChange(side)
+        if !world.isRemote then tile.notifyNeighborChange(side)
     }
 
-    override def propagateOther(mode:Int)
+    override def propagateOther(mode:Int): Unit =
     {
         WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(side)))
         WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(side^1)))
 
-        for (r <- 0 until 4) if (!maskConnects(r))
+        for r <- 0 until 4 do if !maskConnects(r) then
             WirePropagator.addNeighborChange(pos.offset(EnumFacing.byIndex(Rotation.rotateSide(side, r))))
 
-        for (s <- 0 until 6) if (s != (side^1))
+        for s <- 0 until 6 do if s != (side^1) then
             WirePropagator.addNeighborChange(pos
                     .offset(EnumFacing.byIndex(side)).offset(EnumFacing.byIndex(s)))
     }
@@ -284,31 +284,31 @@ trait TInsulatedCommons extends TRedwireCommons with IInsulatedRedwirePart
 
     def getWireType = WireDef.INSULATED_WIRES(colour)
 
-    override def preparePlacement(side:Int, meta:Int)
+    override def preparePlacement(side:Int, meta:Int): Unit =
     {
         super.preparePlacement(side, meta)
         colour = (meta-WireDef.INSULATED_0.meta).toByte
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("colour", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         colour = tag.getByte("colour")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(colour)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         colour = packet.readByte()
@@ -328,7 +328,7 @@ trait TInsulatedCommons extends TRedwireCommons with IInsulatedRedwirePart
     }
 
     @SideOnly(Side.CLIENT)
-    override def getIcon = getWireType.wireSprites(if (signal != 0) 1 else 0)
+    override def getIcon = getWireType.wireSprites(if signal != 0 then 1 else 0)
 
     override def getInsulatedColour = colour
 }
@@ -337,7 +337,7 @@ class InsulatedRedAlloyPart extends RedwirePart with TInsulatedCommons
 {
     override def weakPowerLevel(side:Int) =
     {
-        if (this.side == side || this.side == (side^1) || !maskConnects(absoluteRot(side))) 0
+        if this.side == side || this.side == (side^1) || !maskConnects(absoluteRot(side)) then 0
         else super.weakPowerLevel(side)
     }
 
@@ -348,7 +348,7 @@ class FramedInsulatedRedAlloyPart extends FramedRedwirePart with TInsulatedCommo
 {
     override def weakPowerLevel(side:Int) =
     {
-        if (!maskConnects(side)) 0
+        if !maskConnects(side) then 0
         else super.weakPowerLevel(side)
     }
 }

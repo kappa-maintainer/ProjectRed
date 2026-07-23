@@ -6,7 +6,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.item.ItemKey
 import mrtjp.core.vec.Point
@@ -29,7 +29,7 @@ class TileInductiveFurnace extends TileProcessingMachine
 
     def getBlock = ProjectRedExpansion.machine1
 
-    override def openGui(player:EntityPlayer)
+    override def openGui(player:EntityPlayer): Unit =
     {
         GuiInductiveFurnace.open(player, createContainer(player), _.writePos(getPos))
     }
@@ -37,7 +37,7 @@ class TileInductiveFurnace extends TileProcessingMachine
     def createContainer(player:EntityPlayer) =
         new ContainerFurnace(player, this)
 
-    import net.minecraft.util.EnumFacing._
+    import net.minecraft.util.EnumFacing.*
     def canExtractItem(slot:Int, itemstack:ItemStack, side:EnumFacing) = true
     def canInsertItem(slot:Int, itemstack:ItemStack, side:EnumFacing) = side == EnumFacing.UP
     def getSlotsForFace(s:EnumFacing) = s match
@@ -50,20 +50,20 @@ class TileInductiveFurnace extends TileProcessingMachine
     override def canStart:Boolean =
     {
         val inSlot = getStackInSlot(0)
-        if (inSlot.isEmpty) return false
+        if inSlot.isEmpty then return false
 
         val r = InductiveFurnaceRecipeLib.getRecipeFor(inSlot)
-        if (r == null) return false
+        if r == null then return false
 
         val stack = r.createOutput
         val room = InvWrapper.wrapInternal(this, 1 to 1).getSpaceForItem(ItemKey.get(stack))
         room >= stack.getCount
     }
 
-    override def startWork()
+    override def startWork(): Unit =
     {
         val r = InductiveFurnaceRecipeLib.getRecipeFor(getStackInSlot(0))
-        if (r != null)
+        if r != null then
         {
             isWorking = true
             workMax = r.burnTime
@@ -71,11 +71,11 @@ class TileInductiveFurnace extends TileProcessingMachine
         }
     }
 
-    override def produceResults()
+    override def produceResults(): Unit =
     {
         val in = getStackInSlot(0)
         val r = InductiveFurnaceRecipeLib.getRecipeFor(in)
-        if (r != null)
+        if r != null then
         {
             val wrap = InvWrapper.wrapInternal(this, 0 to 0)
             wrap.extractItem(ItemKey.get(in), 1)
@@ -99,11 +99,11 @@ class ContainerFurnace(p:EntityPlayer, tile:TileInductiveFurnace) extends Contai
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
     {
-        if (from == 0) { //input slot
-            if (tryMergeItemStack(stack, 11, 38, false)) return true //to player inv
+        if from == 0 then { //input slot
+            if tryMergeItemStack(stack, 11, 38, false) then return true //to player inv
             tryMergeItemStack(stack, 2, 11, false) //to hotbar
-        } else if (from == 1) { //output slot
-            if (tryMergeItemStack(stack, 2, 11, true)) return true //to hotbar reverse
+        } else if from == 1 then { //output slot
+            if tryMergeItemStack(stack, 2, 11, true) then return true //to hotbar reverse
             tryMergeItemStack(stack, 11, 38, true) //to player inv reverse
         } else //from player inventory
             tryMergeItemStack(stack, 0, 1, false) //to furnace input
@@ -112,7 +112,7 @@ class ContainerFurnace(p:EntityPlayer, tile:TileInductiveFurnace) extends Contai
 
 class GuiInductiveFurnace(tile:TileInductiveFurnace, c:Container) extends NodeGui(c, 176, 171)
 {
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiInductiveFurnace.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
@@ -120,11 +120,11 @@ class GuiInductiveFurnace(tile:TileInductiveFurnace, c:Container) extends NodeGu
         val s = tile.progressScaled(24)
         drawTexturedModalRect(80, 40, 176, 0, s+1, 16)
 
-        if (tile.cond.canWork)
+        if tile.cond.canWork then
             GuiDraw.drawTexturedModalRect(16, 16, 177, 18, 7, 9)
         GuiLib.drawVerticalTank(16, 26, 177, 27, 7, 48, tile.cond.getChargeScaled(48))
 
-        if (tile.cond.flow == -1)
+        if tile.cond.flow == -1 then
             GuiDraw.drawTexturedModalRect(27, 16, 185, 18, 7, 9)
         GuiLib.drawVerticalTank(27, 26, 185, 27, 7, 48, tile.cond.getFlowScaled(48))
 
@@ -151,21 +151,21 @@ object GuiInductiveFurnace extends TGuiFactory
 
 object RenderInductiveFurnace extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var side2a:TextureAtlasSprite = _
-    var side2b:TextureAtlasSprite = _
-    var side2c:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2a:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2b:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2c:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
-    var iconT3:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
+    var iconT3:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): IExtendedBlockState = {
 
@@ -187,15 +187,15 @@ object RenderInductiveFurnace extends SimpleBlockRenderer
         val isWorking = state.getValue(UNLISTED_WORKING_PROPERTY)
         val isCharged = state.getValue(UNLISTED_CHARGED_PROPERTY)
         Triple.of(side, rotation,
-            if (isWorking && isCharged) iconT3
-            else if (isCharged) iconT2
+            if isWorking && isCharged then iconT3
+            else if isCharged then iconT2
             else iconT1)
     }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
     override def shouldCull() = true
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/indfurnace/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/indfurnace/top"))

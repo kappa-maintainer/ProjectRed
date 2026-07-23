@@ -2,11 +2,11 @@ package mrtjp.projectred.illumination
 
 import java.util
 
-import codechicken.lib.vec.Rotation._
-import codechicken.lib.vec.Vector3._
+import codechicken.lib.vec.Rotation.*
+import codechicken.lib.vec.Vector3.*
 import codechicken.lib.vec.uv.{IconTransformation, MultiIconTransformation}
 import codechicken.lib.vec.{Cuboid6, Vector3}
-import codechicken.microblock._
+import codechicken.microblock.*
 import codechicken.multipart.TDynamicRenderPart
 import mrtjp.projectred.ProjectRedIllumination
 import mrtjp.projectred.core.RenderHalo
@@ -15,7 +15,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class LightMicroMaterial(val colour:Int, val key:String) extends BlockMicroMaterial(ProjectRedIllumination.blockLamp.getDefaultState, key) with IGeneratedMaterial
 {
-    override def addTraits(traits:util.BitSet, mcrFactory:MicroblockFactory, client:Boolean)
+    override def addTraits(traits:util.BitSet, mcrFactory:MicroblockFactory, client:Boolean): Unit =
     {
         traits.set(LightMicroMaterial.traitID)
     }
@@ -23,7 +23,7 @@ class LightMicroMaterial(val colour:Int, val key:String) extends BlockMicroMater
     override def getItem = new ItemStack(ProjectRedIllumination.blockLamp, 1, colour)
 
     @SideOnly(Side.CLIENT)
-    override def loadIcons()
+    override def loadIcons(): Unit =
     {
         icont = new MultiIconTransformation(LampRenderer.iconsOn(colour))
         pIconT = new IconTransformation(LampRenderer.iconsOn(colour))
@@ -32,13 +32,13 @@ class LightMicroMaterial(val colour:Int, val key:String) extends BlockMicroMater
 
 object LightMicroMaterial
 {
-    var traitID:Int = _
+    var traitID:Int = scala.compiletime.uninitialized
 
-    def register()
+    def register(): Unit =
     {
         traitID = MicroblockGenerator.registerTrait(classOf[LightMicroblock])
 
-        for (i <- 0 until 16) {
+        for i <- 0 until 16 do {
             val key = BlockMicroMaterial.materialKey(ProjectRedIllumination.blockLamp.getDefaultState)+"[colour:"+i+"]"
             MicroMaterialRegistry.registerMaterial(new LightMicroMaterial(i, key), key)
         }
@@ -48,7 +48,7 @@ object LightMicroMaterial
 trait LightMicroblock extends Microblock with TDynamicRenderPart
 {
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(vec:Vector3, pass:Int, frame:Float)
+    override def renderDynamic(vec:Vector3, pass:Int, frame:Float): Unit =
     {
         val boxes = this match {
             case h: HollowMicroblock =>
@@ -68,13 +68,13 @@ trait LightMicroblock extends Microblock with TDynamicRenderPart
             case _ =>
                 val it = getCollisionBoxes.iterator()
                 val bb = Seq.newBuilder[Cuboid6]
-                while (it.hasNext) bb += it.next()
+                while it.hasNext do bb += it.next()
                 bb.result().map(_.copy.expand(0.025))
         }
 
         val colour = getIMaterial.asInstanceOf[LightMicroMaterial].colour
 
-        for (box <- boxes) RenderHalo.addLight(pos, colour, box)
+        for box <- boxes do RenderHalo.addLight(pos, colour, box)
     }
 
     override def canRenderDynamic(pass: Int) = pass == 0

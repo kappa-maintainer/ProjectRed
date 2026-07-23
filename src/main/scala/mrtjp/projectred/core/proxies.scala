@@ -1,8 +1,8 @@
 package mrtjp.projectred.core
 
 import codechicken.lib.packet.PacketCustom
-import mrtjp.projectred.ProjectRedCore._
-import mrtjp.projectred.core.PartDefs._
+import mrtjp.projectred.ProjectRedCore.*
+import mrtjp.projectred.core.PartDefs.*
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.init.Blocks
 import net.minecraftforge.client.model.ModelLoader
@@ -13,7 +13,7 @@ import net.minecraftforge.oredict.OreDictionary
 
 class CoreProxy_server extends IProxy
 {
-    def preinit()
+    def preinit(): Unit =
     {
         MinecraftForge.EVENT_BUS.register(Configurator)
 
@@ -35,7 +35,7 @@ class CoreProxy_server extends IProxy
         ForgeRegistries.ITEMS.register(itemMultimeter.setRegistryName("multimeter"))
 
         /* OreDictionary */
-        for (i <- 0 until 16)
+        for i <- 0 until 16 do
             OreDictionary.registerOre(PartDefs.oreDictDefinitionIllumar, PartDefs.ILLUMARS(i).makeStack)
 
         OreDictionary.registerOre("gemRuby", PartDefs.RUBY.makeStack)
@@ -49,7 +49,7 @@ class CoreProxy_server extends IProxy
         OreDictionary.registerOre("dustElectrotine", PartDefs.ELECTROTINE.makeStack)
     }
 
-    def init()
+    def init(): Unit =
     {
         PacketCustom.assignHandler(CoreSPH.channel, CoreSPH)
 
@@ -71,32 +71,32 @@ class CoreProxy_server extends IProxy
         GameRegistry.addSmelting(ELECTROTINESILICONCOMPOUND.makeStack, ELECTROSILICON.makeStack, 0)
     }
 
-    def postinit(){}
+    def postinit(): Unit ={}
 }
 
 class CoreProxy_client extends CoreProxy_server
 {
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
         //RecipeDumper.load()
 
-        for (i <- PartDefs.values) i.setCustomModelResourceLocations()
+        for i <- PartDefs.values do i.setCustomModelResourceLocations()
         ModelLoader.setCustomModelResourceLocation(itemDrawPlate, 0, new ModelResourceLocation("projectred:base/tools", "type=draw_plate"))
         ModelLoader.setCustomModelResourceLocation(itemScrewdriver, 0, new ModelResourceLocation("projectred:base/tools", "type=screwdriver"))
         ModelLoader.setCustomModelResourceLocation(itemMultimeter, 0, new ModelResourceLocation("projectred:base/tools", "type=multimeter"))
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
         PacketCustom.assignHandler(CoreCPH.channel, CoreCPH)
     }
 
     @SideOnly(Side.CLIENT)
-    override def postinit()
+    override def postinit(): Unit =
     {
         super.postinit()
         MinecraftForge.EVENT_BUS.register(RenderHalo)

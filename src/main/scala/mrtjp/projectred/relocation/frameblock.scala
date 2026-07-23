@@ -7,14 +7,14 @@ package mrtjp.projectred.relocation
 
 import codechicken.lib.lighting.LightModel
 import codechicken.lib.model.ModelRegistryHelper
-import codechicken.lib.render.CCModel._
+import codechicken.lib.render.CCModel.*
 import codechicken.lib.render.block.{BlockRenderingRegistry, ICCBlockRenderer}
 import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.render.{CCModel, CCRenderState, OBJParser}
 import codechicken.lib.texture.TextureUtils.IIconRegister
 import codechicken.lib.util.TransformUtils
 import codechicken.lib.vec.uv.IconTransformation
-import codechicken.lib.vec.{Rotation, _}
+import codechicken.lib.vec.{Rotation, *}
 import codechicken.multipart.{MultiPartRegistry, TileMultipart}
 import mrtjp.core.vec.ModelRayTracer
 import mrtjp.projectred.ProjectRedRelocation
@@ -28,13 +28,13 @@ import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{Item, ItemBlock, ItemStack}
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.util.math.{AxisAlignedBB, BlockPos, Vec3d}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class BlockFrame extends Block(Material.WOOD) with IFrame
 {
@@ -73,27 +73,27 @@ class ItemBlockFrame(block:Block) extends ItemBlock(block)
         val d = getHitDepth(vhit, side)
 
         def place(): EnumActionResult = {
-            if (TileMultipart.getOrConvertTile(world, pos) == null) //Only place multipart frames if a multipart tile already exists
+            if TileMultipart.getOrConvertTile(world, pos) == null then //Only place multipart frames if a multipart tile already exists
                 return EnumActionResult.FAIL
 
             val part = newPart(stack, player, world, pos, side, vhit)
-            if (part == null || !TileMultipart.canPlacePart(world, pos, part)) return EnumActionResult.FAIL
+            if part == null || !TileMultipart.canPlacePart(world, pos, part) then return EnumActionResult.FAIL
 
-            if (!world.isRemote) {
+            if !world.isRemote then {
                 TileMultipart.addPart(world, pos, part)
                 val sound = getPlacementSound(stack)
-                if (sound != null) {
+                if sound != null then {
                     world.playSound(null, bpos, sound.getPlaceSound,
                         SoundCategory.BLOCKS, (sound.getVolume + 1.0F) / 2.0F, sound.getPitch * 0.8F)
                 }
             }
-            if (!player.capabilities.isCreativeMode) stack.shrink(1)
+            if !player.capabilities.isCreativeMode then stack.shrink(1)
             EnumActionResult.SUCCESS
         }
 
-        if (d < 1 && place() == EnumActionResult.SUCCESS) return EnumActionResult.SUCCESS
+        if d < 1 && place() == EnumActionResult.SUCCESS then return EnumActionResult.SUCCESS
 
-        if (super.onItemUse(player, world, bpos, hand, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS)
+        if super.onItemUse(player, world, bpos, hand, facing, hitX, hitY, hitZ) == EnumActionResult.SUCCESS then
             return EnumActionResult.SUCCESS
 
         pos = pos.offset(facing)
@@ -111,20 +111,20 @@ class ItemBlockFrame(block:Block) extends ItemBlock(block)
 @SideOnly(Side.CLIENT)
 object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRenderer
 {
-    import FrameModelGen._
+    import FrameModelGen.*
 
     val renderType = BlockRenderingRegistry.createRenderType("projectred-relocation:frame")
 
-    private var icon:TextureAtlasSprite = _
-    private var iconT:IconTransformation = _
+    private var icon:TextureAtlasSprite = scala.compiletime.uninitialized
+    private var iconT:IconTransformation = scala.compiletime.uninitialized
 
-    def init()
+    def init(): Unit =
     {
         BlockRenderingRegistry.registerRenderer(renderType, this)
         ModelRegistryHelper.registerItemRenderer(Item.getItemFromBlock(ProjectRedRelocation.blockFrame), this)
     }
 
-    override def renderItem(stack:ItemStack, transformType:ItemCameraTransforms.TransformType)
+    override def renderItem(stack:ItemStack, transformType:ItemCameraTransforms.TransformType): Unit =
     {
         val ccrs = CCRenderState.instance()
         ccrs.reset()
@@ -152,7 +152,7 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
         true
     }
 
-    override def handleRenderBlockDamage(world:IBlockAccess, pos:BlockPos, state:IBlockState, sprite:TextureAtlasSprite, buffer:BufferBuilder)
+    override def handleRenderBlockDamage(world:IBlockAccess, pos:BlockPos, state:IBlockState, sprite:TextureAtlasSprite, buffer:BufferBuilder): Unit =
     {
         val ccrs = CCRenderState.instance()
         ccrs.reset()
@@ -161,18 +161,18 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
         getOrGenerateModel(0).render(ccrs, new Translation(pos), new IconTransformation(sprite))
     }
 
-    override def renderBrightness(state:IBlockState, brightness:Float){}
+    override def renderBrightness(state:IBlockState, brightness:Float): Unit ={}
 
-    override def registerTextures(map:TextureMap){}
+    override def registerTextures(map:TextureMap): Unit ={}
 
-    override def registerIcons(textureMap:TextureMap)
+    override def registerIcons(textureMap:TextureMap): Unit =
     {
         icon = textureMap.registerSprite(new ResourceLocation("projectred:blocks/mechanical/frame"))
 
         iconT = new IconTransformation(icon)
     }
 
-    def render(ccrs:CCRenderState, pos:Vector3, mask:Int)
+    def render(ccrs:CCRenderState, pos:Vector3, mask:Int): Unit =
     {
         getOrGenerateModel(mask).render(ccrs, pos.translation, iconT)
     }
@@ -189,7 +189,7 @@ object FrameModelGen
     def getOrGenerateModel(mask:Int) =
     {
         var m = models(mask&0x3F)
-        if (m == null) {
+        if m == null then {
             m = generateModel(mask)
             models(mask&0x3F) = m
         }
@@ -200,7 +200,7 @@ object FrameModelGen
     {
         var m = modelParts("frame").copy
 
-        for (s <- 0 until 6) if ((mask & 1 << s) == 0)
+        for s <- 0 until 6 do if (mask & 1 << s) == 0 then
             m = combine(Seq(m, modelParts("cross_" + s)).asJava)
 
         finishModel(m)

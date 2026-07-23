@@ -10,7 +10,7 @@ import codechicken.lib.math.MathHelper
 import codechicken.lib.render.pipeline.{ColourMultiplier, IVertexOperation}
 import codechicken.lib.render.{CCModel, CCRenderState}
 import codechicken.lib.texture.TextureUtils
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.lib.vec.uv.{IconTransformation, UVTransformation}
 import mrtjp.core.vec.Size
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
@@ -29,38 +29,38 @@ object ICComponentStore
         Seq(m, m.backfacedCopy)
     }
 
-    var pref:TextureAtlasSprite = _
-    var prefCorner:TextureAtlasSprite = _
-    var prefEdge:TextureAtlasSprite = _
+    var pref:TextureAtlasSprite = scala.compiletime.uninitialized
+    var prefCorner:TextureAtlasSprite = scala.compiletime.uninitialized
+    var prefEdge:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var torchOffIcon:TextureAtlasSprite = _
-    var torchOnIcon:TextureAtlasSprite = _
-    var leverOffIcon:TextureAtlasSprite = _
-    var leverOnIcon:TextureAtlasSprite = _
-    var buttonOffIcon:TextureAtlasSprite = _
-    var buttonOnIcon:TextureAtlasSprite = _
+    var torchOffIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var torchOnIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var leverOffIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var leverOnIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var buttonOffIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var buttonOnIcon:TextureAtlasSprite = scala.compiletime.uninitialized
 
     val redwireIcons = new Array[TextureAtlasSprite](16)
     val insulatedwireIcons = new Array[TextureAtlasSprite](16)
     val bundledwireIcons = new Array[TextureAtlasSprite](16)
-    var bundledColourIcon:TextureAtlasSprite = _
+    var bundledColourIcon:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var ioBorder:TextureAtlasSprite = _
-    var ioSig:TextureAtlasSprite = _
-    var tLeverOnIcon:TextureAtlasSprite = _
-    var tLeverOffIcon:TextureAtlasSprite = _
-    var redChipOnIcon:TextureAtlasSprite = _
-    var redChipOffIcon:TextureAtlasSprite = _
-    var yellowChipOnIcon:TextureAtlasSprite = _
-    var yellowChipOffIcon:TextureAtlasSprite = _
-    var pointerIcon:TextureAtlasSprite = _
+    var ioBorder:TextureAtlasSprite = scala.compiletime.uninitialized
+    var ioSig:TextureAtlasSprite = scala.compiletime.uninitialized
+    var tLeverOnIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var tLeverOffIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var redChipOnIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var redChipOffIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var yellowChipOnIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var yellowChipOffIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var pointerIcon:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var cellStandIcon:TextureAtlasSprite = _
-    var nullCellWireBottomIcon:TextureAtlasSprite = _
-    var nullCellWireTopIcon:TextureAtlasSprite = _
-    var invertCellWireBottomIcon:TextureAtlasSprite = _
+    var cellStandIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var nullCellWireBottomIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var nullCellWireTopIcon:TextureAtlasSprite = scala.compiletime.uninitialized
+    var invertCellWireBottomIcon:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    def registerIcons(reg:TextureMap)
+    def registerIcons(reg:TextureMap): Unit =
     {
         def register(path:String) = reg.registerSprite(new ResourceLocation("projectred:blocks/fabrication/"+path))
 
@@ -68,9 +68,9 @@ object ICComponentStore
         prefCorner = register("prefboard_corner")
         prefEdge = register("prefboard_edge")
 
-        for (i <- 0 until 16) redwireIcons(i) = register("alloywire/conn"+i)
-        for (i <- 0 until 16) insulatedwireIcons(i) = register("insulatedwire/conn"+i)
-        for (i <- 0 until 16) bundledwireIcons(i) = register("bundledcable/conn"+i)
+        for i <- 0 until 16 do redwireIcons(i) = register("alloywire/conn"+i)
+        for i <- 0 until 16 do insulatedwireIcons(i) = register("insulatedwire/conn"+i)
+        for i <- 0 until 16 do bundledwireIcons(i) = register("bundledcable/conn"+i)
         bundledColourIcon = register("bundledcable/col")
 
         torchOffIcon = register("torch_off")
@@ -82,8 +82,8 @@ object ICComponentStore
 
         RenderGateTile.registerIcons(reg)
 
-        for (m <- WireModel.wireModels) m.icon = register("surface/"+m.iconPath)
-        for (m <- BaseComponentModel.baseModels) m.icon = register("surface/"+m.iconPath+"/base")
+        for m <- WireModel.wireModels do m.icon = register("surface/"+m.iconPath)
+        for m <- BaseComponentModel.baseModels do m.icon = register("surface/"+m.iconPath+"/base")
 
         ioBorder = register("io_freq")
         ioSig = register("io_sig")
@@ -101,7 +101,7 @@ object ICComponentStore
         invertCellWireBottomIcon = register("bottom_invert_cell_wire")
     }
 
-    def prepairRender(ccrs:CCRenderState)
+    def prepairRender(ccrs:CCRenderState): Unit =
     {
         TextureUtils.bindBlockTexture()
         ccrs.reset()
@@ -109,7 +109,7 @@ object ICComponentStore
         ccrs.pullLightmap()
     }
 
-    def finishRender(ccrs:CCRenderState)
+    def finishRender(ccrs:CCRenderState): Unit =
     {
         ccrs.draw()
     }
@@ -117,7 +117,7 @@ object ICComponentStore
     def generateWireModels(name:String, count:Int) =
     {
         val xs = Seq.newBuilder[WireModel]
-        for (i <- 0 until count)
+        for i <- 0 until count do
             xs += new WireModel(name+"/"+name+"-"+i)
         xs.result()
     }
@@ -134,19 +134,19 @@ object ICComponentStore
         )
 
     def dynamicT(orient:Int) =
-        if (orient == 0) new RedundantTransformation
+        if orient == 0 then new RedundantTransformation
         else new Scale(-1, 0, 1).at(Vector3.center)
 
-    def dynamicIdx(orient:Int, ortho:Boolean) = orient^(if (ortho) 1 else 0)
+    def dynamicIdx(orient:Int, ortho:Boolean) = orient^(if ortho then 1 else 0)
 
     def signalColour(signal:Byte) = (signal&0xFF)/2+60<<24|0xFF
 }
 
-import mrtjp.projectred.fabrication.ICComponentStore._
+import mrtjp.projectred.fabrication.ICComponentStore.*
 
 abstract class ICComponentModel
 {
-    def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit 
 }
 
 abstract class SingleComponentModel(pos:Vector3 = Vector3.zero) extends ICComponentModel
@@ -155,7 +155,7 @@ abstract class SingleComponentModel(pos:Vector3 = Vector3.zero) extends ICCompon
 
     def getUVT:UVTransformation
 
-    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         models(dynamicIdx(orient, ortho)).render(ccrs, dynamicT(orient) `with` t, getUVT)
     }
@@ -165,7 +165,7 @@ abstract class CenteredSingleComponentModel extends ICComponentModel
 {
     def getUVT:UVTransformation
 
-    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         faceModels(dynamicIdx(orient, ortho)).render(ccrs, dynamicT(orient) `with` t, getUVT)
     }
@@ -177,7 +177,7 @@ abstract class OnOffModel(pos:Vector3 = Vector3.zero) extends SingleComponentMod
 
     def getIcons:Seq[TextureAtlasSprite]
 
-    override def getUVT = new IconTransformation(getIcons(if (on) 1 else 0))
+    override def getUVT = new IconTransformation(getIcons(if on then 1 else 0))
 }
 
 object BaseComponentModel
@@ -189,7 +189,7 @@ class BaseComponentModel(val iconPath:String) extends CenteredSingleComponentMod
 {
     BaseComponentModel.baseModels :+= this
 
-    var icon:TextureAtlasSprite = _
+    var icon:TextureAtlasSprite = scala.compiletime.uninitialized
     override def getUVT = new IconTransformation(icon)
 }
 
@@ -210,16 +210,16 @@ class WireModel(val iconPath:String) extends ICComponentModel
     var on = false
     var disabled = false
 
-    var icon:TextureAtlasSprite = _
+    var icon:TextureAtlasSprite = scala.compiletime.uninitialized
 
     var onColour = 187<<24|0xFF
     var offColour = 60<<24|0xFF
     var disabledColour = EnumColour.GRAY.rgba
 
-    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         faceModels(dynamicIdx(orient, ortho)).render(ccrs, dynamicT(orient) `with` t, new IconTransformation(icon),
-            ColourMultiplier.instance(if (disabled) disabledColour else if (on) onColour else offColour))
+            ColourMultiplier.instance(if disabled then disabledColour else if on then onColour else offColour))
     }
 }
 
@@ -228,12 +228,12 @@ class IOSigModel extends ICComponentModel
     var on = false
     var colour = 0
 
-    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         val m = faceModels(dynamicIdx(orient, ortho))
         val t0 = dynamicT(orient) `with` t
         m.render(ccrs, t0, new IconTransformation(ioBorder), ColourMultiplier.instance(colour))
-        m.render(ccrs, t0, new IconTransformation(ioSig), ColourMultiplier.instance(signalColour(if (on) 255.toByte else 0.toByte)))
+        m.render(ccrs, t0, new IconTransformation(ioSig), ColourMultiplier.instance(signalColour(if on then 255.toByte else 0.toByte)))
     }
 }
 
@@ -259,7 +259,7 @@ class PointerModel(x:Double, z:Double, scale:Double = 1) extends ICComponentMode
 
     var angle = 0.0
 
-    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         models(dynamicIdx(orient, ortho)).render(ccrs, new Rotation(-angle, 0, 1, 0) `with` pos.translation
                 `with` dynamicT(orient) `with` t, new IconTransformation(pointerIcon))
@@ -281,7 +281,7 @@ abstract class CellWireModel extends ICComponentModel
 
     def getUVT:UVTransformation
 
-    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    override def renderModel(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         faceModels(dynamicIdx(orient, ortho)).render(ccrs, dynamicT(orient)
                 `with` t, getUVT, colourMult)

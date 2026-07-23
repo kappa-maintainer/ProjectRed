@@ -11,7 +11,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.{ArrayWrapInventory, InvWrapper, TInventory, TInventoryCapablilityTile}
 import mrtjp.core.item.ItemKey
 import mrtjp.core.vec.{Point, Size}
@@ -19,7 +19,7 @@ import mrtjp.projectred.ProjectRedExpansion
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.entity.player.EntityPlayer
-import net.minecraft.inventory._
+import net.minecraft.inventory.*
 import net.minecraft.item.ItemStack
 import net.minecraft.item.crafting.{CraftingManager, IRecipe}
 import net.minecraft.nbt.NBTTagCompound
@@ -30,7 +30,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.input.Keyboard
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.language.postfixOps
 
 class TileProjectBench extends TileMachine with TInventory with ISidedInventory with TInventoryCapablilityTile with TGuiMachine
@@ -40,12 +40,12 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
 
     private var recipeNeedsUpdate = true
 
-    override def save(tag: NBTTagCompound) {
+    override def save(tag: NBTTagCompound): Unit = {
         super.save(tag)
         saveInv(tag)
     }
 
-    override def load(tag: NBTTagCompound) {
+    override def load(tag: NBTTagCompound): Unit = {
         super.load(tag)
         loadInv(tag)
     }
@@ -56,11 +56,11 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
         case _ => super.read(in, key)
     }
 
-    def sendWriteButtonAction() {
+    def sendWriteButtonAction(): Unit = {
         writeStream(1).sendToServer()
     }
 
-    def sendClearGridAction(id: Int) {
+    def sendClearGridAction(id: Int): Unit = {
         writeStream(2).writeInt(id).sendToServer()
     }
 
@@ -85,39 +85,39 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
 
     override def getSlotsForFace(side: EnumFacing) = 9 until 27 toArray
 
-    override def updateServer() {
+    override def updateServer(): Unit = {
         updateRecipeIfNeeded()
         transferExcessToStorage()
     }
 
-    override def updateClient() {
+    override def updateClient(): Unit = {
 //        updateRecipeIfNeeded()
     }
 
-    def updateRecipeIfNeeded() {
-        if (!recipeNeedsUpdate) return
+    def updateRecipeIfNeeded(): Unit = {
+        if !recipeNeedsUpdate then return
         recipeNeedsUpdate = false
         updateRecipe()
     }
 
-    def updateRecipe() {
+    def updateRecipe(): Unit = {
         isPlanRecipe = false
         craftHelper.clear()
 
-        if ((0 until 9).exists(!getStackInSlot(_).isEmpty)) {
+        if (0 until 9).exists(!getStackInSlot(_).isEmpty) then {
             craftHelper.loadInputs((0 until 9).map(getStackInSlot).toArray)
             craftHelper.findRecipeFromInputs(world)
-            if (craftHelper.recipe != null)
+            if craftHelper.recipe != null then
                 craftHelper.loadResultFromRecipe()
         }
         else {
             val plan = getStackInSlot(27)
-            if (!plan.isEmpty && ItemPlan.hasRecipeInside(plan)) {
+            if !plan.isEmpty && ItemPlan.hasRecipeInside(plan) then {
                 val inputs = ItemPlan.loadPlanInputs(plan)
 
                 craftHelper.loadInputs(inputs)
                 craftHelper.findRecipeFromInputs(world)
-                if (craftHelper.recipe != null) {
+                if craftHelper.recipe != null then {
                     isPlanRecipe = true
                     craftHelper.loadResultFromRecipe()
                 }
@@ -125,21 +125,21 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
         }
     }
 
-    def writePlan()
+    def writePlan(): Unit =
     {
         updateRecipeIfNeeded()
 
-        if (craftHelper.recipe != null && !isPlanRecipe) {
+        if craftHelper.recipe != null && !isPlanRecipe then {
             val out = craftHelper.recipe.getCraftingResult(craftHelper.invCrafting)
-            if (!out.isEmpty) {
+            if !out.isEmpty then {
                 val stack = getStackInSlot(27)
-                if (!stack.isEmpty)
+                if !stack.isEmpty then
                     ItemPlan.savePlan(stack, (0 until 9).map(getStackInSlot).toArray, out)
             }
         }
     }
 
-    def clearGrid(id: Int)
+    def clearGrid(id: Int): Unit =
     {
         world.getEntityByID(id) match {
             case p: EntityPlayer => p.openContainer match {
@@ -152,18 +152,18 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
         }
     }
 
-    def transferExcessToStorage()
+    def transferExcessToStorage(): Unit =
     {
         var w:InvWrapper = null
-        for (i <- 0 until 9) {
+        for i <- 0 until 9 do {
             val s = getStackInSlot(i)
-            if (!s.isEmpty && s.getCount > 1) {
-                if (w == null)
+            if !s.isEmpty && s.getCount > 1 then {
+                if w == null then
                     w = InvWrapper.wrapInternal(this, 9 until 27)
 
                 val toMove = math.max(1, s.getCount/8)
                 val ins = w.injectItem(ItemKey.get(s), toMove)
-                if (ins > 0) {
+                if ins > 0 then {
                     s.shrink(ins)
                     setInventorySlotContents(i, s)
                 }
@@ -171,17 +171,17 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
         }
     }
 
-    override def markDirty() {
+    override def markDirty(): Unit = {
         super.markDirty()
         recipeNeedsUpdate = true
     }
 
-    override def onBlockRemoval() {
+    override def onBlockRemoval(): Unit = {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
     }
 
-    override def openGui(player: EntityPlayer) {
+    override def openGui(player: EntityPlayer): Unit = {
         GuiProjectBench.open(player, createContainer(player), _.writePos(getPos))
     }
 
@@ -195,62 +195,62 @@ class CraftingResultTestHelper
     val invResult = new InventoryCraftResult
     private var storage:Array[ItemStack] = null
 
-    def clear()
+    def clear(): Unit =
     {
         recipe = null
-        for (i <- 0 until 9)
+        for i <- 0 until 9 do
             invCrafting.setInventorySlotContents(i, ItemStack.EMPTY)
         invResult.setInventorySlotContents(0, ItemStack.EMPTY)
         storage = null
     }
 
-    def setRecipe(r:IRecipe)
+    def setRecipe(r:IRecipe): Unit =
     {
         recipe = r
     }
 
-    def findRecipeFromInputs(w:World)
+    def findRecipeFromInputs(w:World): Unit =
     {
         val recipes = CraftingManager.REGISTRY.iterator
         recipe = recipes.asScala.find(_.matches(invCrafting, w)).orNull
     }
 
-    def loadResultFromRecipe()
+    def loadResultFromRecipe(): Unit =
     {
-        if (recipe != null)
+        if recipe != null then
             invResult.setInventorySlotContents(0, recipe.getCraftingResult(invCrafting))
     }
 
-    def loadInputs(inputs:Array[ItemStack])
+    def loadInputs(inputs:Array[ItemStack]): Unit =
     {
-        for (i <- 0 until 9)
+        for i <- 0 until 9 do
             invCrafting.setInventorySlotContents(i, inputs(i).copy)
     }
 
-    def loadStorage(storage:Array[ItemStack], copy:Boolean)
+    def loadStorage(storage:Array[ItemStack], copy:Boolean): Unit =
     {
         this.storage = new Array[ItemStack](storage.length)
-        for (i <- storage.indices) {
+        for i <- storage.indices do {
             val s = storage(i)
-            this.storage(i) = if (copy) s.copy else s
+            this.storage(i) = if copy then s.copy else s
         }
     }
 
     def consumeAndCraft(w:World):(ItemStack, NonNullList[ItemStack]) =
     {
-        if (!recipe.matches(invCrafting, w)) return (ItemStack.EMPTY, null)
+        if !recipe.matches(invCrafting, w) then return (ItemStack.EMPTY, null)
 
         val result = recipe.getCraftingResult(invCrafting)
-        if (result.isEmpty) return (ItemStack.EMPTY, null)
+        if result.isEmpty then return (ItemStack.EMPTY, null)
 
-        for (i <- 0 until 9) {
+        for i <- 0 until 9 do {
             val prevInput = invCrafting.getStackInSlot(i)
-            if (!prevInput.isEmpty && !eatIngredient(0, { input =>
+            if !prevInput.isEmpty && !eatIngredient(0, { input =>
                 invCrafting.setInventorySlotContents(i, input)
                 val resultSame = recipe.matches(invCrafting, w) && ItemStack.areItemStacksEqual(recipe.getCraftingResult(invCrafting), result)
                 invCrafting.setInventorySlotContents(i, prevInput)
                 resultSame
-            })) return (ItemStack.EMPTY, null)
+            }) then return (ItemStack.EMPTY, null)
         }
 
         (result, recipe.getRemainingItems(invCrafting))
@@ -262,15 +262,15 @@ class CraftingResultTestHelper
         def increment() = {
             i = (i + 1) % storage.length; i
         }
-        do {
+        while { {
             val stack2 = storage(i)
-            if (!stack2.isEmpty && matchFunc(stack2)) {
-                if (stack2.getCount >= 1) {
+            if !stack2.isEmpty && matchFunc(stack2) then {
+                if stack2.getCount >= 1 then {
                     stack2.shrink(1)
                     return true
                 }
             }
-        } while (increment() != startIdx)
+        } ; increment() != startIdx} do ()
         false
     }
 
@@ -278,23 +278,23 @@ class CraftingResultTestHelper
     {
         val (result, remaining) = consumeAndCraft(w)
 
-        if (result.isEmpty)
+        if result.isEmpty then
             return false
 
         val wr = InvWrapper.wrapInternal(new ArrayWrapInventory(storage, "", slotLimit))
 
-        for (stack <- Seq(result) ++ remaining.asScala.filter(!_.isEmpty)) {
+        for stack <- Seq(result) ++ remaining.asScala.filter(!_.isEmpty) do {
             val i = wr.injectItem(ItemKey.get(stack), stack.getCount)
-            if (i < stack.getCount)
+            if i < stack.getCount then
                 return false
         }
 
         true
     }
 
-    def unloadStorage(inv:IInventory, idxToSlot:Int => Int)
+    def unloadStorage(inv:IInventory, idxToSlot:Int => Int): Unit =
     {
-        for (i <- storage.indices)
+        for i <- storage.indices do
             inv.setInventorySlotContents(idxToSlot(i), storage(i))
     }
 }
@@ -303,7 +303,7 @@ class SlotProjectCrafting(player: EntityPlayer, tile: TileProjectBench, idx: Int
     extends SlotCrafting(player, tile.craftHelper.invCrafting, tile.craftHelper.invResult, idx, x, y) with TSlot3 {
 
     override def canTakeStack(player: EntityPlayer): Boolean = {
-        if (tile.isPlanRecipe) {
+        if tile.isPlanRecipe then {
             val storage = (9 until 27).map {tile.getStackInSlot}.toArray
 
             tile.craftHelper.loadStorage(storage, true)
@@ -328,13 +328,13 @@ class SlotProjectCrafting(player: EntityPlayer, tile: TileProjectBench, idx: Int
         FMLCommonHandler.instance().firePlayerCraftingEvent(player, stack, tile.craftHelper.invCrafting)
         onCrafting(stack)
 
-        for (i <- 0 until 9) {
+        for i <- 0 until 9 do {
             val istack = tile.getStackInSlot(i)
             val rstack = rem.get(i)
-            if (!rstack.isEmpty) {
-                if (!tile.isPlanRecipe && istack.isEmpty) {
+            if !rstack.isEmpty then {
+                if !tile.isPlanRecipe && istack.isEmpty then {
                     tile.setInventorySlotContents(i, rstack)
-                } else if (!addToStorageSlots(rstack) && !player.inventory.addItemStackToInventory(rstack))
+                } else if !addToStorageSlots(rstack) && !player.inventory.addItemStackToInventory(rstack) then
                     player.dropItem(rstack, false)
             }
         }
@@ -355,7 +355,7 @@ class SlotProjectCrafting(player: EntityPlayer, tile: TileProjectBench, idx: Int
 
     override def isItemValid(stack: ItemStack): Boolean = canPlaceDelegate(stack)
 
-    override def onSlotChanged() {
+    override def onSlotChanged(): Unit = {
         super.onSlotChanged()
         slotChangeDelegate()
         slotChangeDelegate2()
@@ -364,10 +364,10 @@ class SlotProjectCrafting(player: EntityPlayer, tile: TileProjectBench, idx: Int
 
 class ContainerProjectBench(player: EntityPlayer, tile: TileProjectBench) extends NodeContainer {
     {
-        for (((x, y), i) <- GuiLib.createSlotGrid(48, 18, 3, 3, 0, 0).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createSlotGrid(48, 18, 3, 3, 0, 0).zipWithIndex do
             addSlotToContainer(new Slot3(tile, i, x, y))
 
-        for (((x, y), i) <- GuiLib.createSlotGrid(8, 76, 9, 2, 0, 0).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createSlotGrid(8, 76, 9, 2, 0, 0).zipWithIndex do
             addSlotToContainer(new Slot3(tile, i + 9, x, y))
 
         val plan = new Slot3(tile, 27, 17, 36)
@@ -386,60 +386,60 @@ class ContainerProjectBench(player: EntityPlayer, tile: TileProjectBench) extend
 
 
 
-    def transferAllFromGrid() {
-        for (i <- 0 until 9) if (getSlot(i).getHasStack)
+    def transferAllFromGrid(): Unit = {
+        for i <- 0 until 9 do if getSlot(i).getHasStack then
             transferStackInSlot(player, i)
         detectAndSendChanges()
     }
 
     override def slotClick(id: Int, mouse: Int, shift: ClickType, player: EntityPlayer) = {
         var mode = shift
-        if (id == 28 && mode == ClickType.PICKUP_ALL) mode = ClickType.PICKUP
+        if id == 28 && mode == ClickType.PICKUP_ALL then mode = ClickType.PICKUP
         super.slotClick(id, mouse, mode, player)
     }
 
     override def transferStackInSlot(player:EntityPlayer, i:Int):ItemStack = {
-        if (i == 28 && !getSlot(28).canTakeStack(player))
+        if i == 28 && !getSlot(28).canTakeStack(player) then
             ItemStack.EMPTY
         else
             super.transferStackInSlot(player, i)
     }
 
     override def doMerge(stack: ItemStack, from: Int): Boolean = {
-        if (0 until 9 contains from) //crafting grid
+        if 0 until 9 contains from then //crafting grid
         {
-            if (tryMergeItemStack(stack, 9, 27, false)) return true //merge to storage
-            if (tryMergeItemStack(stack, 29, 65, false)) return true //merge to inventory)
+            if tryMergeItemStack(stack, 9, 27, false) then return true //merge to storage
+            if tryMergeItemStack(stack, 29, 65, false) then return true //merge to inventory)
         }
-        else if (9 until 27 contains from) //storage
+        else if 9 until 27 contains from then //storage
         {
-            if (stack.getItem.isInstanceOf[ItemPlan]) {
-                if (!getSlot(27).getStack.isEmpty && ItemKey.get(getSlot(27).getStack) != ItemKey.get(stack))
+            if stack.getItem.isInstanceOf[ItemPlan] then {
+                if !getSlot(27).getStack.isEmpty && ItemKey.get(getSlot(27).getStack) != ItemKey.get(stack) then
                     transferStackInSlot(player, 27) //transfer existing stack
 
-                if (tryMergeItemStack(stack, 27, 28, false)) return true //merge to plan
+                if tryMergeItemStack(stack, 27, 28, false) then return true //merge to plan
             }
-            if (tryMergeItemStack(stack, 29, 65, false)) return true //merge to inventory
+            if tryMergeItemStack(stack, 29, 65, false) then return true //merge to inventory
         }
-        else if (from == 27) //plan slot
+        else if from == 27 then //plan slot
         {
-            if (tryMergeItemStack(stack, 9, 27, true)) return true //merge to storage
-            if (tryMergeItemStack(stack, 29, 65, false)) return true //merge to inventory)
+            if tryMergeItemStack(stack, 9, 27, true) then return true //merge to storage
+            if tryMergeItemStack(stack, 29, 65, false) then return true //merge to inventory)
         }
-        else if (from == 28) //output slot
+        else if from == 28 then //output slot
         {
-            if (tryMergeItemStack(stack, 29, 65, true)) return true //merge to inventory
-            if (tryMergeItemStack(stack, 9, 27, true)) return true //merge to storage
+            if tryMergeItemStack(stack, 29, 65, true) then return true //merge to inventory
+            if tryMergeItemStack(stack, 9, 27, true) then return true //merge to storage
         }
-        else if (29 until 65 contains from) //player inventory
+        else if 29 until 65 contains from then //player inventory
         {
-            if (stack.getItem.isInstanceOf[ItemPlan]) {
-                if (!getSlot(27).getStack.isEmpty && ItemKey.get(getSlot(27).getStack) != ItemKey.get(stack))
+            if stack.getItem.isInstanceOf[ItemPlan] then {
+                if !getSlot(27).getStack.isEmpty && ItemKey.get(getSlot(27).getStack) != ItemKey.get(stack) then
                     transferStackInSlot(player, 27) //transfer existing stack
 
-                if (tryMergeItemStack(stack, 27, 28, false)) return true //merge to plan
+                if tryMergeItemStack(stack, 27, 28, false) then return true //merge to plan
             }
-            if (tryMergeItemStack(stack, 9, 27, false)) return true //merge to storage
+            if tryMergeItemStack(stack, 9, 27, false) then return true //merge to storage
         }
 
         false
@@ -449,7 +449,7 @@ class ContainerProjectBench(player: EntityPlayer, tile: TileProjectBench) extend
 class GuiProjectBench(tile: TileProjectBench, c: ContainerProjectBench) extends NodeGui(c, 176, 208) {
     {
         val write = new IconButtonNode {
-            override def drawButton(mouseover: Boolean) {
+            override def drawButton(mouseover: Boolean): Unit = {
                 TextureUtils.changeTexture(GuiProjectBench.background)
                 GuiDraw.drawTexturedModalRect(position.x, position.y, 176, 0, 14, 14)
             }
@@ -460,7 +460,7 @@ class GuiProjectBench(tile: TileProjectBench, c: ContainerProjectBench) extends 
         addChild(write)
 
         val clear = new IconButtonNode {
-            override def drawButton(mouseover: Boolean) {
+            override def drawButton(mouseover: Boolean): Unit = {
                 TextureUtils.changeTexture(GuiProjectBench.background)
                 GuiDraw.drawTexturedModalRect(position.x, position.y, 176, 15, 8, 8)
             }
@@ -471,21 +471,21 @@ class GuiProjectBench(tile: TileProjectBench, c: ContainerProjectBench) extends 
         addChild(clear)
     }
 
-    override def update_Impl()
+    override def update_Impl(): Unit =
     {
         tile.updateRecipeIfNeeded()
     }
 
-    override def drawBack_Impl(mouse: Point, rframe: Float) {
+    override def drawBack_Impl(mouse: Point, rframe: Float): Unit = {
         TextureUtils.changeTexture(GuiProjectBench.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
         val plan = tile.getStackInSlot(27)
-        if (tile.isPlanRecipe && !plan.isEmpty) {
+        if tile.isPlanRecipe && !plan.isEmpty then {
             val inputs = ItemPlan.loadPlanInputs(plan)
-            for (((x, y), i) <- GuiLib.createSlotGrid(48, 18, 3, 3, 0, 0).zipWithIndex) {
+            for ((x, y), i) <- GuiLib.createSlotGrid(48, 18, 3, 3, 0, 0).zipWithIndex do {
                 val stack = inputs(i)
-                if (!stack.isEmpty) {
+                if !stack.isEmpty then {
                     GuiDraw.drawRect(x, y, 16, 16, EnumColour.GRAY.argb)
                     ItemDisplayNode.renderItem(Point(x, y), Size(16, 16), zPosition, false, stack)
                 }
@@ -496,8 +496,8 @@ class GuiProjectBench(tile: TileProjectBench, c: ContainerProjectBench) extends 
         GuiDraw.drawString("Inventory", 8, 116, EnumColour.GRAY.argb, false)
     }
 
-    override def drawFront_Impl(mouse: Point, rframe: Float) {
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+    override def drawFront_Impl(mouse: Point, rframe: Float): Unit = {
+        if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then
             GuiProjectBench.drawPlanOutputOverlay(c.slots)
     }
 }
@@ -515,10 +515,10 @@ object GuiProjectBench extends TGuiFactory {
         }
     }
 
-    def drawPlanOutputOverlay(slots:Iterable[TSlot3]) {
-        for (slot <- slots) if (slot.getHasStack) {
+    def drawPlanOutputOverlay(slots:Iterable[TSlot3]): Unit = {
+        for slot <- slots do if slot.getHasStack then {
             val stack = slot.getStack
-            if (ItemPlan.hasRecipeInside(stack)) {
+            if ItemPlan.hasRecipeInside(stack) then {
                 val output = ItemPlan.loadPlanOutput(stack)
                 GuiDraw.drawRect(slot.xPos, slot.yPos, 16, 16, EnumColour.LIGHT_BLUE.argb(0xCC))
                 ItemDisplayNode.renderItem(Point(slot.xPos + 1, slot.yPos + 1), Size(14, 14), 0, true, output)
@@ -531,18 +531,18 @@ object RenderProjectBench extends SimpleBlockRenderer
 {
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom: TextureAtlasSprite = _
-    var top: TextureAtlasSprite = _
-    var side1: TextureAtlasSprite = _
-    var side2: TextureAtlasSprite = _
+    var bottom: TextureAtlasSprite = scala.compiletime.uninitialized
+    var top: TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1: TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2: TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT: UVTransformation = _
+    var iconT: UVTransformation = scala.compiletime.uninitialized
 
     override def getWorldTransforms(state: IExtendedBlockState) = Triple.of(0, 0, iconT)
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT)
     override def shouldCull() = true
 
-    override def registerIcons(map: TextureMap) {
+    override def registerIcons(map: TextureMap): Unit = {
         bottom = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/projectbench/bottom"))
         top = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/projectbench/top"))
         side1 = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/projectbench/side1"))

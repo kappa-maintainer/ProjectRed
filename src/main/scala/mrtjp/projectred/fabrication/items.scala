@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.fabrication
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.colour.EnumColour
 import codechicken.lib.gui.GuiDraw
@@ -16,9 +16,9 @@ import com.mojang.realmsclient.gui.ChatFormatting
 import mrtjp.core.item.ItemCore
 import mrtjp.core.vec.{Point, Size}
 import mrtjp.projectred.ProjectRedFabrication
-import mrtjp.projectred.fabrication.IIOGateTile._
+import mrtjp.projectred.fabrication.IIOGateTile.*
 import mrtjp.projectred.integration.GateDefinition
-import net.minecraft.client.renderer.GlStateManager._
+import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.creativetab.CreativeTabs
@@ -26,7 +26,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{Item, ItemMap, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.world.World
 import net.minecraft.world.storage.MapData
 import org.lwjgl.opengl.GL11
@@ -36,22 +36,22 @@ class ItemICBlueprint extends Item //hack to allow first-person map rendering of
     setMaxStackSize(1)
     setCreativeTab(ProjectRedFabrication.tabFabrication)
 
-    override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag): Unit =
     {
-        import ChatFormatting._
+        import ChatFormatting.*
 
-        if (ItemICBlueprint.hasICInside(stack)) {
+        if ItemICBlueprint.hasICInside(stack) then {
             val size = ItemICBlueprint.getICSize(stack)
             tooltip.add(GRAY.toString+ItemICBlueprint.getICName(stack))
             tooltip.add(GRAY.toString+s"${size.width} x ${size.height}")
 
             val (warnings, errors) = ItemICBlueprint.loadFlags(stack)
 
-            if (warnings != 0)
-                tooltip.add(s"$YELLOW$BOLD" + "!" + s"$RESET$GRAY contains $warnings " + (if (warnings > 1) "warnings" else "warning"))
+            if warnings != 0 then
+                tooltip.add(s"$YELLOW$BOLD" + "!" + s"$RESET$GRAY contains $warnings " + (if warnings > 1 then "warnings" else "warning"))
 
-            if (errors != 0)
-                tooltip.add(s"$RED$BOLD" + "X" + s"$RESET$GRAY contains $errors " + (if (errors > 1) "errors" else "error"))
+            if errors != 0 then
+                tooltip.add(s"$RED$BOLD" + "X" + s"$RESET$GRAY contains $errors " + (if errors > 1 then "errors" else "error"))
         }
         else tooltip.add(GRAY.toString+"empty blueprint")
     }
@@ -59,12 +59,12 @@ class ItemICBlueprint extends Item //hack to allow first-person map rendering of
 
 object ItemICBlueprint
 {
-    def assertStackTag(stack:ItemStack)
+    def assertStackTag(stack:ItemStack): Unit =
     {
-        if (!stack.hasTagCompound) stack.setTagCompound(new NBTTagCompound)
+        if !stack.hasTagCompound then stack.setTagCompound(new NBTTagCompound)
     }
 
-    def saveTileMap(tm:ICTileMapContainer, stack:ItemStack)
+    def saveTileMap(tm:ICTileMapContainer, stack:ItemStack): Unit =
     {
         assertStackTag(stack)
         val tag1 = stack.getTagCompound
@@ -76,7 +76,7 @@ object ItemICBlueprint
         tag1.setByte("ich", tm.size.height.toByte)
     }
 
-    def saveFlags(stack:ItemStack, logger:SEStatLogger)
+    def saveFlags(stack:ItemStack, logger:SEStatLogger): Unit =
     {
         assertStackTag(stack)
         val tag = stack.getTagCompound
@@ -85,10 +85,10 @@ object ItemICBlueprint
         tag.setByte("log_rtf", logger.getRuntimeFlags.size.toByte)
     }
 
-    def loadTileMap(tm:ICTileMapContainer, stack:ItemStack)
+    def loadTileMap(tm:ICTileMapContainer, stack:ItemStack): Unit =
     {
         val tag = stack.getTagCompound
-        if (tag.hasKey("tilemap"))
+        if tag.hasKey("tilemap") then
             tm.loadTiles(tag.getCompoundTag("tilemap"))
     }
 
@@ -121,7 +121,7 @@ object ItemICBlueprint
         stack.hasTagCompound && stack.getTagCompound.hasKey("tilemap")
     }
 
-    def copyIC(from:ItemStack, to:ItemStack)
+    def copyIC(from:ItemStack, to:ItemStack): Unit =
     {
         assertStackTag(to)
 
@@ -136,14 +136,14 @@ object ItemICBlueprint
         totag.setByte("log_rtf", fromtag.getByte("log_rtf"))
     }
 
-    def removeIC(stack:ItemStack)
+    def removeIC(stack:ItemStack): Unit =
     {
-        if (!stack.hasTagCompound) return
+        if !stack.hasTagCompound then return
         val tag = stack.getTagCompound
         Seq("tilemap", "icname", "icw", "ich", "log_warn", "log_err", "log_rtf").foreach(tag.removeTag)
     }
 
-    def saveICToGate(tm:ICTileMapContainer, gate:ItemStack)
+    def saveICToGate(tm:ICTileMapContainer, gate:ItemStack): Unit =
     {
         assertStackTag(gate)
 
@@ -151,21 +151,21 @@ object ItemICBlueprint
         var (ri, ro, bi, bo) = (0, 0, 0, 0)
         val connmodes = new Array[Int](4)
 
-        for (r <- 0 until 4) {
+        for r <- 0 until 4 do {
             val sparts = ioparts.filter(_.getIOSide == r)
 
             val ioMode =
             {
                 val in = sparts.exists(_.getIOMode == Input)
                 val out = sparts.exists(_.getIOMode == Output)
-                if (in && !out) Input
-                else if (out && !in) Output
+                if in && !out then Input
+                else if out && !in then Output
                 else Closed //IO conflict???
             }
 
-            val connMode = if (sparts.exists(_.getConnMode == Simple)) Simple
-            else if (sparts.exists(_.getConnMode == Analog)) Analog
-            else if (sparts.exists(_.getConnMode == Bundled)) Bundled
+            val connMode = if sparts.exists(_.getConnMode == Simple) then Simple
+            else if sparts.exists(_.getConnMode == Analog) then Analog
+            else if sparts.exists(_.getConnMode == Bundled) then Bundled
             else NoConn
 
             connmodes(r) = connMode
@@ -187,7 +187,7 @@ object ItemICBlueprint
         tag.setShort("cmode", ICGateLogic.packConnModes(connmodes).toShort)
     }
 
-    def copyToGate(bp:ItemStack, gate:ItemStack)
+    def copyToGate(bp:ItemStack, gate:ItemStack): Unit =
     {
         assertStackTag(gate)
         val ic = loadTileMap(bp)
@@ -207,9 +207,9 @@ object ItemRenderICBlueprint extends IMapRenderer
 
     override def shouldHandle(stack:ItemStack, inFrame:Boolean) = stack.getItem.isInstanceOf[ItemICBlueprint]
 
-    override def renderMap(stack:ItemStack, inFrame:Boolean)
+    override def renderMap(stack:ItemStack, inFrame:Boolean): Unit =
     {
-        import net.minecraft.client.renderer.GlStateManager._
+        import net.minecraft.client.renderer.GlStateManager.*
         pushMatrix()
         disableLighting()
         disableDepth()
@@ -217,16 +217,16 @@ object ItemRenderICBlueprint extends IMapRenderer
         val ccrs = CCRenderState.instance()
         ccrs.startDrawing(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX)
 
-        if (inFrame) {
+        if inFrame then {
             rotate(180.0F, 0.0F, 0.0F, 1.0F)
             scale(0.0078125F, 0.0078125F, 0.0078125F)
             translate(-64.0F, -64.0F, 0.0F)
             translate(0.0F, 0.0F, -1.0F)
 
             overlayBlueprintBackground(ccrs, 0)
-            if (ItemICBlueprint.hasICInside(stack)) {
+            if ItemICBlueprint.hasICInside(stack) then {
                 val tm = ItemICBlueprint.loadTileMap(stack)
-                if (tm.nonEmpty) {
+                if tm.nonEmpty then {
                     overlayTiles(ccrs, tm)
                     overlayName(ccrs, tm.name, 0, 122)
                 }
@@ -240,9 +240,9 @@ object ItemRenderICBlueprint extends IMapRenderer
             scale(0.0078125F, 0.0078125F, 0.0078125F)
 
             overlayBlueprintBackground(ccrs, 7)
-            if (ItemICBlueprint.hasICInside(stack)) {
+            if ItemICBlueprint.hasICInside(stack) then {
                 val tm = ItemICBlueprint.loadTileMap(stack)
-                if (tm.nonEmpty) {
+                if tm.nonEmpty then {
                     overlayTiles(ccrs, tm)
                     overlayName(ccrs, tm.name, 0, 128)
                 }
@@ -254,7 +254,7 @@ object ItemRenderICBlueprint extends IMapRenderer
         popMatrix()
     }
 
-    private def overlayBlueprintBackground(ccrs:CCRenderState, expand:Double)
+    private def overlayBlueprintBackground(ccrs:CCRenderState, expand:Double): Unit =
     {
         TextureUtils.changeTexture(background)
         val buffer = ccrs.getBuffer
@@ -267,7 +267,7 @@ object ItemRenderICBlueprint extends IMapRenderer
         ccrs.draw()
     }
 
-    private def overlayTiles(ccrs:CCRenderState, tm:ICTileMapContainer)
+    private def overlayTiles(ccrs:CCRenderState, tm:ICTileMapContainer): Unit =
     {
         val sf = 128/scala.math.max(tm.size.width, tm.size.height)
         val rs = tm.size*sf
@@ -275,7 +275,7 @@ object ItemRenderICBlueprint extends IMapRenderer
         RenderICTileMap.renderOrtho(ccrs, tm, rp.x, rp.y, rs.width, rs.height, 0)
     }
 
-    private def overlayName(ccrs:CCRenderState, name:String, x:Double, y:Double)
+    private def overlayName(ccrs:CCRenderState, name:String, x:Double, y:Double): Unit =
     {
         pushMatrix()
         translate(x, y, 0)
@@ -294,10 +294,10 @@ class ItemICChip extends ItemCore
     setHasSubtypes(true)
     setCreativeTab(ProjectRedFabrication.tabFabrication)
 
-    override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag): Unit =
     {
         ItemICChip.addInfo(stack, tooltip)
-        if (stack.getItemDamage == 1) {
+        if stack.getItemDamage == 1 then {
             tooltip.add("Creative-mode only chip.")
             tooltip.add("Instant and free prints.")
             tooltip.add("Rightclick to add IC Gate to inventory.")
@@ -307,20 +307,20 @@ class ItemICChip extends ItemCore
     override def onItemRightClick(world:World, player:EntityPlayer, hand:EnumHand):ActionResult[ItemStack] =
     {
         val stack = player.getHeldItem(hand)
-        if (stack.getItemDamage == 1 && ItemICBlueprint.hasICInside(stack)) //creative chip
+        if stack.getItemDamage == 1 && ItemICBlueprint.hasICInside(stack) then //creative chip
         {
             val gate = GateDefinition.ICGate.makeStack
             ItemICBlueprint.copyToGate(stack, gate)
-            if (!player.inventory.addItemStackToInventory(gate))
+            if !player.inventory.addItemStackToInventory(gate) then
                 player.entityDropItem(gate, player.getEyeHeight)
             return new ActionResult(EnumActionResult.SUCCESS, stack)
         }
         super.onItemRightClick(world, player, hand)
     }
 
-    override def getSubItems(tab:CreativeTabs, subItems:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, subItems:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab)) {
+        if isInCreativeTab(tab) then {
             subItems.add(new ItemStack(this, 1, 0))
             subItems.add(new ItemStack(this, 1, 1))
         }
@@ -329,9 +329,9 @@ class ItemICChip extends ItemCore
 
 object ItemICChip
 {
-    def addInfo(stack:ItemStack, list:JList[String])
+    def addInfo(stack:ItemStack, list:JList[String]): Unit =
     {
-        if (ItemICBlueprint.hasICInside(stack))
+        if ItemICBlueprint.hasICInside(stack) then
             list.add(ChatFormatting.GRAY.toString+ItemICBlueprint.getICName(stack))
     }
 }

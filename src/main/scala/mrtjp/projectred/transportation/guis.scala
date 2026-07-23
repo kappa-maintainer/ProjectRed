@@ -6,7 +6,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.texture.TextureUtils
 import codechicken.multipart.BlockMultipart
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.item.{ItemKey, ItemKeyStack}
 import mrtjp.core.vec.{Point, Rect, Size, Vec2}
 import net.minecraft.entity.player.EntityPlayer
@@ -17,25 +17,25 @@ import org.lwjgl.input.Keyboard
 
 class GuiInterfacePipe(container:Container, pipe:RoutedInterfacePipePart) extends NodeGui(container, 176, 200)
 {
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiInterfacePipe.backgroundImage)
         drawTexturedModalRect(0, 0, 0, 0, xSize, ySize)
         GuiLib.drawPlayerInvBackground(8, 118)
     }
 
-    override def drawFront_Impl(mouse:Point, frame:Float)
+    override def drawFront_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiInterfacePipe.backgroundImage)
         val oldZ = zLevel
         zLevel = 300
 
-        for (i <- 0 until 4)
+        for i <- 0 until 4 do
         {
             val x = 19
             val y = 10+i*26
             val u = 178
-            val v = if (inventorySlots.getSlot(i).getStack.isEmpty) 107 else 85
+            val v = if inventorySlots.getSlot(i).getStack.isEmpty then 107 else 85
             drawTexturedModalRect(x, y, u, v, 25, 20)
         }
         zLevel = oldZ
@@ -96,7 +96,7 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         list.displayNodeFactory = {stack =>
             val d = new ItemDisplayNode
             d.zPosition = -0.01
-            d.backgroundColour = if (stack.key == selectedItem)
+            d.backgroundColour = if stack.key == selectedItem then
                 EnumColour.LIME.argb(0x44) else 0
             d.clickDelegate = {() =>
                 selectedItem = stack.key
@@ -117,10 +117,10 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         {
             override def mouseScrolled_Impl(p:Point, dir:Int, consumed:Boolean) =
             {
-                if (!consumed && rayTest(p))
+                if !consumed && rayTest(p) then
                 {
-                    if (dir > 0) countUp()
-                    else if (dir < 0) countDown()
+                    if dir > 0 then countUp()
+                    else if dir < 0 then countDown()
                     true
                 }
                 else false
@@ -132,8 +132,8 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         textCount.phantom = "1"
         textCount.allowedcharacters = "0123456789"
         textCount.focusChangeDelegate = {() =>
-            if (!textCount.focused)
-                if (textCount.text.isEmpty || Integer.parseInt(textCount.text) < 1)
+            if !textCount.focused then
+                if textCount.text.isEmpty || Integer.parseInt(textCount.text) < 1 then
                     textCount.text = "1"
         }
         addChild(textCount)
@@ -183,60 +183,60 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         all.position = Point(176, 158)
         all.size = Size(24, 16)
         all.text = "All"
-        all.clickDelegate = {() => if (selectedItem != null) textCount.text = String.valueOf(Math.max(1, itemMap(selectedItem)))}
+        all.clickDelegate = {() => if selectedItem != null then textCount.text = String.valueOf(Math.max(1, itemMap(selectedItem)))}
         addChild(all)
     }
 
-    def refreshList()
+    def refreshList(): Unit =
     {
         list.items = itemMap.map(p => ItemKeyStack.get(p._1, p._2)).toSeq.filter(filterAllows).sorted
         list.reset()
 
-        if (!list.items.exists(_.key == selectedItem))
+        if !list.items.exists(_.key == selectedItem) then
             selectedItem = null
 
         def filterAllows(stack:ItemKeyStack):Boolean =
         {
             def stringMatch(name:String, filter:String):Boolean =
             {
-                for (s <- filter.split(" ")) if (!name.contains(s)) return false
+                for s <- filter.split(" ") do if !name.contains(s) then return false
                 true
             }
 
-            if (stringMatch(stack.key.getName.toLowerCase, textFilter.text)) true
+            if stringMatch(stack.key.getName.toLowerCase, textFilter.text) then true
             else false
         }
     }
 
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiRequester.backgroundImage)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
     }
 
-    override def drawFront_Impl(mouse:Point, frame:Float)
+    override def drawFront_Impl(mouse:Point, frame:Float): Unit =
     {
         GuiDraw.drawString("Pull", 218, 144, EnumColour.GRAY.rgb, false)
         GuiDraw.drawString("Craft", 218, 159, EnumColour.GRAY.rgb, false)
         GuiDraw.drawString("Partial", 218, 174, EnumColour.GRAY.rgb, false)
     }
 
-    override def onAddedToParent_Impl()
+    override def onAddedToParent_Impl(): Unit =
     {
         askForListRefresh()
         list.cullFrame = convertRectToScreen(Rect(Point(18, 18), Size(220, 117)))
     }
 
-    private def sendItemRequest()
+    private def sendItemRequest(): Unit =
     {
         val count = textCount.text
-        if (count.isEmpty) return
+        if count.isEmpty then return
 
         val amount = Integer.parseInt(count)
-        if (amount <= 0) return
+        if amount <= 0 then return
 
         val request = selectedItem
-        if (request != null)
+        if request != null then
         {
             val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.gui_Request_submit)
             packet.writePos(pipe.getPipe.pos)
@@ -248,7 +248,7 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         }
     }
 
-    private def askForListRefresh()
+    private def askForListRefresh(): Unit =
     {
         val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.gui_Request_listRefresh)
         packet.writePos(pipe.getPipe.pos)
@@ -257,32 +257,32 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
         packet.sendToServer()
     }
 
-    private def countUp()
+    private def countUp(): Unit =
     {
         var current = 0
         val s = textCount.text
-        if (s != null && !s.isEmpty) current = Integer.parseInt(s)
+        if s != null && !s.isEmpty then current = Integer.parseInt(s)
 
         val newCount =
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) current+10
+            if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then current+10
             else current+1
 
-        if (newCount < 999999999) textCount.text = ""+newCount
+        if newCount < 999999999 then textCount.text = ""+newCount
     }
 
-    private def countDown()
+    private def countDown(): Unit =
     {
         val s = textCount.text
-        val current = if (s.nonEmpty) Integer.parseInt(s) else 1
+        val current = if s.nonEmpty then Integer.parseInt(s) else 1
 
         val newCount =
-            (if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) current-10
+            (if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then current-10
             else current-1) max 1
 
         textCount.text = ""+newCount
     }
 
-    def receiveContentList(content:Map[ItemKey, Int])
+    def receiveContentList(content:Map[ItemKey, Int]): Unit =
     {
         itemMap = content
         refreshList()
@@ -290,10 +290,10 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
 
     override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
     {
-        if (!consumed && keycode == Keyboard.KEY_RETURN)
+        if !consumed && keycode == Keyboard.KEY_RETURN then
         {
             textFilter.setFocused(true)
-            if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT))
+            if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) then
                 textFilter.setText("")
             true
         }
@@ -302,10 +302,10 @@ class GuiRequester(pipe:IRouterContainer) extends NodeGui(256, 192)
 
     override def mouseScrolled_Impl(p:Point, dir:Int, consumed:Boolean) =
     {
-        if (!consumed && clip.frame.contains(convertPointFromScreen(p)))
+        if !consumed && clip.frame.contains(convertPointFromScreen(p)) then
         {
-            if (dir > 0) pan.panChildren(Vec2.down*3)
-            else if (dir < 0) pan.panChildren(Vec2.up*3)
+            if dir > 0 then pan.panChildren(Vec2.down*3)
+            else if dir < 0 then pan.panChildren(Vec2.up*3)
             true
         }
         else false
@@ -322,27 +322,27 @@ class GuiFirewallPipe(pipe:RoutedFirewallPipe, c:Container) extends NodeGui(c, 1
     {
         val excl = new IconButtonNode
         {
-            override def drawButton(mouseover:Boolean)
+            override def drawButton(mouseover:Boolean): Unit =
             {
                 TextureUtils.changeTexture(GuiLib.guiExtras)
-                GuiDraw.drawTexturedModalRect(position.x, position.y, if (pipe.filtExclude) 1 else 17, 102, 14, 14)
+                GuiDraw.drawTexturedModalRect(position.x, position.y, if pipe.filtExclude then 1 else 17, 102, 14, 14)
             }
         }
         excl.position = Point(113, 45)
         excl.size = Size(14, 14)
         excl.tooltipBuilder = {_ += ("Items are "+
-                (if (pipe.filtExclude) "blacklisted" else "whitelisted"))}
+                (if pipe.filtExclude then "blacklisted" else "whitelisted"))}
         excl.clickDelegate = {() => sendMessage(0)}
         addChild(excl)
 
-        def makeButton(x:Int, y:Int, f: => Boolean, desc:String, id:Int)
+        def makeButton(x:Int, y:Int, f: => Boolean, desc:String, id:Int): Unit =
         {
             val b = new IconButtonNode
             {
-                override def drawButton(mouseover:Boolean)
+                override def drawButton(mouseover:Boolean): Unit =
                 {
                     TextureUtils.changeTexture(GuiLib.guiExtras)
-                    GuiDraw.drawTexturedModalRect(x, y, if (f) 33 else 49, 134, 14, 14)
+                    GuiDraw.drawTexturedModalRect(x, y, if f then 33 else 49, 134, 14, 14)
                 }
             }
             b.position = Point(x, y)
@@ -357,13 +357,13 @@ class GuiFirewallPipe(pipe:RoutedFirewallPipe, c:Container) extends NodeGui(c, 1
         makeButton(150, 62, pipe.allowCrafting, "Crafting", 3)
     }
 
-    def sendMessage(id:Int)
+    def sendMessage(id:Int): Unit =
     {
         new PacketCustom(TransportationCPH.channel, TransportationCPH.gui_FirewallPipe_action)
             .writePos(pipe.pos).writeByte(id).sendToServer()
     }
 
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiFirewallPipe.backgroundImage)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
@@ -388,7 +388,7 @@ object GuiFirewallPipe extends TGuiFactory
                 pipe.allowCrafting = data.readBoolean()
                 new GuiFirewallPipe(pipe, pipe.createContainer(player))
             case _ =>
-                for (i <- 0 until 4) data.readBoolean()
+                for i <- 0 until 4 do data.readBoolean()
                 null
         }
     }

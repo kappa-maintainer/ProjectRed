@@ -13,7 +13,7 @@ object PRLib
 {
     def dropTowardsPlayer(w:World, pos:BlockPos, stack:ItemStack, p:EntityPlayer): Unit =
     {
-        if (!w.isRemote && w.getGameRules.getBoolean("doTileDrops"))
+        if !w.isRemote && w.getGameRules.getBoolean("doTileDrops") then
         {
             val bpos = Vector3.fromVec3i(pos)
             val d = new Vector3(p.posX, p.posY, p.posZ).subtract(bpos).normalize()
@@ -33,17 +33,17 @@ object PRLib
     def canPlaceWireOnSide(w:World, pos:BlockPos, side:Int):Boolean =
     {
         val state = w.getBlockState(pos)
-        if (wireWhitelist.contains(state.getBlock)) return true
+        if wireWhitelist.contains(state.getBlock) then return true
         state.isSideSolid(w, pos, EnumFacing.values()(side))
     }
 
     private val gateWhiteList = Seq(Blocks.GLASS)
     def canPlaceGateOnSide(w:World, pos:BlockPos, side:Int):Boolean =
     {
-        if (canPlaceWireOnSide(w, pos, side)) return true
+        if canPlaceWireOnSide(w, pos, side) then return true
 
         val state = w.getBlockState(pos)
-        if (gateWhiteList.contains(state.getBlock)) return true
+        if gateWhiteList.contains(state.getBlock) then return true
 
         false
     }
@@ -51,8 +51,8 @@ object PRLib
 
     def canPlaceLight(w:World, pos:BlockPos, side:Int):Boolean =
     {
-        if (canPlaceWireOnSide(w, pos, side)) return true
-        if (side == 1) {
+        if canPlaceWireOnSide(w, pos, side) then return true
+        if side == 1 then {
             val state = w.getBlockState(pos)
             return state.getBlock.canPlaceTorchOnTop(state, w, pos)
         }

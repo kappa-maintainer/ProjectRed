@@ -11,46 +11,46 @@ import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.world.Messenger
 import mrtjp.projectred.ProjectRedCore
 import mrtjp.projectred.api.{IConnectable, IScrewdriver}
-import mrtjp.projectred.core.IWirePart._
-import mrtjp.projectred.core._
+import mrtjp.projectred.core.IWirePart.*
+import mrtjp.projectred.core.*
 import net.minecraft.block.SoundType
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.util.text.TextComponentString
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCenterRSPropagation with IRedwirePart with IMaskedRedstonePart
 {
     var signal:Byte = 0
     var hasRedstone = false
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setBoolean("mat", hasRedstone)
         tag.setByte("signal", signal)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         hasRedstone = tag.getBoolean("mat")
         signal = tag.getByte("signal")
     }
 
-    abstract override def writeDesc(packet:MCDataOutput)
+    abstract override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeBoolean(hasRedstone)
         packet.writeByte(signal)
     }
 
-    abstract override def readDesc(packet:MCDataInput)
+    abstract override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         hasRedstone = packet.readBoolean()
@@ -68,29 +68,29 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
         case _ => super.read(packet, key)
     }
 
-    def sendMatUpdate()
+    def sendMatUpdate(): Unit =
     {
-        if (!world.isRemote)
+        if !world.isRemote then
         {
-            if (updateInward()) onMaskChanged()
+            if updateInward() then onMaskChanged()
             WirePropagator.propagateTo(this, FORCE)
         }
         getWriteStreamOf(2).writeBoolean(hasRedstone)
     }
 
-    override def onSignalUpdate()
+    override def onSignalUpdate(): Unit =
     {
         tile.markDirty()
         getWriteStreamOf(3).writeByte(signal)
     }
 
-    override def onPartChanged(part:TMultiPart)
+    override def onPartChanged(part:TMultiPart): Unit =
     {
-        if (!world.isRemote)
+        if !world.isRemote then
         {
             WirePropagator.logCalculation()
 
-            if (updateOutward())
+            if updateOutward() then
             {
                 onMaskChanged()
                 WirePropagator.propagateTo(this, FORCE)
@@ -99,12 +99,12 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
         }
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
-        if (!world.isRemote)
+        if !world.isRemote then
         {
             WirePropagator.logCalculation()
-            if (updateExternalConns())
+            if updateExternalConns() then
             {
                 onMaskChanged()
                 WirePropagator.propagateTo(this, FORCE)
@@ -113,17 +113,17 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
         }
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         super.onAdded()
-        if (!world.isRemote)
+        if !world.isRemote then
         {
-            if (updateInward()) onMaskChanged()
+            if updateInward() then onMaskChanged()
             WirePropagator.propagateTo(this, RISING)
         }
     }
 
-    override def getDrops = if (hasRedstone)
+    override def getDrops = if hasRedstone then
         (super.getDrops.asScala ++ Iterable.single(getMaterialStack)).asJava else super.getDrops
 
     def getMaterialStack =
@@ -135,7 +135,7 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
 
     override def weakPowerLevel(side:Int) =
     {
-        if (!maskConnects(side) || !hasRedstone) 0
+        if !maskConnects(side) || !hasRedstone then 0
         else rsLevel
     }
 
@@ -145,14 +145,14 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
 
     abstract override def canConnectPart(part:IConnectable, s:Int) = part match
     {
-        case rw:IRedwirePart with IMaskedRedstonePart
+        case rw:(IRedwirePart & IMaskedRedstonePart)
             if hasRedstone && (rw.getConnectionMask(s^1)&0x10) != 0 => true
         case _ => super.canConnectPart(part, s)
     }
 
     override def discoverStraightOverride(absDir:Int) =
     {
-        if (hasRedstone)
+        if hasRedstone then
         {
             WirePropagator.setRedwiresConnectable(false)
             val b = (RedstoneInteractions.otherConnectionMask(world, pos, absDir, false)&
@@ -165,30 +165,30 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
 
     def rsLevel =
     {
-        if (WirePropagator.redwiresProvidePower) ((signal&0xFF)+16)/17
+        if WirePropagator.redwiresProvidePower then ((signal&0xFF)+16)/17
         else 0
     }
 
     override def getRedwireSignal(side:Int) = getSignal
 
     override def getSignal = signal&0xFF
-    override def setSignal(sig:Int){ signal = sig.toByte }
+    override def setSignal(sig:Int): Unit ={ signal = sig.toByte }
 
-    override def propagateOther(mode:Int)
+    override def propagateOther(mode:Int): Unit =
     {
-        for (s <- 0 until 6) if (!maskConnects(s))
+        for s <- 0 until 6 do if !maskConnects(s) then
             WirePropagator.addNeighborChange(posOfStraight(s))
     }
 
     override def calculateSignal:Int =
     {
-        if (!hasRedstone) return 0
+        if !hasRedstone then return 0
         WirePropagator.setDustProvidePower(false)
         WirePropagator.redwiresProvidePower = false
         var s = 0
-        def raise(sig:Int) {if (sig > s) s = sig}
+        def raise(sig:Int): Unit = {if sig > s then s = sig}
 
-        for (s <- 0 until 6) if (maskConnectsOut(s))
+        for s <- 0 until 6 do if maskConnectsOut(s) then
             raise(calcStraightSignal(s))
 
         WirePropagator.setDustProvidePower(true)
@@ -211,21 +211,21 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
 
     abstract override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (super.activate(player, hit, item, hand)) return true
+        if super.activate(player, hit, item, hand) then return true
 
         //if (CommandDebug.WIRE_READING) debug(player) else
-        if (!item.isEmpty && item.getItem == ProjectRedCore.itemMultimeter)
+        if !item.isEmpty && item.getItem == ProjectRedCore.itemMultimeter then
         {
             item.damageItem(1, player)
             test(player)
             return true
         }
 
-        if (item.isEmpty && player.isSneaking && hasRedstone)
+        if item.isEmpty && player.isSneaking && hasRedstone then
         {
-            if (!world.isRemote)
+            if !world.isRemote then
             {
-                if (hasRedstone && !player.capabilities.isCreativeMode)
+                if hasRedstone && !player.capabilities.isCreativeMode then
                     PRLib.dropTowardsPlayer(world, pos, getMaterialStack, player)
                 hasRedstone = false
                 sendMatUpdate()
@@ -233,17 +233,17 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
             return true
         }
 
-        if (!item.isEmpty && !hasRedstone && item.getItem == MicroblockProxy.itemMicro && item.getItemDamage == 769)
+        if !item.isEmpty && !hasRedstone && item.getItem == MicroblockProxy.itemMicro && item.getItemDamage == 769 then
         {
             ItemMicroPart.getMaterial(item) match
             {
                 case bm:BlockMicroMaterial if bm.state.getBlock == Blocks.REDSTONE_BLOCK =>
-                    if (!world.isRemote)
+                    if !world.isRemote then
                     {
                         hasRedstone = true
                         world.playSound(null, pos, SoundType.GLASS.getPlaceSound, SoundCategory.BLOCKS, SoundType.GLASS.getVolume, SoundType.GLASS.getPitch)
                         sendMatUpdate()
-                        if (!player.capabilities.isCreativeMode) item.shrink(1)
+                        if !player.capabilities.isCreativeMode then item.shrink(1)
                     }
                     return true
                 case _ =>
@@ -256,13 +256,13 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
     def debug(player:EntityPlayer) =
     {
         player.sendMessage(new TextComponentString(
-            (if (world.isRemote) "Client" else "Server")+" signal strength: "+getSignal))
+            (if world.isRemote then "Client" else "Server")+" signal strength: "+getSignal))
         true
     }
 
     def test(player:EntityPlayer) =
     {
-        if (world.isRemote) Messenger.addMessage(pos.getX, pos.getY+.5f, pos.getZ, "/#f/#c[c] = "+getSignal)
+        if world.isRemote then Messenger.addMessage(pos.getX, pos.getY+.5f, pos.getZ, "/#f/#c[c] = "+getSignal)
         else
         {
             val packet = Messenger.createPacket
@@ -276,10 +276,10 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
     }
 
     @SideOnly(Side.CLIENT)
-    override def doStaticTessellation(pos:Vector3, ccrs:CCRenderState)
+    override def doStaticTessellation(pos:Vector3, ccrs:CCRenderState): Unit =
     {
         super.doStaticTessellation(pos, ccrs)
-        if (hasRedstone) RenderPipe.renderRSWiring(this, pos, signal, ccrs)
+        if hasRedstone then RenderPipe.renderRSWiring(this, pos, signal, ccrs)
     }
 }
 
@@ -287,25 +287,25 @@ trait TColourFilterPipe extends SubcorePipePart
 {
     var colour:Byte = -1
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("colour", colour)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
-        colour = if (tag.hasKey("colour")) tag.getByte("colour") else -1
+        colour = if tag.hasKey("colour") then tag.getByte("colour") else -1
     }
 
-    abstract override def writeDesc(packet:MCDataOutput)
+    abstract override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(colour)
     }
 
-    abstract override def readDesc(packet:MCDataInput)
+    abstract override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         colour = packet.readByte()
@@ -319,32 +319,32 @@ trait TColourFilterPipe extends SubcorePipePart
         case _ => super.read(packet, key)
     }
 
-    def sendColourUpdate()
+    def sendColourUpdate(): Unit =
     {
         getWriteStreamOf(12).writeByte(colour)
     }
 
     abstract override def getDrops =
-        if (colour > -1) (super.getDrops.asScala ++ Iterable.single(getColourStack)).asJava
+        if colour > -1 then (super.getDrops.asScala ++ Iterable.single(getColourStack)).asJava
         else super.getDrops
 
     def getColourStack =
-        if (colour == -1) ItemStack.EMPTY
+        if colour == -1 then ItemStack.EMPTY
         else ItemMicroPart.create(769, BlockMicroMaterial.materialKey(Blocks.WOOL.getStateFromMeta(colour)))
 
     abstract override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (super.activate(player, hit, item, hand)) return true
+        if super.activate(player, hit, item, hand) then return true
 
-        def dropMaterial()
+        def dropMaterial(): Unit =
         {
-            if (colour > -1 && !player.capabilities.isCreativeMode)
+            if colour > -1 && !player.capabilities.isCreativeMode then
                 PRLib.dropTowardsPlayer(world, pos, getColourStack, player)
         }
 
-        if (item.isEmpty && player.isSneaking && colour > -1)
+        if item.isEmpty && player.isSneaking && colour > -1 then
         {
-            if (!world.isRemote)
+            if !world.isRemote then
             {
                 dropMaterial()
                 colour = -1
@@ -353,17 +353,17 @@ trait TColourFilterPipe extends SubcorePipePart
             return true
         }
 
-        if (!item.isEmpty && item.getItem == MicroblockProxy.itemMicro && item.getItemDamage == 769)
+        if !item.isEmpty && item.getItem == MicroblockProxy.itemMicro && item.getItemDamage == 769 then
         {
             ItemMicroPart.getMaterial(item) match
             {
                 case bm:BlockMicroMaterial if bm.state.getBlock == Blocks.WOOL && bm.state.getBlock.getMetaFromState(bm.state) != colour =>
-                    if (!world.isRemote) {
+                    if !world.isRemote then {
                         dropMaterial()
                         colour = bm.state.getBlock.getMetaFromState(bm.state).toByte
                         world.playSound(null, pos, bm.getSound.getPlaceSound, SoundCategory.BLOCKS, bm.getSound.getVolume, bm.getSound.getPitch)
                         sendColourUpdate()
-                        if (!player.capabilities.isCreativeMode) item.shrink(1)
+                        if !player.capabilities.isCreativeMode then item.shrink(1)
                     }
                     return true
                 case _ =>
@@ -374,10 +374,10 @@ trait TColourFilterPipe extends SubcorePipePart
     }
 
     @SideOnly(Side.CLIENT)
-    override def doStaticTessellation(pos:Vector3, ccrs:CCRenderState)
+    override def doStaticTessellation(pos:Vector3, ccrs:CCRenderState): Unit =
     {
         super.doStaticTessellation(pos, ccrs)
-        if (colour > -1) RenderPipe.renderColourWool(this, pos, colour, ccrs)
+        if colour > -1 then RenderPipe.renderColourWool(this, pos, colour, ccrs)
     }
 }
 
@@ -400,48 +400,48 @@ trait TInventoryPipe[T <: AbstractPipePayload] extends PayloadPipePart[T] with I
         case _ => super.read(packet, key)
     }
 
-    def sendOrientUpdate()
+    def sendOrientUpdate(): Unit =
     {
         getWriteStreamOf(6).writeByte(inOutSide)
     }
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("io", inOutSide)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         inOutSide = tag.getByte("io")
     }
 
-    abstract override def writeDesc(packet:MCDataOutput)
+    abstract override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(inOutSide)
     }
 
-    abstract override def readDesc(packet:MCDataInput)
+    abstract override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         inOutSide = packet.readByte
     }
 
-    abstract override def onNeighborChanged()
+    abstract override def onNeighborChanged(): Unit =
     {
         super.onNeighborChanged()
         shiftOrientation(false)
     }
 
-    abstract override def onPartChanged(p:TMultiPart)
+    abstract override def onPartChanged(p:TMultiPart): Unit =
     {
         super.onPartChanged(p)
         shiftOrientation(false)
     }
 
-    abstract override def onAdded()
+    abstract override def onAdded(): Unit =
     {
         super.onAdded()
         shiftOrientation(false)
@@ -455,22 +455,22 @@ trait TInventoryPipe[T <: AbstractPipePayload] extends PayloadPipePart[T] with I
         }
     }
 
-    def shiftOrientation(force:Boolean)
+    def shiftOrientation(force:Boolean): Unit =
     {
-        if (world.isRemote) return
+        if world.isRemote then return
         val invalid = force || inOutSide == 6 || !maskConnects(inOutSide) || getInventory == null
-        if (!invalid) return
+        if !invalid then return
         var found = false
         val oldSide = inOutSide
 
-        import scala.util.control.Breaks._
+        import scala.util.control.Breaks.*
         breakable {
-            if (inOutSide > 5) inOutSide = 5 //if invalid, start at side 0
+            if inOutSide > 5 then inOutSide = 5 //if invalid, start at side 0
 
-            for (i <- 0 until 6) {
+            for i <- 0 until 6 do {
                 inOutSide = ((inOutSide+1)%6).toByte
-                if (maskConnects(inOutSide)) {
-                    if (getInventory != null) {
+                if maskConnects(inOutSide) then {
+                    if getInventory != null then {
                         found = true
                         break()
                     }
@@ -478,13 +478,13 @@ trait TInventoryPipe[T <: AbstractPipePayload] extends PayloadPipePart[T] with I
             }
         }
 
-        if (!found) inOutSide = 6
-        if (oldSide != inOutSide) sendOrientUpdate()
+        if !found then inOutSide = 6
+        if oldSide != inOutSide then sendOrientUpdate()
     }
 
     override def getInventory(extractSide:Int) =
     {
-        if ((0 until 6 contains inOutSide) && (0 until 6 contains extractSide))
+        if (0 until 6 contains inOutSide) && (0 until 6 contains extractSide) then
             InvWrapper.wrap(world, posOfStraight(inOutSide), EnumFacing.VALUES(extractSide))
         else null
     }
@@ -494,15 +494,15 @@ trait TInventoryPipe[T <: AbstractPipePayload] extends PayloadPipePart[T] with I
         getInventory(getInterfacedSide)
     }
 
-    override def getInterfacedSide = if (!(0 to 5 contains inOutSide)) -1 else inOutSide^1
+    override def getInterfacedSide = if !(0 to 5 contains inOutSide) then -1 else inOutSide^1
 
     abstract override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (super.activate(player, hit, item, hand)) return true
+        if super.activate(player, hit, item, hand) then return true
 
-        if (!item.isEmpty && item.getItem.isInstanceOf[IScrewdriver] && item.getItem.asInstanceOf[IScrewdriver].canUse(player, item))
+        if !item.isEmpty && item.getItem.isInstanceOf[IScrewdriver] && item.getItem.asInstanceOf[IScrewdriver].canUse(player, item) then
         {
-            if (!world.isRemote)
+            if !world.isRemote then
             {
                 shiftOrientation(true)
                 item.getItem.asInstanceOf[IScrewdriver].damageScrewdriver(player, item)

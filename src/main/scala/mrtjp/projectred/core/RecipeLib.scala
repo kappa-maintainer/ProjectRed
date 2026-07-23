@@ -1,12 +1,12 @@
 package mrtjp.projectred.core
 
-import codechicken.microblock._
+import codechicken.microblock.*
 import mrtjp.core.item.ItemKeyStack
 import net.minecraft.block.Block
 import net.minecraft.item
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
-import net.minecraftforge.oredict.OreDictionary._
+import net.minecraftforge.oredict.OreDictionary.*
 
 trait TRecipeObject
 {
@@ -43,7 +43,7 @@ class ItemIn(val key:ItemKeyStack) extends RecipeInput
 
 class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
 {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     def this(id:Int) = this(Seq(id))
     def this(name:String) = this(getOreID(name))
     def this(stack:ItemStack) = this(getOreIDs(stack))

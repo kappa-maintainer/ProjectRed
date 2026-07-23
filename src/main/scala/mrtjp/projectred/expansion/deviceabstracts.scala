@@ -10,7 +10,7 @@ import codechicken.multipart.BlockMultipart
 import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.world.WorldLib
 import mrtjp.projectred.core.PRLib
-import mrtjp.projectred.transportation._
+import mrtjp.projectred.transportation.*
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
@@ -25,30 +25,30 @@ class ItemStorage
 
     def isEmpty = storage.isEmpty
 
-    def add(item:PressurePayload){ storage.prepend(item) }
+    def add(item:PressurePayload): Unit ={ storage.prepend(item) }
 
-    def add(item:ItemStack)
+    def add(item:ItemStack): Unit =
     {
         val p = new PressurePayload(AbstractPipePayload.claimID())
         p.setItemStack(item)
         add(p)
     }
 
-    def addBacklog(item:PressurePayload){ storage.append(item); backlogged = true }
+    def addBacklog(item:PressurePayload): Unit ={ storage.append(item); backlogged = true }
 
     def poll() =
     {
         val item = storage.remove(storage.size-1)
-        if (storage.size == 0) backlogged = false
+        if storage.size == 0 then backlogged = false
         item
     }
 
     def peek = storage(storage.size-1)
 
-    def save(tag:NBTTagCompound)
+    def save(tag:NBTTagCompound): Unit =
     {
         val nbttaglist = new NBTTagList
-        for (r <- storage)
+        for r <- storage do
         {
             val payloadData = new NBTTagCompound
             nbttaglist.appendTag(payloadData)
@@ -57,17 +57,17 @@ class ItemStorage
         tag.setTag("itemFlow", nbttaglist)
     }
 
-    def load(tag:NBTTagCompound)
+    def load(tag:NBTTagCompound): Unit =
     {
         val nbttaglist = tag.getTagList("itemFlow", 0)
-        for (j <- 0 until nbttaglist.tagCount)
+        for j <- 0 until nbttaglist.tagCount do
         {
             try
             {
                 val payloadData = nbttaglist.getCompoundTagAt(j)
                 val r = new PressurePayload(AbstractPipePayload.claimID())
                 r.load(payloadData)
-                if (!r.isCorrupted) add(r)
+                if !r.isCorrupted then add(r)
             }
             catch {case t:Throwable =>}
         }
@@ -80,7 +80,7 @@ trait TActiveDevice extends TileMachine
     var powered = false
     var active = false
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setBoolean("pow", powered)
@@ -88,7 +88,7 @@ trait TActiveDevice extends TileMachine
         itemStorage.save(tag)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         powered = tag.getBoolean("pow")
@@ -96,13 +96,13 @@ trait TActiveDevice extends TileMachine
         itemStorage.load(tag)
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(powered).writeBoolean(active)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         powered = in.readBoolean()
@@ -118,7 +118,7 @@ trait TActiveDevice extends TileMachine
         case _ => super.read(in, key)
     }
 
-    def sendStateUpdate()
+    def sendStateUpdate(): Unit =
     {
         writeStream(4).writeBoolean(powered).writeBoolean(active).sendToChunk(this)
     }
@@ -126,16 +126,16 @@ trait TActiveDevice extends TileMachine
     def shouldAcceptBacklog = true
     def shouldAcceptInput = !powered && itemStorage.isEmpty
 
-    override def onScheduledTick()
+    override def onScheduledTick(): Unit =
     {
-        if (!getWorld.isRemote)
+        if !getWorld.isRemote then
         {
-            if (!itemStorage.isEmpty)
+            if !itemStorage.isEmpty then
             {
                 exportBuffer()
-                scheduleTick(if (itemStorage.isEmpty) 4 else 16)
+                scheduleTick(if itemStorage.isEmpty then 4 else 16)
             }
-            else if (!powered)
+            else if !powered then
             {
                 active = false
                 onDeactivate()
@@ -144,38 +144,38 @@ trait TActiveDevice extends TileMachine
         }
     }
 
-    override def onNeighborBlockChange()
+    override def onNeighborBlockChange(): Unit =
     {
-        if (getWorld.isBlockPowered(getPos))
+        if getWorld.isBlockPowered(getPos) then
         {
-            if (powered) return
+            if powered then return
             powered = true
             markDirty()
-            if (active) return
+            if active then return
             active = true
             onActivate()
             sendStateUpdate()
         }
         else
         {
-            if (active && !isTickScheduled) scheduleTick(4)
+            if active && !isTickScheduled then scheduleTick(4)
             powered = false
             markDirty()
         }
     }
 
-    def onActivate()
-    def onDeactivate(){}
+    def onActivate(): Unit 
+    def onDeactivate(): Unit ={}
 
-    def exportBuffer()
+    def exportBuffer(): Unit =
     {
-        while (!itemStorage.isEmpty)
+        while !itemStorage.isEmpty do
         {
             val r = itemStorage.peek
-            if (exportPipe(r) || exportInv(r) || exportEject(r)) itemStorage.poll()
+            if exportPipe(r) || exportInv(r) || exportEject(r) then itemStorage.poll()
             else itemStorage.backlogged = true
 
-            if (itemStorage.backlogged) return
+            if itemStorage.backlogged then return
         }
     }
 
@@ -193,7 +193,7 @@ trait TActiveDevice extends TileMachine
     def exportInv(r:PressurePayload) =
     {
         val w = InvWrapper.wrap(getWorld, getPos.offset(EnumFacing.VALUES(side)), EnumFacing.VALUES(side^1))
-        if (w != null)
+        if w != null then
         {
             r.payload.stackSize -= w.injectItem(r.payload.key, r.payload.stackSize)
             r.payload.stackSize <= 0
@@ -204,17 +204,17 @@ trait TActiveDevice extends TileMachine
     def exportEject(r:PressurePayload):Boolean =
     {
         val pos = getPos.offset(EnumFacing.VALUES(side))
-        if (getWorld.isBlockLoaded(pos) &&
-                !getWorld.isAirBlock(pos)) return false
+        if getWorld.isBlockLoaded(pos) &&
+                !getWorld.isAirBlock(pos) then return false
 
         WorldLib.centerEject(getWorld, getPos, r.payload.makeStack, side, 0.25D)
         true
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
-        while(!itemStorage.isEmpty)
+        while !itemStorage.isEmpty do
             WorldLib.dropItem(getWorld, getPos, itemStorage.poll().payload.makeStack)
     }
 }
@@ -223,9 +223,9 @@ trait TPressureActiveDevice extends TActiveDevice with TPressureDevice
 {
     override def acceptItem(item:PressurePayload, side:Int):Boolean =
     {
-        if (!canConnectSide(side)) return false
+        if !canConnectSide(side) then return false
 
-        if (canAcceptInput(item.payload.key, side) && shouldAcceptInput)
+        if canAcceptInput(item.payload.key, side) && shouldAcceptInput then
         {
             itemStorage.add(item)
             active = true
@@ -234,7 +234,7 @@ trait TPressureActiveDevice extends TActiveDevice with TPressureDevice
             exportBuffer()
             true
         }
-        else if (canAcceptBacklog(item.payload.key, side) && shouldAcceptBacklog)
+        else if canAcceptBacklog(item.payload.key, side) && shouldAcceptBacklog then
         {
             itemStorage.addBacklog(item)
             active = true

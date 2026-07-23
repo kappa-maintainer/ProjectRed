@@ -1,7 +1,7 @@
 package mrtjp.projectred.core
 
 import codechicken.multipart.{IFaceRedstonePart, IRedstonePart, RedstoneInteractions, TMultiPart}
-import mrtjp.projectred.core.IWirePart._
+import mrtjp.projectred.core.IWirePart.*
 import net.minecraft.block.BlockRedstoneWire
 import net.minecraft.init.Blocks
 import net.minecraft.util.EnumFacing
@@ -31,7 +31,7 @@ trait TFaceRSAcquisitions extends TRSAcquisitionsCommons with TFaceAcquisitions 
     def calcWeakSignal(r:Int) =
     {
         val pos = posOfStraight(r)
-        if (world.isBlockNormalCube(pos, false))
+        if world.isBlockNormalCube(pos, false) then
             world.getRedstonePowerFromNeighbors(pos)*17
         else 0
     }
@@ -39,9 +39,9 @@ trait TFaceRSAcquisitions extends TRSAcquisitionsCommons with TFaceAcquisitions 
     def calcMaxSignal(r:Int, strong:Boolean, dustLimit:Boolean):Int =
     {
         var i = calcDustRedwireSignal(r)
-        if (i > -1 && dustLimit) return i
+        if i > -1 && dustLimit then return i
         i = calcStrongSignal(r)
-        if (i > 0 || strong) return i
+        if i > 0 || strong then return i
         calcWeakSignal(r)
     }
 
@@ -55,7 +55,7 @@ trait TFaceRSAcquisitions extends TRSAcquisitionsCommons with TFaceAcquisitions 
     {
         val pos = posOfStraight(r)
         val b = world.getBlockState(pos)
-        if (b.getBlock == Blocks.REDSTONE_WIRE)
+        if b.getBlock == Blocks.REDSTONE_WIRE then
             Math.max(b.getValue(BlockRedstoneWire.POWER)-1, 0)
         else -1
     }
@@ -74,7 +74,7 @@ trait TCenterRSAcquisitions extends TRSAcquisitionsCommons with TCenterAcquisiti
     def calcWeakSignal(s:Int) =
     {
         val pos = this.pos.offset(EnumFacing.byIndex(s))
-        if (world.isBlockNormalCube(pos, false))
+        if world.isBlockNormalCube(pos, false) then
             world.getRedstonePowerFromNeighbors(pos)*17
         else 0
     }
@@ -84,22 +84,22 @@ trait TPropagationCommons extends TMultiPart with IWirePart
 {
     var propagationMask:Int = 0
 
-    def propagate(prev:TMultiPart, mode:Int)
+    def propagate(prev:TMultiPart, mode:Int): Unit 
 
-    def propagateOther(mode:Int){}
+    def propagateOther(mode:Int): Unit ={}
 
-    def propagateExternal(to:TMultiPart, at:BlockPos, from:TMultiPart, mode:Int)
+    def propagateExternal(to:TMultiPart, at:BlockPos, from:TMultiPart, mode:Int): Unit =
     {
-        if (to != null) {
-            if (to == from) return
-            if (propagateTo(to, mode)) return
+        if to != null then {
+            if to == from then return
+            if propagateTo(to, mode) then return
         }
         WirePropagator.addNeighborChange(at)
     }
 
-    def propagateInternal(to:TMultiPart, from:TMultiPart, mode:Int)
+    def propagateInternal(to:TMultiPart, from:TMultiPart, mode:Int): Unit =
     {
-        if (to == from) return
+        if to == from then return
         propagateTo(to, mode)
     }
 
@@ -116,16 +116,16 @@ trait TFacePropagation extends TPropagationCommons with TFaceConnectable
 {
     propagationMask = 0xF
 
-    override def propagate(prev:TMultiPart, mode:Int)
+    override def propagate(prev:TMultiPart, mode:Int): Unit =
     {
-        if (mode != FORCED) WirePropagator.addPartChange(this)
-        for (r <- 0 until 4) if ((propagationMask&1<<r) != 0) {
-            if (maskConnectsInside(r)) propagateInternal(getInternal(r), prev, mode)
-            else if (maskConnectsStraight(r)) propagateExternal(getStraight(r), posOfStraight(r), prev, mode)
-            else if (maskConnectsCorner(r)) propagateExternal(getCorner(r), posOfCorner(r), prev, mode)
+        if mode != FORCED then WirePropagator.addPartChange(this)
+        for r <- 0 until 4 do if (propagationMask&1<<r) != 0 then {
+            if maskConnectsInside(r) then propagateInternal(getInternal(r), prev, mode)
+            else if maskConnectsStraight(r) then propagateExternal(getStraight(r), posOfStraight(r), prev, mode)
+            else if maskConnectsCorner(r) then propagateExternal(getCorner(r), posOfCorner(r), prev, mode)
         }
 
-        if (maskConnectsCenter) propagateInternal(getCenter, prev, mode)
+        if maskConnectsCenter then propagateInternal(getCenter, prev, mode)
         propagateOther(mode)
     }
 }
@@ -134,12 +134,12 @@ trait TCenterPropagation extends TPropagationCommons with TCenterConnectable
 {
     propagationMask = 0x3F
 
-    override def propagate(prev:TMultiPart, mode:Int)
+    override def propagate(prev:TMultiPart, mode:Int): Unit =
     {
-        if (mode != FORCED) WirePropagator.addPartChange(this)
-        for (s <- 0 until 6) if ((propagationMask&1<<s) != 0) {
-            if (maskConnectsIn(s)) propagateInternal(getInternal(s), prev, mode)
-            else if (maskConnectsOut(s)) propagateExternal(getStraight(s), posOfStraight(s), prev, mode)
+        if mode != FORCED then WirePropagator.addPartChange(this)
+        for s <- 0 until 6 do if (propagationMask&1<<s) != 0 then {
+            if maskConnectsIn(s) then propagateInternal(getInternal(s), prev, mode)
+            else if maskConnectsOut(s) then propagateExternal(getStraight(s), posOfStraight(s), prev, mode)
         }
         propagateOther(mode)
     }
@@ -150,26 +150,26 @@ trait TRSPropagationCommons extends TPropagationCommons
     def calculateSignal:Int
 
     def getSignal:Int
-    def setSignal(signal:Int)
+    def setSignal(signal:Int): Unit 
 
-    override def updateAndPropagate(prev:TMultiPart, mode:Int)
+    override def updateAndPropagate(prev:TMultiPart, mode:Int): Unit =
     {
-        if (mode == DROPPING && getSignal == 0) return
+        if mode == DROPPING && getSignal == 0 then return
         val newSignal = calculateSignal
-        if (newSignal < getSignal)
+        if newSignal < getSignal then
         {
-            if (newSignal > 0) WirePropagator.propagateAnalogDrop(this)
+            if newSignal > 0 then WirePropagator.propagateAnalogDrop(this)
             setSignal(0)
             propagate(prev, DROPPING)
         }
-        else if (newSignal > getSignal)
+        else if newSignal > getSignal then
         {
             setSignal(newSignal)
-            if (mode == DROPPING) propagate(null, RISING)
+            if mode == DROPPING then propagate(null, RISING)
             else propagate(prev, RISING)
         }
-        else if (mode == DROPPING) propagateTo(prev, RISING)
-        else if (mode == FORCE) propagate(prev, FORCED)
+        else if mode == DROPPING then propagateTo(prev, RISING)
+        else if mode == FORCE then propagate(prev, FORCED)
     }
 }
 

@@ -52,23 +52,23 @@ abstract class ICTile extends ISETile
     var tileMap:ICTileMapContainer = null
     var pos:Point = null
 
-    def bindEditor(ic:ICTileMapEditor)
+    def bindEditor(ic:ICTileMapEditor): Unit =
     {
         editor = ic
         bindTileMap(ic.tileMapContainer)
     }
 
-    def bindTileMap(tm:ICTileMapContainer)
+    def bindTileMap(tm:ICTileMapContainer): Unit =
     {
         tileMap = tm
     }
 
-    def bindPos(p:Point)
+    def bindPos(p:Point): Unit =
     {
         pos = p
     }
 
-    def unbind()
+    def unbind(): Unit =
     {
         editor = null
         tileMap = null
@@ -79,57 +79,57 @@ abstract class ICTile extends ISETile
 
     def getPartType:ICTileDefs.ICTileDef
 
-    def save(tag:NBTTagCompound){}
-    def load(tag:NBTTagCompound){}
+    def save(tag:NBTTagCompound): Unit ={}
+    def load(tag:NBTTagCompound): Unit ={}
 
-    def writeDesc(out:MCDataOutput){}
-    def readDesc(in:MCDataInput){}
+    def writeDesc(out:MCDataOutput): Unit ={}
+    def readDesc(in:MCDataInput): Unit ={}
 
     def writeStreamOf(key:Int):MCDataOutput = editor.network.getTileStream(pos).writeByte(key)
-    def read(in:MCDataInput) { read(in, in.readUByte()) }
+    def read(in:MCDataInput): Unit = { read(in, in.readUByte()) }
     def read(in:MCDataInput, key:Int) = key match {
         case 0 => readDesc(in)
         case _ =>
     }
 
-    def sendDescUpdate() { writeDesc(writeStreamOf(0)) }
+    def sendDescUpdate(): Unit = { writeDesc(writeStreamOf(0)) }
 
-    def update(){}
-    def scheduledTick(){}
-    def scheduleTick(ticks:Int){ editor.scheduleTick(pos, ticks) }
+    def update(): Unit ={}
+    def scheduledTick(): Unit ={}
+    def scheduleTick(ticks:Int): Unit ={ editor.scheduleTick(pos, ticks) }
 
-    def onAdded(){}
-    def onRemoved(){}
+    def onAdded(): Unit ={}
+    def onRemoved(): Unit ={}
 
-    def onNeighborChanged(){}
+    def onNeighborChanged(): Unit ={}
 
-    def onRegistersChanged(regIDs:Set[Int])//alerts part if any register in the circuit has changed.
+    def onRegistersChanged(regIDs:Set[Int]): Unit //alerts part if any register in the circuit has changed.
 
     @SideOnly(Side.CLIENT)
-    def onClicked(){}
+    def onClicked(): Unit ={}
     @SideOnly(Side.CLIENT)
-    def onActivated(){}
+    def onActivated(): Unit ={}
 
     @SideOnly(Side.CLIENT)
     def getPartName:String
     @SideOnly(Side.CLIENT)
     def getPickOp:TileEditorOp = null
     @SideOnly(Side.CLIENT)
-    def buildRolloverData(buffer:ListBuffer[String])
+    def buildRolloverData(buffer:ListBuffer[String]): Unit =
     {
         buffer += getPartName
     }
 
     @SideOnly(Side.CLIENT)
-    def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float){}
+    def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit ={}
 }
 
 trait TClientNetICTile extends ICTile
 {
-    def readClientPacket(in:MCDataInput)
+    def readClientPacket(in:MCDataInput): Unit 
 
     @SideOnly(Side.CLIENT)
-    def sendClientPacket(writer:MCDataOutput => Unit = {_ => })
+    def sendClientPacket(writer:MCDataOutput => Unit = {_ => }): Unit =
     {
         editor.sendClientPacket(this, writer)
     }

@@ -1,6 +1,6 @@
 package mrtjp.projectred.fabrication
 
-import mrtjp.projectred.ProjectRedFabrication._
+import mrtjp.projectred.ProjectRedFabrication.*
 import mrtjp.projectred.core.PartDefs
 import mrtjp.projectred.integration.GateDefinition
 import net.minecraft.inventory.InventoryCrafting
@@ -15,7 +15,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry
 object FabricationRecipes
 {
     @SubscribeEvent
-    def registerRecipes(event: RegistryEvent.Register[IRecipe])
+    def registerRecipes(event: RegistryEvent.Register[IRecipe]): Unit =
     {
         event.getRegistry.register(new ICBlueprintResetRecipe().setRegistryName("ic_blueprint_reset"))
         event.getRegistry.register(new ICBlueprintCopyRecipe().setRegistryName("ic_blueprint_copy"))
@@ -30,14 +30,14 @@ class ICBlueprintResetRecipe extends TBaseRecipe {
     override def getCraftingResult(inv:InventoryCrafting):ItemStack =
     {
         var bp:ItemStack = ItemStack.EMPTY
-        for (i <- 0 until inv.getSizeInventory) {
+        for i <- 0 until inv.getSizeInventory do {
             val s = inv.getStackInSlot(i)
-            if (!s.isEmpty)
-                if (!bp.isEmpty) return ItemStack.EMPTY
+            if !s.isEmpty then
+                if !bp.isEmpty then return ItemStack.EMPTY
                 else bp = s
         }
 
-        if (!bp.isEmpty && bp.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(bp))
+        if !bp.isEmpty && bp.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(bp) then
             new ItemStack(itemICBlueprint)
         else ItemStack.EMPTY
     }
@@ -50,18 +50,18 @@ class ICBlueprintCopyRecipe extends TBaseRecipe {
     {
         var bp:ItemStack = ItemStack.EMPTY
         var emptyCount = 0
-        for (i <- 0 until inv.getSizeInventory) {
+        for i <- 0 until inv.getSizeInventory do {
             val s = inv.getStackInSlot(i)
-            if (!s.isEmpty) {
-                if (s.getItem != itemICBlueprint) return ItemStack.EMPTY
-                if (ItemICBlueprint.hasICInside(s))
-                    if (!bp.isEmpty) return ItemStack.EMPTY
+            if !s.isEmpty then {
+                if s.getItem != itemICBlueprint then return ItemStack.EMPTY
+                if ItemICBlueprint.hasICInside(s) then
+                    if !bp.isEmpty then return ItemStack.EMPTY
                     else bp = s
                 else
                     emptyCount += 1
             }
         }
-        if (!bp.isEmpty && emptyCount == 1) {
+        if !bp.isEmpty && emptyCount == 1 then {
             val out = new ItemStack(itemICBlueprint)
             out.setCount(emptyCount)
             ItemICBlueprint.copyIC(bp, out)
@@ -72,10 +72,10 @@ class ICBlueprintCopyRecipe extends TBaseRecipe {
 
     override def getRemainingItems(inv:InventoryCrafting):NonNullList[ItemStack] = {
         val remaining = NonNullList.withSize(inv.getSizeInventory, ItemStack.EMPTY)
-        for (i <- 0 until inv.getSizeInventory) {
+        for i <- 0 until inv.getSizeInventory do {
             val s = inv.getStackInSlot(i)
-            if (!s.isEmpty) {
-                if (s.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(s)) {
+            if !s.isEmpty then {
+                if s.getItem == itemICBlueprint && ItemICBlueprint.hasICInside(s) then {
                     remaining.set(i, s.copy())
                     return remaining
                 }
@@ -90,13 +90,13 @@ class ICGateRecipe extends TBaseRecipe {
     override def getRecipeSize = 9
     override def getCraftingResult(inv:InventoryCrafting):ItemStack =
     {
-        for (i <- 0 until 9) {
+        for i <- 0 until 9 do {
             val stack = inv.getStackInSlot(i)
-            if (stack.isEmpty) return ItemStack.EMPTY
+            if stack.isEmpty then return ItemStack.EMPTY
             i match {
-                case 4 => if (stack.getItem != itemICChip ||
-                    !ItemICBlueprint.hasICInside(stack)) return ItemStack.EMPTY
-                case _ => if (!stack.isItemEqual(PartDefs.PLATE.makeStack)) return ItemStack.EMPTY
+                case 4 => if stack.getItem != itemICChip ||
+                    !ItemICBlueprint.hasICInside(stack) then return ItemStack.EMPTY
+                case _ => if !stack.isItemEqual(PartDefs.PLATE.makeStack) then return ItemStack.EMPTY
             }
         }
         val out = GateDefinition.ICGate.makeStack

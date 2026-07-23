@@ -2,23 +2,23 @@ package mrtjp.projectred.fabrication
 
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import mrtjp.core.vec.Point
-import mrtjp.projectred.fabrication.SEIntegratedCircuit._
+import mrtjp.projectred.fabrication.SEIntegratedCircuit.*
 import net.minecraft.nbt.NBTTagCompound
 
-import scala.collection.mutable.{ListBuffer, Map => MMap}
+import scala.collection.mutable.{ListBuffer, Map as MMap}
 
 trait IICSimEngineContainerDelegate
 {
-    def registersDidChange(registers:Set[Int])
+    def registersDidChange(registers:Set[Int]): Unit 
 
-    def ioRegistersDidChange()
+    def ioRegistersDidChange(): Unit 
 
-    def logDidChange()
+    def logDidChange(): Unit 
 }
 
 class ICSimEngineContainer extends ISEICDelegate
 {
-    import SEIntegratedCircuit._
+    import SEIntegratedCircuit.*
 
     var simEngine:SEIntegratedCircuit = null
 
@@ -35,77 +35,77 @@ class ICSimEngineContainer extends ISEICDelegate
 
     var delegate:IICSimEngineContainerDelegate = null
 
-    def setInput(r:Int, state:Int)
+    def setInput(r:Int, state:Int): Unit =
     {
         iostate(r) = iostate(r)&0xFFFF0000|state&0xFFFF
     }
 
-    def onInputChanged(mask:Int)
+    def onInputChanged(mask:Int): Unit =
     {
         pushInputRegisters(mask)
     }
 
-    def advanceTime(ticks:Long)
+    def advanceTime(ticks:Long): Unit =
     {
         systemTime += ticks
         pushSystemTime()
     }
 
-    def setOutput(r:Int, state:Int)
+    def setOutput(r:Int, state:Int): Unit =
     {
         iostate(r) = iostate(r)&0xFFFF|(state&0xFFFF)<<16
     }
 
-    def repropagate()
+    def repropagate(): Unit =
     {
         simEngine.propagate(this)
     }
 
-    private def pushInputRegisters(mask:Int)
+    private def pushInputRegisters(mask:Int): Unit =
     {
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
             val input = iostate(r)&0xFFFF
-            for (i <- 0 until 16)
-                simEngine.queueRegVal[Byte](REG_IN(r, i), if ((input&1<<i) != 0) 1 else 0)
+            for i <- 0 until 16 do
+                simEngine.queueRegVal[Byte](REG_IN(r, i), if (input&1<<i) != 0 then 1 else 0)
         }
     }
 
-    private def pushSystemTime()
+    private def pushSystemTime(): Unit =
     {
         simEngine.queueRegVal(REG_SYSTIME, systemTime)
     }
 
-    private def pullOutputRegisters(mask:Int) //TODO perhaps remove mask and just pull everything??
+    private def pullOutputRegisters(mask:Int): Unit = //TODO perhaps remove mask and just pull everything??
     {
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) {
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then {
             var output = 0
-            for (i <- 0 until 16) if (simEngine.getRegVal(REG_OUT(r, i)) != 0)
+            for i <- 0 until 16 do if simEngine.getRegVal(REG_OUT(r, i)) != 0 then
                 output |= 1<<i
             setOutput(r, output)
         }
     }
 
-    override def registersDidChange(registers:Set[Int])
+    override def registersDidChange(registers:Set[Int]): Unit =
     {
-        if (delegate != null)
+        if delegate != null then
             delegate.registersDidChange(registers)
 
         val firstIOReg = REG_IN(0, 0)
         val lastIOReg = REG_OUT(3, 15)
-        if (registers.exists {reg => reg >= firstIOReg && reg <= lastIOReg}) { //TODO potentially faster to pull and check
+        if registers.exists {reg => reg >= firstIOReg && reg <= lastIOReg} then { //TODO potentially faster to pull and check
             pullOutputRegisters(0xF)
-            if (delegate != null)
+            if delegate != null then
                 delegate.ioRegistersDidChange()
         }
     }
 
-    override def icDidThrowErrorFlag(flag:Int, registers:Seq[Int], gates:Seq[Int])
+    override def icDidThrowErrorFlag(flag:Int, registers:Seq[Int], gates:Seq[Int]): Unit =
     {
         logger.logRuntimeFlag(flag, registers, gates)
-        if (delegate != null) delegate.logDidChange()
+        if delegate != null then delegate.logDidChange()
     }
 
-    def recompileSimulation(map:ISETileMap)
+    def recompileSimulation(map:ISETileMap): Unit =
     {
         logger.clear()
 
@@ -113,16 +113,16 @@ class ICSimEngineContainer extends ISEICDelegate
         val ioParts = map.tiles.collect {
             case (pos, io:IIOGateTile) => (pos, io)
         }
-        for (s <- 0 until 4) {
+        for s <- 0 until 4 do {
             val sio = ioParts.filter(_._2.getIOSide == s)
-            if (sio.size > 1) {
+            if sio.size > 1 then {
                 val m = sio.head._2.getIOMode
                 val c = sio.head._2.getConnMode
                 val p = sio.keys.map{p => Point(p._1, p._2)}.toSeq
 
-                if (sio.exists(_._2.getIOMode != m))
+                if sio.exists(_._2.getIOMode != m) then
                     logger.logError(p, "io direction conflict")
-                if (sio.exists(_._2.getConnMode != c))
+                if sio.exists(_._2.getConnMode != c) then
                     logger.logError(p, "io connection type conflict")
             }
         }
@@ -133,26 +133,26 @@ class ICSimEngineContainer extends ISEICDelegate
         pushSystemTime()
         pullOutputRegisters(0xF)
 
-        if (delegate != null) delegate.logDidChange()
+        if delegate != null then delegate.logDidChange()
     }
 
-    def resetSimState(map:ISETileMap)
+    def resetSimState(map:ISETileMap): Unit =
     {
-        for (i <- 0 until 4) iostate(i) = 0
+        for i <- 0 until 4 do iostate(i) = 0
         systemTime = 0
         recompileSimulation(map)
     }
 
-    def saveSimState(tag:NBTTagCompound)
+    def saveSimState(tag:NBTTagCompound): Unit =
     {
         tag.setBoolean("null_sim", simEngine == null)
-        if (simEngine == null) return
+        if simEngine == null then return
 
         tag.setIntArray("io_state", iostate)
         tag.setLong("sys_time", systemTime)
 
         val registers = simEngine.getRegisterMap
-        for (i <- 0 until registers.length) {
+        for i <- 0 until registers.length do {
             registers(i) match {
                 case StandardRegister(r:Long) => tag.setLong(s"reg[$i]", r)
                 case StandardRegister(r:Int)  => tag.setInteger(s"reg[$i]", r)
@@ -162,16 +162,16 @@ class ICSimEngineContainer extends ISEICDelegate
         }
     }
 
-    def loadSimState(tag:NBTTagCompound)
+    def loadSimState(tag:NBTTagCompound): Unit =
     {
-        if (tag.getBoolean("null_sim")) return
+        if tag.getBoolean("null_sim") then return
 
         val io = tag.getIntArray("io_state")
-        if (io.length == 4) for (i <- 0 until 4) iostate(i) = io(i)
+        if io.length == 4 then for i <- 0 until 4 do iostate(i) = io(i)
         systemTime = tag.getLong("sys_time")
 
         val registers = simEngine.getRegisterMap
-        for (i <- 0 until registers.length) {
+        for i <- 0 until registers.length do {
             val reg = registers(i)
             reg match {
                 case StandardRegister(r:Long) => reg.queueVal[Long](tag.getLong(s"reg[$i]"))
@@ -197,7 +197,7 @@ class SEStatLogger extends ISEStatLogger
     private val regIDToPoints = MMap[Int, Set[Point]]()
     private val gateIDToPoints = MMap[Int, Set[Point]]()
 
-    override def clear()
+    override def clear(): Unit =
     {
         log.clear()
         warnings.clear()
@@ -205,33 +205,33 @@ class SEStatLogger extends ISEStatLogger
         runtimeFlags.clear()
     }
 
-    override def logInfo(message:String)
+    override def logInfo(message:String): Unit =
     {
         log += message
     }
 
-    override def logWarning(points:Seq[Point], message:String)
+    override def logWarning(points:Seq[Point], message:String): Unit =
     {
         warnings += points -> message
     }
 
-    override def logError(points:Seq[Point], message:String)
+    override def logError(points:Seq[Point], message:String): Unit =
     {
         errors += points -> message
     }
 
-    override def logRuntimeFlag(flag:Int, registers:Seq[Int], gates:Seq[Int])
+    override def logRuntimeFlag(flag:Int, registers:Seq[Int], gates:Seq[Int]): Unit =
     {
         runtimeFlags += ((flag, registers.flatMap {regIDToPoints.getOrElse(_, Set.empty)},
                 gates.flatMap {gateIDToPoints.getOrElse(_, Set.empty)}))
     }
 
-    override def logRegAlloc(id:Int, points:Set[Point])
+    override def logRegAlloc(id:Int, points:Set[Point]): Unit =
     {
         regIDToPoints += id -> points
     }
 
-    override def logGateAlloc(id:Int, points:Set[Point])
+    override def logGateAlloc(id:Int, points:Set[Point]): Unit =
     {
         gateIDToPoints += id -> points
     }
@@ -249,16 +249,16 @@ class SEStatLogger extends ISEStatLogger
         case COMPUTE_OVERFLOW => "COMPUTE OVERFLOW!"
     }
 
-    def writeLog(out:MCDataOutput)
+    def writeLog(out:MCDataOutput): Unit =
     {
-        def writeList(list:ListBuffer[(Seq[Point], String)]) {
+        def writeList(list:ListBuffer[(Seq[Point], String)]): Unit = {
             val s = list.size
             out.writeShort(s)
-            for (i <- 0 until s) {
+            for i <- 0 until s do {
                 val (points, desc) = list(i)
                 val s2 = points.size
                 out.writeShort(s2)
-                for (p <- points)
+                for p <- points do
                     out.writeByte(p.x).writeByte(p.y)
                 out.writeString(desc)
             }
@@ -268,27 +268,27 @@ class SEStatLogger extends ISEStatLogger
         writeList(errors)
 
         out.writeShort(runtimeFlags.size)
-        for ((i, rPoints, gPoints) <- runtimeFlags) {
+        for (i, rPoints, gPoints) <- runtimeFlags do {
             out.writeByte(i)
 
             out.writeByte(rPoints.size)
-            for (rp <- rPoints)
+            for rp <- rPoints do
                 out.writeByte(rp.x).writeByte(rp.y)
 
             out.writeByte(gPoints.size)
-            for (gp <- gPoints)
+            for gp <- gPoints do
                 out.writeByte(gp.x).writeByte(gp.y)
         }
     }
 
-    def readLog(in:MCDataInput)
+    def readLog(in:MCDataInput): Unit =
     {
-        def readList(list:ListBuffer[(Seq[Point], String)])
+        def readList(list:ListBuffer[(Seq[Point], String)]): Unit =
         {
             list.clear()
-            for (_ <- 0 until in.readUShort()) {
+            for _ <- 0 until in.readUShort() do {
                 val points = Seq.newBuilder[Point]
-                for (_ <- 0 until in.readUShort())
+                for _ <- 0 until in.readUShort() do
                     points += Point(in.readUByte(), in.readUByte())
 
                 list += points.result() -> in.readString()
@@ -299,7 +299,7 @@ class SEStatLogger extends ISEStatLogger
         readList(errors)
 
         runtimeFlags.clear()
-        for (_ <- 0 until in.readUShort()) {
+        for _ <- 0 until in.readUShort() do {
             val flag = in.readUByte()
             val rPoints = (0 until in.readUByte()) map {_ => Point(in.readUByte(), in.readUByte())}
             val gPoints = (0 until in.readUByte()) map {_ => Point(in.readUByte(), in.readUByte())}

@@ -6,47 +6,47 @@ import codechicken.lib.render.CCRenderState
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.{Cuboid6, Rotation, Vector3}
 import codechicken.microblock.ISidedHollowConnect
-import codechicken.multipart._
+import codechicken.multipart.*
 import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.item.ItemKey
 import mrtjp.projectred.api.IConnectable
-import mrtjp.projectred.core._
+import mrtjp.projectred.core.*
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraft.util.{BlockRenderLayer, EnumFacing, ITickable}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with TSwitchPacket with TNormalOcclusionPart with ISidedHollowConnect with TDynamicRenderPart
 {
     var meta:Byte = 0
 
-    def preparePlacement(side:Int, meta:Int)
+    def preparePlacement(side:Int, meta:Int): Unit =
     {
         this.meta = meta.asInstanceOf[Byte]
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("connMap", connMap)
         tag.setByte("meta", meta)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         connMap = tag.getInteger("connMap")
         meta = tag.getByte("meta")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeByte(clientConnMap)
         packet.writeByte(meta)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         connMap = packet.readUByte()
         meta = packet.readByte()
@@ -62,7 +62,7 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
 
     def clientConnMap = connMap&0x3F|connMap>>6&0x3F
 
-    def sendConnUpdate()
+    def sendConnUpdate(): Unit =
     {
         getWriteStreamOf(1).writeByte(clientConnMap)
     }
@@ -79,29 +79,29 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
 
     override def discoverInternal(s:Int) = false
 
-    override def onPartChanged(part:TMultiPart)
+    override def onPartChanged(part:TMultiPart): Unit =
     {
-        if (!world.isRemote) if (updateOutward()) onMaskChanged()
+        if !world.isRemote then if updateOutward() then onMaskChanged()
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
-        if (!world.isRemote) if (updateExternalConns()) onMaskChanged()
+        if !world.isRemote then if updateExternalConns() then onMaskChanged()
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         super.onAdded()
-        if (!world.isRemote) if (updateInward()) onMaskChanged()
+        if !world.isRemote then if updateInward() then onMaskChanged()
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
-        if (!world.isRemote) notifyAllExternals()
+        if !world.isRemote then notifyAllExternals()
     }
 
-    override def onMaskChanged()
+    override def onMaskChanged(): Unit =
     {
         sendConnUpdate()
     }
@@ -121,36 +121,36 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
 
     override def getSubParts =
     {
-        import mrtjp.projectred.transportation.PipeBoxes._
+        import mrtjp.projectred.transportation.PipeBoxes.*
         var boxes = Seq(new IndexedCuboid6(-1, oBounds(6)))
-        for (s <- 0 until 6) if (maskConnects(s)) boxes :+= new IndexedCuboid6(s, oBounds(s))
+        for s <- 0 until 6 do if maskConnects(s) then boxes :+= new IndexedCuboid6(s, oBounds(s))
         boxes.asJava
     }
 
     override def getOcclusionBoxes =
     {
-        import mrtjp.projectred.transportation.PipeBoxes._
-        if (expandBounds >= 0) Seq(oBounds(expandBounds)).asJava
+        import mrtjp.projectred.transportation.PipeBoxes.*
+        if expandBounds >= 0 then Seq(oBounds(expandBounds)).asJava
         else Seq(oBounds(6)).asJava
     }
 
     override def getCollisionBoxes =
     {
-        import mrtjp.projectred.transportation.PipeBoxes._
+        import mrtjp.projectred.transportation.PipeBoxes.*
         var boxes = Seq(oBounds(6))
-        for (s <- 0 until 6) if (maskConnects(s)) boxes :+= oBounds(s)
+        for s <- 0 until 6 do if maskConnects(s) then boxes :+= oBounds(s)
         boxes.asJava
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderBreaking(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState)
+    override def renderBreaking(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState): Unit =
     {
         RenderPipe.renderBreakingOverlay(texture, this, ccrs)
     }
 
     override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) =
     {
-        if (layer == BlockRenderLayer.CUTOUT) {
+        if layer == BlockRenderLayer.CUTOUT then {
             ccrs.setBrightness(world, this.pos)
             doStaticTessellation(pos, ccrs)
             true
@@ -159,7 +159,7 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(pos:Vector3, pass:Int, frame:Float)
+    override def renderDynamic(pos:Vector3, pass:Int, frame:Float): Unit =
     {
         TextureUtils.bindBlockTexture()
         doDynamicTessellation(pos, frame, CCRenderState.instance())
@@ -172,13 +172,13 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
     def getIcon(side:Int) = getPipeType.sprites(0)
 
     @SideOnly(Side.CLIENT)
-    def doStaticTessellation(pos:Vector3, ccrs:CCRenderState)
+    def doStaticTessellation(pos:Vector3, ccrs:CCRenderState): Unit =
     {
         RenderPipe.renderPipe(this, pos, ccrs)
     }
 
     @SideOnly(Side.CLIENT)
-    def doDynamicTessellation(pos:Vector3, frame:Float, ccrs:CCRenderState){}
+    def doDynamicTessellation(pos:Vector3, frame:Float, ccrs:CCRenderState): Unit ={}
 }
 
 object PipeBoxes
@@ -188,7 +188,7 @@ object PipeBoxes
         val boxes = new Array[Cuboid6](7)
         val w = 2/8D
         boxes(6) = new Cuboid6(0.5-w, 0.5-w, 0.5-w, 0.5+w, 0.5+w, 0.5+w)
-        for (s <- 0 until 6)
+        for s <- 0 until 6 do
             boxes(s) = new Cuboid6(0.5-w, 0, 0.5-w, 0.5+w, 0.5-w, 0.5+w).apply(Rotation.sideRotations(s).at(Vector3.center))
         boxes
     }
@@ -216,7 +216,7 @@ trait TPipeTravelConditions
     def pathFilter(inputDir:Int, outputDir:Int):PathFilter =
     {
         val f = new PathFilter
-        if (inputDir != -1 && outputDir != -1)
+        if inputDir != -1 && outputDir != -1 then
             f.pathFlags = getPathFlags(inputDir, outputDir)
 
         f.filterExclude = itemsExclude
@@ -234,11 +234,11 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
 
     private implicit def payloadToT(p:AbstractPipePayload):T = p.asInstanceOf[T]
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         val nbttaglist = new NBTTagList
-        for (r <- itemFlow.it)
+        for r <- itemFlow.it do
         {
             val payloadData = new NBTTagCompound
             nbttaglist.appendTag(payloadData)
@@ -247,11 +247,11 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
         tag.setTag("itemFlow", nbttaglist)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         val nbttaglist = tag.getTagList("itemFlow", 10)
-        for (j <- 0 until nbttaglist.tagCount)
+        for j <- 0 until nbttaglist.tagCount do
         {
             try
             {
@@ -259,7 +259,7 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
                 val r = createNewPayload(AbstractPipePayload.claimID())
                 r.bind(this)
                 r.load(payloadData)
-                if (!r.isCorrupted) itemFlow.scheduleLoad(r)
+                if !r.isCorrupted then itemFlow.scheduleLoad(r)
             }
             catch {case t:Throwable =>}
         }
@@ -271,72 +271,72 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
         case _ => super.read(packet, key)
     }
 
-    override def update()
+    override def update(): Unit =
     {
         pushItemFlow()
     }
 
-    def pushItemFlow()
+    def pushItemFlow(): Unit =
     {
         itemFlow.executeLoad()
         itemFlow.exececuteRemove()
-        for (r <- itemFlow.it) if (r.isCorrupted) itemFlow.scheduleRemoval(r)
+        for r <- itemFlow.it do if r.isCorrupted then itemFlow.scheduleRemoval(r)
         else {
             r.moveProgress(r.speed)
-            if (r.isEntering && hasReachedMiddle(r))
+            if r.isEntering && hasReachedMiddle(r) then
             {
                 r.isEntering = false
-                if (r.output == 6) handleDrop(r)
+                if r.output == 6 then handleDrop(r)
                 else centerReached(r)
             }
-            else if (!r.isEntering && hasReachedEnd(r))
-                if (itemFlow.scheduleRemoval(r)) endReached(r)
+            else if !r.isEntering && hasReachedEnd(r) then
+                if itemFlow.scheduleRemoval(r) then endReached(r)
         }
         itemFlow.exececuteRemove()
     }
 
-    def handleDrop(r:T)
+    def handleDrop(r:T): Unit =
     {
-        if (itemFlow.scheduleRemoval(r)) if (!world.isRemote)
+        if itemFlow.scheduleRemoval(r) then if !world.isRemote then
         {
             r.preItemRemove()
             world.spawnEntity(r.getEntityForDrop(pos))
         }
     }
 
-    def resolveDestination(r:T)
+    def resolveDestination(r:T): Unit =
     {
         chooseRandomDestination(r)
     }
 
-    def chooseRandomDestination(r:T)
+    def chooseRandomDestination(r:T): Unit =
     {
         chooseRandomDestination(r, 0)
     }
 
-    def chooseRandomDestination(r:T, mask:Int)
+    def chooseRandomDestination(r:T, mask:Int): Unit =
     {
         var moves = Seq[Int]()
-        for (i <- 0 until 6)
-            if((connMap&1<<i) != 0 && i != (r.input^1) && (mask&1<<i) == 0) moves :+= i
-        if (moves.isEmpty) r.output = r.input^1
+        for i <- 0 until 6 do
+            if (connMap&1<<i) != 0 && i != (r.input^1) && (mask&1<<i) == 0 then moves :+= i
+        if moves.isEmpty then r.output = r.input^1
         else r.output = moves(world.rand.nextInt(moves.size))
     }
 
-    def endReached(r:T)
+    def endReached(r:T): Unit =
     {
-        if (!world.isRemote)
+        if !world.isRemote then
         {
-            if(!(maskConnects(r.output) && passPayload(r)))
-                if (r.payload.stackSize > 0) bounceStack(r)
+            if !(maskConnects(r.output) && passPayload(r)) then
+                if r.payload.stackSize > 0 then bounceStack(r)
         }
     }
 
     def passPayload(r:T):Boolean =
     {
-        if (passToInventory(r)) return true
+        if passToInventory(r) then return true
 
-        if (passToNextPipe(r)) return true
+        if passToNextPipe(r) then return true
 
         false
     }
@@ -355,7 +355,7 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
     def passToInventory(r:T) =
     {
         val w = InvWrapper.wrap(world, posOfStraight(r.output), EnumFacing.VALUES(r.output^1))
-        if (w != null)
+        if w != null then
         {
             r.payload.stackSize -= w.injectItem(r.payload.key, r.payload.stackSize)
             r.payload.stackSize == 0
@@ -363,7 +363,7 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
         else false
     }
 
-    def bounceStack(r:T)
+    def bounceStack(r:T): Unit =
     {
         itemFlow.unscheduleRemoval(r)
         r.isEntering = true
@@ -371,73 +371,73 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
         r.progress = 0
         resolveDestination(r)
         adjustSpeed(r)
-        if (!world.isRemote) sendItemUpdate(r)
+        if !world.isRemote then sendItemUpdate(r)
     }
 
-    def centerReached(r:T)
+    def centerReached(r:T): Unit =
     {
-        if (!maskConnects(r.output) && !world.isRemote)
+        if !maskConnects(r.output) && !world.isRemote then
         {
             resolveDestination(r)
             sendItemUpdate(r)
         }
     }
 
-    def adjustSpeed(r:T){}
+    def adjustSpeed(r:T): Unit ={}
 
     protected def hasReachedMiddle(r:T) = r.progress >= 0.5F
 
     protected def hasReachedEnd(r:T) = r.progress >= 1.0F
 
-    def injectPayload(r:T, in:Int)
+    def injectPayload(r:T, in:Int): Unit =
     {
-        if (r.isCorrupted) return
-        if (itemFlow.delegate.contains(r)) return
+        if r.isCorrupted then return
+        if itemFlow.delegate.contains(r) then return
         r.bind(this)
         r.reset()
         r.input = in
         itemFlow.add(r)
 
         adjustSpeed(r)
-        if (r.progress > 0.0F) r.progress = Math.max(0, r.progress-1.0F)
+        if r.progress > 0.0F then r.progress = Math.max(0, r.progress-1.0F)
 
-        if (!world.isRemote)
+        if !world.isRemote then
         {
             resolveDestination(r)
             sendItemUpdate(r)
         }
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
         super.onNeighborChanged()
         val connCount = Integer.bitCount(connMap)
 
-        if (connCount == 0) if (!world.isRemote) for (r <- itemFlow.it) if (itemFlow.scheduleRemoval(r))
+        if connCount == 0 then if !world.isRemote then for r <- itemFlow.it do if itemFlow.scheduleRemoval(r) then
         {
             r.preItemRemove()
             world.spawnEntity(r.getEntityForDrop(pos))
         }
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
-        if (!world.isRemote) for (r <- itemFlow.it)
+        if !world.isRemote then for r <- itemFlow.it do
         {
             r.preItemRemove()
             world.spawnEntity(r.getEntityForDrop(pos))
         }
     }
 
-    def sendItemUpdate(r:T)
+    def sendItemUpdate(r:T): Unit =
     {
         val out = getWriteStreamOf(4)
         out.writeShort(r.payloadID)
         r.writeDesc(out)
     }
 
-    def handleItemUpdatePacket(packet:MCDataInput)
+    def handleItemUpdatePacket(packet:MCDataInput): Unit =
     {
         val id = packet.readShort()
         val r = itemFlow.getOrElseUpdate(id, _ => createNewPayload(id))
@@ -447,7 +447,7 @@ abstract class PayloadPipePart[T <: AbstractPipePayload] extends SubcorePipePart
     def createNewPayload(id:Int):T
 
     @SideOnly(Side.CLIENT)
-    override def doDynamicTessellation(pos:Vector3, frame:Float, ccrs:CCRenderState)
+    override def doDynamicTessellation(pos:Vector3, frame:Float, ccrs:CCRenderState): Unit =
     {
         super.doDynamicTessellation(pos, frame, ccrs)
         RenderPipe.renderItemFlow(this, pos, frame, ccrs)

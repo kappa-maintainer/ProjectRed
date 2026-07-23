@@ -22,27 +22,27 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
     var on = false
     var sched = -1L
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setBoolean("on", on)
         tag.setLong("sched", sched)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         on = tag.getBoolean("on")
         sched = tag.getLong("sched")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(on)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         on = in.readBoolean()
@@ -54,14 +54,14 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
         case _ => super.read(in, key)
     }
 
-    override def readClientPacket(in:MCDataInput)
+    override def readClientPacket(in:MCDataInput): Unit =
     {
         press()
     }
 
-    def press()
+    def press(): Unit =
     {
-        if (!on) {
+        if !on then {
             on = true
             pushToRegisters()
             sendStateUpdate()
@@ -69,9 +69,9 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
         }
     }
 
-    def depress()
+    def depress(): Unit =
     {
-        if (on) {
+        if on then {
             on = false
             pushToRegisters()
             sendStateUpdate()
@@ -79,38 +79,38 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
         }
     }
 
-    override def update()
+    override def update(): Unit =
     {
-        if (sched != -1 && editor.network.getEditorWorld.getTotalWorldTime >= sched)
+        if sched != -1 && editor.network.getEditorWorld.getTotalWorldTime >= sched then
             depress()
     }
 
-    def sendStateUpdate()
+    def sendStateUpdate(): Unit =
     {
         writeStreamOf(1).writeBoolean(on)
     }
 
     override def getPartType = ICTileDefs.Button
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
-        if (!editor.network.isRemote) notify(0xF)
+        if !editor.network.isRemote then notify(0xF)
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
-        if (!editor.network.isRemote) notify(0xF)
+        if !editor.network.isRemote then notify(0xF)
     }
 
-    def pushToRegisters()
+    def pushToRegisters(): Unit =
     {
-        for (r <- 0 until 4)
-            editor.simEngineContainer.simEngine.queueRegVal[Byte](outputRegs(r), if (on) 1 else 0)
+        for r <- 0 until 4 do
+            editor.simEngineContainer.simEngine.queueRegVal[Byte](outputRegs(r), if on then 1 else 0)
 
         editor.simEngineContainer.simEngine.propagate(editor.simEngineContainer)
     }
 
-    override def onRegistersChanged(regIDs:Set[Int]){} //we dont care if other registers change
+    override def onRegistersChanged(regIDs:Set[Int]): Unit ={} //we dont care if other registers change
 
     override def canOutputTo(r:Int) = true
 
@@ -118,22 +118,22 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
 
     override def buildImplicitWireNet(r:Int):IWireNet = null //TODO
 
-    override def allocateOrFindRegisters(linker:ISELinker)
+    override def allocateOrFindRegisters(linker:ISELinker): Unit =
     {
-        for (r <- 0 until 4)
+        for r <- 0 until 4 do
             outputRegs(r) = linker.findOutputRegister(pos, r)
     }
 
-    override def declareOperations(linker:ISELinker)
+    override def declareOperations(linker:ISELinker): Unit =
     {
         on = false
         sched = -1
-        if (editor != null)
+        if editor != null then
             sendStateUpdate()
     }
 
     @SideOnly(Side.CLIENT)
-    override def onClicked()
+    override def onClicked(): Unit =
     {
         sendClientPacket()//data not necessary, only 1 reason to send this.
     }
@@ -146,14 +146,14 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
 
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(buffer:ListBuffer[String])
+    override def buildRolloverData(buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(buffer)
-        buffer += ChatFormatting.GRAY.toString+"state: "+(if (on) "on" else "off")
+        buffer += ChatFormatting.GRAY.toString+"state: "+(if on then "on" else "off")
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float)
+    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         RenderTileButton.prepairDynamic(this)
         RenderTileButton.render(ccrs, t, ortho)
@@ -162,7 +162,7 @@ class ButtonICTile extends ICTile with TICTileAcquisitions with IRedwireICGate w
 
 class OpButton extends SimplePlacementOp
 {
-    override def doPartRender(ccrs:CCRenderState, t:Transformation)
+    override def doPartRender(ccrs:CCRenderState, t:Transformation): Unit =
     {
         RenderTileButton.prepairInv()
         RenderTileButton.render(ccrs, t, true)

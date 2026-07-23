@@ -5,16 +5,16 @@ import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.lighting.LightModel
 import codechicken.lib.model.ModelRegistryHelper
 import codechicken.lib.raytracer.CuboidRayTraceResult
-import codechicken.lib.render._
+import codechicken.lib.render.*
 import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.render.pipeline.ColourMultiplier
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.texture.TextureUtils.IIconRegister
 import codechicken.lib.util.TransformUtils
 import codechicken.lib.vec.uv.IconTransformation
-import codechicken.lib.vec.{Rotation, _}
+import codechicken.lib.vec.{Rotation, *}
 import codechicken.microblock.HollowMicroblock
-import codechicken.multipart._
+import codechicken.multipart.*
 import codechicken.multipart.api.IPartFactory
 import com.google.common.collect.ImmutableMap
 import mrtjp.core.vec.InvertX
@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.{EnumSkyBlock, World}
 import net.minecraftforge.common.model.TRSRTransformation
@@ -34,7 +34,7 @@ import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart with TSlottedPart with TNormalOcclusionPart with IRedstonePart with ILight with TDynamicRenderPart
 {
@@ -42,7 +42,7 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
 
     var shape:Byte = 0
 
-    def setShape(colour:Int, side:Int, inverted:Boolean)
+    def setShape(colour:Int, side:Int, inverted:Boolean): Unit =
     {
         //SHAPE: ISSS CCCC
         // C - colour
@@ -50,7 +50,7 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
         // I - inverted
         shape = (colour&0xF).toByte
         shape = (shape|(side&0x7)<<4).toByte
-        if (inverted) shape = (shape|0x80).toByte
+        if inverted then shape = (shape|0x80).toByte
     }
 
     def getColor = shape&0xF
@@ -59,53 +59,53 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
 
     def isInverted = (shape&0x80) != 0
 
-    def preparePlacement(side:Int, meta:Int, inv:Boolean)
+    def preparePlacement(side:Int, meta:Int, inv:Boolean): Unit =
     {
         setShape(meta, side, inv)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setBoolean("pow", powered)
         tag.setByte("sh", shape)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         powered = tag.getBoolean("pow")
         shape = tag.getByte("sh")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeByte(shape).writeBoolean(powered)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         shape = packet.readByte()
         powered = packet.readBoolean()
     }
 
-    override def read(packet:MCDataInput)
+    override def read(packet:MCDataInput): Unit =
     {
         readDesc(packet)
         updateRender()
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
-        if (checkSupport) return
+        if checkSupport then return
         updateState(false)
     }
 
     def checkSupport:Boolean =
     {
-        if (world.isRemote) return false
-        if (factory.canFloat) return false
+        if world.isRemote then return false
+        if factory.canFloat then return false
         val bc = pos.offset(EnumFacing.byIndex(getSide))
 
-        if (!factory.canFloat && !BaseLightPart.canPlaceLight(world, bc, getSide^1)) {
+        if !factory.canFloat && !BaseLightPart.canPlaceLight(world, bc, getSide^1) then {
             TileMultipart.dropItem(getItem, world, Vector3.fromTileCenter(tile))
             tile.remPart(this)
             return true
@@ -113,52 +113,52 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
         false
     }
 
-    override def onPartChanged(part:TMultiPart)
+    override def onPartChanged(part:TMultiPart): Unit =
     {
-        if (checkSupport) return
+        if checkSupport then return
         updateState(false)
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
-        if (checkSupport) return
+        if checkSupport then return
         updateState(true)
     }
 
     private def checkPower:Boolean =
     {
-        for (s <- 0 until 6) if (s != (getSide^1))
-            if (RedstoneInteractions.getPowerTo(this, s) > 0)
+        for s <- 0 until 6 do if s != (getSide^1) then
+            if RedstoneInteractions.getPowerTo(this, s) > 0 then
                 return true
         false
     }
 
-    private def updateState(forceRender:Boolean)
+    private def updateState(forceRender:Boolean): Unit =
     {
         var updated = false
-        if (!world.isRemote) {
+        if !world.isRemote then {
             val old = powered
             powered = checkPower
-            if (old != powered) {
+            if old != powered then {
                 updated = true
                 updateRender()
             }
         }
-        if (forceRender && !updated) updateRender()
+        if forceRender && !updated then updateRender()
     }
 
-    def updateRender()
+    def updateRender(): Unit =
     {
-        if (!world.isRemote) sendDescUpdate()
+        if !world.isRemote then sendDescUpdate()
         tile.recalcLight(false, true)
         tile.markRender()
     }
 
-    override def getLightValue = if (isInverted != powered)
+    override def getLightValue = if isInverted != powered then
         IlluminationProxy.getLightValue(getColor, 15) else 0
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(vec:Vector3, pass:Int, frame:Float)
+    override def renderDynamic(vec:Vector3, pass:Int, frame:Float): Unit =
     {
         RenderHalo.addLight(pos, getColor, getLightBounds)
     }
@@ -168,7 +168,7 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
     @SideOnly(Side.CLIENT)
     override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) =
     {
-        if (layer == factory.getRenderLayer) {
+        if layer == factory.getRenderLayer then {
             ccrs.setBrightness(world, this.pos)
             factory.render(this, getColor, isOn, pos, ccrs)
             true
@@ -199,10 +199,10 @@ object BaseLightPart
 {
     def canPlaceLight(w:World, pos:BlockPos, side:Int):Boolean =
     {
-        if (PRLib.canPlaceLight(w, pos, side)) return true
+        if PRLib.canPlaceLight(w, pos, side) then return true
 
         val part = BlockMultipart.getPart(w, pos, side)
-        if (part.isInstanceOf[HollowMicroblock]) return true
+        if part.isInstanceOf[HollowMicroblock] then return true
 
         false
     }
@@ -215,18 +215,18 @@ class BaseLightFacePart(obj:LightFactory) extends BaseLightPart(obj) with TFaceP
 
     override def getConnectionMask(s:Int) =
     {
-        if ((s^1) == getSide) 0
-        else if (s == getSide) 0x10
+        if (s^1) == getSide then 0
+        else if s == getSide then 0x10
         else 1<<Rotation.rotationTo(s&6, getSide)
     }
 }
 
 trait TAirousLight extends BaseLightPart with ITickable
 {
-    abstract override def update()
+    abstract override def update(): Unit =
     {
         super.update()
-        if (!world.isRemote && isOn) {
+        if !world.isRemote && isOn then {
             val rad = lightRadius
 
             val pos1 = pos.add(
@@ -235,7 +235,7 @@ trait TAirousLight extends BaseLightPart with ITickable
                 world.rand.nextInt(rad)-world.rand.nextInt(rad)
             )
 
-            if (world.isAirBlock(pos1) && world.getLightFor(EnumSkyBlock.BLOCK, pos1) < 8) {
+            if world.isAirBlock(pos1) && world.getLightFor(EnumSkyBlock.BLOCK, pos1) < 8 then {
                 world.setBlockState(pos, ProjectRedIllumination.blockAirousLight.getDefaultState, 3)
                 world.getTileEntity(pos) match {
                     case al:TileAirousLight => al.setSource(pos, getColor, getSide)
@@ -250,8 +250,8 @@ trait TAirousLight extends BaseLightPart with ITickable
 
 abstract class LightFactory extends IPartFactory
 {
-    private var item:ItemBaseLight = _
-    private var itemInv:ItemBaseLight = _
+    private var item:ItemBaseLight = scala.compiletime.uninitialized
+    private var itemInv:ItemBaseLight = scala.compiletime.uninitialized
 
     def getTranslationKey(inv:Boolean):String
     def getItemRegistryName(inv:Boolean):String
@@ -263,19 +263,19 @@ abstract class LightFactory extends IPartFactory
     {
         val boxes = new Array[Cuboid6](6)
         boxes(0) = box.copy
-        for (s <- 1 until 6)
+        for s <- 1 until 6 do
             boxes(s) = box.copy.apply(Rotation.sideRotations(s).at(Vector3.center))
         boxes
     }
 
-    def getItem(inv:Boolean) = if (inv) itemInv else item
+    def getItem(inv:Boolean) = if inv then itemInv else item
 
     def createItem(inverted:Boolean):ItemBaseLight = new ItemBaseLight(this, inverted)
     def createPart:BaseLightPart = new BaseLightFacePart(this)
 
     def canFloat = false
 
-    final def register()
+    final def register(): Unit =
     {
         item = createItem(false)
         item.setTranslationKey("projectred.illumination."+getTranslationKey(false))
@@ -295,32 +295,32 @@ abstract class LightFactory extends IPartFactory
     final def makeInvStack(color:Int):ItemStack = makeInvStack(color, 1)
 
     final override def createPart(name:ResourceLocation, client:Boolean) =
-        if (name == getType) createPart else null
+        if name == getType then createPart else null
 
     @SideOnly(Side.CLIENT)
     final def registerClient(): Unit = {
         val lightState = new CCModelState({
             val builder = ImmutableMap.builder[TransformType, TRSRTransformation]()
-            for (tt <- TransformType.values()) {
+            for tt <- TransformType.values() do {
                 val (pos, rot, scale) = getItemRenderTransform(tt)
                 val mat = ((new Rotation(rot.z.toRadians, 0, 0, 1) `with`
                     new Rotation(rot.y.toRadians, 0, 1, 0) `with`
                     new Rotation(rot.x.toRadians, 1, 0, 0) `with`
-                    new Scale(scale) at Vector3.center) `with`
+                    new Scale(scale) `at` Vector3.center) `with`
                     pos.translation()).compile()
                 builder.put(tt, TransformUtils.fromMatrix4(mat))
             }
             builder.build()
         })
 
-        val renderer: IItemRenderer with IIconRegister = new IItemRenderer with IIconRegister {
+        val renderer: IItemRenderer & IIconRegister = new IItemRenderer with IIconRegister {
             override def isAmbientOcclusion = true
 
             override def isGui3d = true
 
             override def getTransforms = lightState
 
-            override def renderItem(item: ItemStack, transformType: TransformType) {
+            override def renderItem(item: ItemStack, transformType: TransformType): Unit = {
                 val color = item.getItemDamage % 16
                 val inv = item.getItem match {
                     case i: ItemBaseLight => i.inverted
@@ -329,7 +329,7 @@ abstract class LightFactory extends IPartFactory
                 renderInv(color, inv, Vector3.zero, CCRenderState.instance())
             }
 
-            override def registerIcons(textureMap: TextureMap) {
+            override def registerIcons(textureMap: TextureMap): Unit = {
                 registerTextures(textureMap)
             }
         }
@@ -343,14 +343,14 @@ abstract class LightFactory extends IPartFactory
     }
 
     @SideOnly(Side.CLIENT)
-    def loadModels()
+    def loadModels(): Unit 
 
     @SideOnly(Side.CLIENT)
     def parseModel(name:String) =
     {
         val models = OBJParser.parseModels(
             new ResourceLocation("projectred", "textures/obj/lighting/"+name+".obj"), 7, InvertX)
-        for (m <- models.values().asScala) m.apply(new Translation(0.5, 0, 0.5))
+        for m <- models.values().asScala do m.apply(new Translation(0.5, 0, 0.5))
         models
     }
 
@@ -385,10 +385,10 @@ abstract class LightFactory extends IPartFactory
     def getIcon:TextureAtlasSprite
 
     @SideOnly(Side.CLIENT)
-    def registerTextures(map:TextureMap)
+    def registerTextures(map:TextureMap): Unit 
 
     @SideOnly(Side.CLIENT)
-    def render(part:BaseLightPart, color:Int, isOn:Boolean, pos:Vector3, ccrs:CCRenderState)
+    def render(part:BaseLightPart, color:Int, isOn:Boolean, pos:Vector3, ccrs:CCRenderState): Unit =
     {
         val icon = new IconTransformation(getIcon)
         val t = pos.translation()
@@ -399,7 +399,7 @@ abstract class LightFactory extends IPartFactory
     //(pos, rot, scale)
     def getItemRenderTransform(t:TransformType):(Vector3, Vector3, Double) =
     {
-        import TransformType._
+        import TransformType.*
         t match {
             case GUI => (Vector3.zero, new Vector3(30, 225, 0), 0.625)
             case GROUND => (new Vector3(0, 3/16D, 0), Vector3.zero, 0.25)
@@ -412,7 +412,7 @@ abstract class LightFactory extends IPartFactory
     }
 
     @SideOnly(Side.CLIENT)
-    def renderInv(colour:Int, inverted:Boolean, pos:Vector3, ccrs:CCRenderState)
+    def renderInv(colour:Int, inverted:Boolean, pos:Vector3, ccrs:CCRenderState): Unit =
     {
         val icon = new IconTransformation(getIcon)
         val t = new Translation(pos)
@@ -431,7 +431,7 @@ abstract class LightFactory extends IPartFactory
         ccrs.draw()
 
         //Draw Halo
-        if (inverted) {
+        if inverted then {
             RenderHalo.prepareRenderState()
             RenderHalo.renderHalo(getInvLBounds, colour, t)
             RenderHalo.restoreRenderState()
@@ -441,7 +441,7 @@ abstract class LightFactory extends IPartFactory
     def cMult(color:Int, on:Boolean):ColourMultiplier =
     {
         val c = EnumColour.values()(color).getColour
-        if (!on) c.multiply(EnumColour.LIGHT_GRAY.getColour)
+        if !on then c.multiply(EnumColour.LIGHT_GRAY.getColour)
         ColourMultiplier.instance(c.rgba)
     }
 }

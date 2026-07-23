@@ -9,12 +9,12 @@ import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.gui.GuiDraw
 import codechicken.lib.render.CCRenderState
 import codechicken.lib.texture.TextureUtils
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import mrtjp.core.math.MathLib
-import mrtjp.projectred.fabrication.IIOGateTile._
+import mrtjp.projectred.fabrication.IIOGateTile.*
 import mrtjp.projectred.integration
-import mrtjp.projectred.integration._
-import mrtjp.projectred.transmission.BundledCommons._
+import mrtjp.projectred.integration.*
+import mrtjp.projectred.transmission.BundledCommons.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -31,31 +31,31 @@ class ICGatePart extends RedstoneGatePart with TBundledGatePart with TComplexGat
 
     private var itemTag:NBTTagCompound = null
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setTag("itemTag", itemTag)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         itemTag = tag.getCompoundTag("itemTag")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeNBTTagCompound(itemTag)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         itemTag = packet.readNBTTagCompound()
     }
 
-    override def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int)
+    override def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int): Unit =
     {
         super.preparePlacement(player, pos, side, meta)
         val stack = player.getHeldItemMainhand
@@ -70,9 +70,9 @@ class ICGatePart extends RedstoneGatePart with TBundledGatePart with TComplexGat
         stack
     }
 
-    override def assertLogic()
+    override def assertLogic(): Unit =
     {
-        if (logic == null)
+        if logic == null then
             logic = new ICGateLogic(this)
     }
 
@@ -95,7 +95,7 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
     var connmodes = Array(NoConn, NoConn, NoConn, NoConn)
     var name = "untitled"
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tmap.saveTiles(tag)
         sim.saveSimState(tag)
@@ -104,7 +104,7 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
         tag.setIntArray("bout", out)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         tmap.loadTiles(tag)
 
@@ -117,17 +117,17 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
         connmodes = ICGateLogic.unpackConnModes(tag.getShort("cmode"))
 
         val b = tag.getIntArray("bout")
-        for (r <- 0 until b.length) setOut(r, b(r))
+        for r <- 0 until b.length do setOut(r, b(r))
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeShort(ICGateLogic.packIO(ri, ro, bi, bo))
         packet.writeShort(ICGateLogic.packConnModes(connmodes))
         packet.writeString(tmap.name)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         val (ri0, ro0, bi0, bo0) = ICGateLogic.unpackIO(packet.readShort())
         ri = ri0; ro = ro0; bi = bi0; bo = bo0
@@ -135,10 +135,10 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
         name = packet.readString()
     }
 
-    def setOut(r:Int, output:Int)
+    def setOut(r:Int, output:Int): Unit =
     {
         out(r) = output
-        if (((bi|bo)&1<<r) != 0) //only unpack if needed
+        if ((bi|bo)&1<<r) != 0 then //only unpack if needed
             outUnpacked(r) = unpackDigital(outUnpacked(r), out(r))
     }
 
@@ -147,47 +147,47 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
     override def bundledInputMask(shape:Int) = bi
     override def bundledOutputMask(shape:Int) = bo
 
-    override def registersDidChange(registers:Set[Int]){}
+    override def registersDidChange(registers:Set[Int]): Unit ={}
 
-    override def ioRegistersDidChange()
+    override def ioRegistersDidChange(): Unit =
     {
-        if (!gate.world.isRemote) gate.scheduleTick(2)
+        if !gate.world.isRemote then gate.scheduleTick(2)
     }
 
-    override def logDidChange(){}
+    override def logDidChange(): Unit ={}
 
-    override def onTick(gate:ICGatePart)
+    override def onTick(gate:ICGatePart): Unit =
     {
-        if (!gate.world.isRemote) {
+        if !gate.world.isRemote then {
             val t = gate.world.getTotalWorldTime
-            val dt = if (systime_last < 0) 1 else t-systime_last
+            val dt = if systime_last < 0 then 1 else t-systime_last
             sim.advanceTime(dt)
             sim.repropagate()
             systime_last = t
         }
     }
 
-    override def setup(gate:ICGatePart)
+    override def setup(gate:ICGatePart): Unit =
     {
         var cmask = 0
-        for (r <- 0 until 4)
-            if (checkAndSetOutputChange(r))
+        for r <- 0 until 4 do
+            if checkAndSetOutputChange(r) then
                 cmask |= 1<<r
 
-        if (cmask != 0) {
+        if cmask != 0 then {
             gate.setState(gate.state&0xF|getRSRenderOutputs<<4)
             gate.onOutputChange(cmask)
         }
     }
 
-    override def onChange(gate:ICGatePart)
+    override def onChange(gate:ICGatePart): Unit =
     {
         var cmask = 0
-        for (r <- 0 until 4)
-            if (checkAndSetInputChange(r))
+        for r <- 0 until 4 do
+            if checkAndSetInputChange(r) then
                 cmask |= 1<<r
 
-        if (cmask != 0) {
+        if cmask != 0 then {
             gate.setState(gate.state&0xF0|getRSRenderInputs)
             gate.onInputChange()
             sim.onInputChanged(cmask)
@@ -195,14 +195,14 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
         }
     }
 
-    override def scheduledTick(gate:ICGatePart)
+    override def scheduledTick(gate:ICGatePart): Unit =
     {
         var cmask = 0
-        for (r <- 0 until 4)
-            if (checkAndSetOutputChange(r))
+        for r <- 0 until 4 do
+            if checkAndSetOutputChange(r) then
                 cmask |= 1<<r
 
-        if (cmask != 0) {
+        if cmask != 0 then {
             gate.setState(gate.state&0xF|getRSRenderOutputs<<4)
             gate.onOutputChange(cmask)
         }
@@ -212,12 +212,12 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
     def checkAndSetInputChange(r:Int):Boolean = {
         val (oldInput, newInput) = connmodes(r) match {
             case NoConn => (0, 0)
-            case Simple => (sim.iostate(r)&1, if (gate.getRedstoneInput(r) != 0) 1 else 0)
+            case Simple => (sim.iostate(r)&1, if gate.getRedstoneInput(r) != 0 then 1 else 0)
             case Analog => (sim.iostate(r)&0xFFFF, 1<<(gate.getRedstoneInput(r)/17))
             case Bundled => (sim.iostate(r)&0xFFFF, packDigital(gate.getBundledInput(r)))
         }
 
-        if (oldInput != newInput) {
+        if oldInput != newInput then {
             sim.setInput(r, newInput)
             true
         } else false
@@ -230,7 +230,7 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
             case Analog => (out(r), sim.iostate(r)>>>16)
             case Bundled =>(out(r), sim.iostate(r)>>>16)
         }
-        if (oldOutput != newOutput) {
+        if oldOutput != newOutput then {
             setOut(r, newOutput)
             true
         } else
@@ -240,9 +240,9 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
     def getRSRenderInputs =
     {
         var m = 0
-        for (r <- 0 until 4) connmodes(r) match {
-            case Simple => if ((sim.iostate(r)&1) != 0) m |= 1<<r
-            case Analog => if ((sim.iostate(r)&0xFFFE) != 0) m |= 1<<r
+        for r <- 0 until 4 do connmodes(r) match {
+            case Simple => if (sim.iostate(r)&1) != 0 then m |= 1<<r
+            case Analog => if (sim.iostate(r)&0xFFFE) != 0 then m |= 1<<r
             case _ =>
         }
         m
@@ -251,17 +251,17 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
     def getRSRenderOutputs =
     {
         var m = 0
-        for (r <- 0 until 4) if (getOutput(gate, r) != 0) m |= 1<<r
+        for r <- 0 until 4 do if getOutput(gate, r) != 0 then m |= 1<<r
         m
     }
 
     override def getOutput(gate:ICGatePart, r:Int):Int =
     {
-        if ((outputMask(gate.shape)&1<<r) == 0)
+        if (outputMask(gate.shape)&1<<r) == 0 then
             return 0
 
         connmodes(r) match {
-            case Simple => if ((out(r)&1) != 0) 15 else 0
+            case Simple => if (out(r)&1) != 0 then 15 else 0
             case Analog => MathLib.mostSignificant(out(r))
             case _ => 0
         }
@@ -269,7 +269,7 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
 
     override def getBundledOutput(gate:ICGatePart, r:Int):Array[Byte] =
     {
-        if ((bundledOutputMask(gate.shape)&1<<r) == 0)
+        if (bundledOutputMask(gate.shape)&1<<r) == 0 then
             return null
 
         connmodes(r) match {
@@ -283,10 +283,10 @@ class ICGateLogic(gate:ICGatePart) extends RedstoneGateLogic[ICGatePart] with TB
 
 object ICGateLogic
 {
-    def constructICLogic(logic:ICGateLogic, stack:ItemStack)
+    def constructICLogic(logic:ICGateLogic, stack:ItemStack): Unit =
     {
-        import ItemICBlueprint._
-        if (hasICInside(stack)) {
+        import ItemICBlueprint.*
+        if hasICInside(stack) then {
             loadTileMap(logic.tmap, stack)
             val (ri0, ro0, bi0, bo0) = getGateMasks(stack)
             logic.ri = ri0; logic.ro = ro0; logic.bi = bi0; logic.bo = bo0
@@ -305,14 +305,14 @@ object ICGateLogic
     def unpackConnModes(cm:Int) =
     {
         val connmodes = new Array[Int](4)
-        for (i <- 0 until 4) connmodes(i) = cm>>4*i&0xF
+        for i <- 0 until 4 do connmodes(i) = cm>>4*i&0xF
         connmodes
     }
 }
 
 class RenderICGate extends GateRenderer[ICGatePart]
 {
-    import mrtjp.projectred.integration.ComponentStore._
+    import mrtjp.projectred.integration.ComponentStore.*
 
     var simp = new SidedWireModel(generateWireModels("ic1", 4))
     var analog = new SidedWireModel(generateWireModels("ic2", 4))
@@ -323,10 +323,10 @@ class RenderICGate extends GateRenderer[ICGatePart]
 
     override val coreModels = Seq(new integration.BaseComponentModel, simp, analog, bundled, new ICChipModel, housing)
 
-    override def prepareInv(stack:ItemStack)
+    override def prepareInv(stack:ItemStack): Unit =
     {
-        import ItemICBlueprint._
-        if (hasICInside(stack)) {
+        import ItemICBlueprint.*
+        if hasICInside(stack) then {
             name = getICName(stack)
             val cm = getConnModes(stack)
             simp.sidemask = connTypeMask(Simple, cm)
@@ -343,7 +343,7 @@ class RenderICGate extends GateRenderer[ICGatePart]
         analog.wires.foreach(_.on = false)
     }
 
-    override def prepare(gate:ICGatePart)
+    override def prepare(gate:ICGatePart): Unit =
     {
         simp.sidemask = connTypeMask(Simple, gate.getLogicIC.connmodes)
         analog.sidemask = connTypeMask(Analog, gate.getLogicIC.connmodes)
@@ -359,21 +359,21 @@ class RenderICGate extends GateRenderer[ICGatePart]
     def connTypeMask(c:Int, conns:Array[Int]) =
     {
         var m = 0
-        for (r <- 0 until 4)
-            if (conns(r) == c) m |= 1<<r
+        for r <- 0 until 4 do
+            if conns(r) == c then m |= 1<<r
         m
     }
 
     override def hasSpecials = true
-    override def prepareDynamic(gate:ICGatePart, frame:Float)
+    override def prepareDynamic(gate:ICGatePart, frame:Float): Unit =
     {
         name = gate.getLogicIC.name
     }
 
-    override def renderDynamic(t:Transformation, ccrs:CCRenderState)
+    override def renderDynamic(t:Transformation, ccrs:CCRenderState): Unit =
     {
-        import GL11._
-        import net.minecraft.client.renderer.GlStateManager._
+        import GL11.*
+        import net.minecraft.client.renderer.GlStateManager.*
 
         disableLighting()
         enableBlend()

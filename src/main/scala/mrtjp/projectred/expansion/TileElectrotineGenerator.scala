@@ -11,7 +11,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.gui._
+import mrtjp.core.gui.*
 import mrtjp.core.inventory.{TInventory, TInventoryCapablilityTile}
 import mrtjp.core.vec.Point
 import mrtjp.core.world.WorldLib
@@ -35,7 +35,7 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
     var burnTimeRemaining = 0
     var powerStorage = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         saveInv(tag)
@@ -43,7 +43,7 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         tag.setShort("btime", burnTimeRemaining.toShort)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         loadInv(tag)
@@ -55,14 +55,14 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         ic = isCharged
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(isCharged)
         out.writeBoolean(isBurning)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         isCharged = in.readBoolean()
@@ -79,7 +79,7 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         case _ => super.read(in, key)
     }
 
-    def sendRenderUpdate()
+    def sendRenderUpdate(): Unit =
     {
         writeStream(5).writeBoolean(isCharged).writeBoolean(isBurning).sendToChunk(this)
     }
@@ -111,7 +111,7 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
     def getDrawSpeed = 100
     def getDrawFloor = 1000
 
-    override def updateServer()
+    override def updateServer(): Unit =
     {
         super.updateServer()
 
@@ -120,29 +120,29 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         tryChargeConductor()
         tryBurnDust()
 
-        if (world.getTotalWorldTime%10 == 0) updateRenderIfNeeded()
+        if world.getTotalWorldTime%10 == 0 then updateRenderIfNeeded()
     }
 
-    def tryBurnDust()
+    def tryBurnDust(): Unit =
     {
-        if (powerStorage < getMaxStorage && burnTimeRemaining < getBurnUseOnCharge)
+        if powerStorage < getMaxStorage && burnTimeRemaining < getBurnUseOnCharge then
         {
             val inslot = getStackInSlot(0)
-            if (!inslot.isEmpty)
+            if !inslot.isEmpty then
             {
                 inslot.shrink(1)
                 burnTimeRemaining = getBurnTimePerDust
-                if (inslot.isEmpty) setInventorySlotContents(0, ItemStack.EMPTY)
+                if inslot.isEmpty then setInventorySlotContents(0, ItemStack.EMPTY)
                 else setInventorySlotContents(0, inslot)
             }
         }
     }
 
-    def tryChargeStorage()
+    def tryChargeStorage(): Unit =
     {
-        if (burnTimeRemaining > 0)
+        if burnTimeRemaining > 0 then
         {
-            if (powerStorage < getMaxStorage && burnTimeRemaining >= getBurnUseOnCharge)
+            if powerStorage < getMaxStorage && burnTimeRemaining >= getBurnUseOnCharge then
             {
                 powerStorage += 1
                 burnTimeRemaining -= getBurnUseOnCharge
@@ -154,9 +154,9 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
         }
     }
 
-    def tryChargeConductor()
+    def tryChargeConductor(): Unit =
     {
-        if (cond.charge < getDrawFloor && powerStorage > 0)
+        if cond.charge < getDrawFloor && powerStorage > 0 then
         {
             var n = math.min(getDrawFloor-cond.charge, getDrawSpeed)/10
             n = math.min(n, powerStorage)
@@ -167,18 +167,18 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
 
     private var ib = false
     private var ic = false
-    def updateRenderIfNeeded()
+    def updateRenderIfNeeded(): Unit =
     {
         isCharged = cond.canWork
         isBurning = burnTimeRemaining > 0
-        if (ib != isBurning || ic != isCharged) sendRenderUpdate()
+        if ib != isBurning || ic != isCharged then sendRenderUpdate()
         ib = isBurning
         ic = isCharged
     }
 
-    override def getLightValue = if (isBurning) 13 else 0
+    override def getLightValue = if isBurning then 13 else 0
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
@@ -194,15 +194,15 @@ class ContainerElectrotineGenerator(p:EntityPlayer, tile:TileElectrotineGenerato
 
     private var st = -1
     private var bt = -1
-    override def detectAndSendChanges()
+    override def detectAndSendChanges(): Unit =
     {
         super.detectAndSendChanges()
-        import scala.jdk.CollectionConverters._
-        for (i <- listeners.asScala)
+        import scala.jdk.CollectionConverters.*
+        for i <- listeners.asScala do
         {
-            if (st != tile.powerStorage) i
+            if st != tile.powerStorage then i
                     .sendWindowProperty(this, 3, tile.powerStorage)
-            if (bt != tile.burnTimeRemaining) i
+            if bt != tile.burnTimeRemaining then i
                     .sendWindowProperty(this, 4, tile.burnTimeRemaining)
         }
         st = tile.powerStorage
@@ -219,27 +219,27 @@ class ContainerElectrotineGenerator(p:EntityPlayer, tile:TileElectrotineGenerato
 
 class GuiElectrotineGenerator(tile:TileElectrotineGenerator, c:ContainerElectrotineGenerator) extends NodeGui(c, 176, 171)
 {
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiElectrotineGenerator.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
-        if (tile.cond.canWork)
+        if tile.cond.canWork then
             GuiDraw.drawTexturedModalRect(22, 16, 176, 1, 7, 9)
         GuiLib.drawVerticalTank(22, 26, 176, 10, 7, 48, tile.cond.getChargeScaled(48))
 
-        if (tile.powerStorage == tile.getMaxStorage)
+        if tile.powerStorage == tile.getMaxStorage then
             GuiDraw.drawTexturedModalRect(54, 16, 184, 1, 14, 9)
         GuiLib.drawVerticalTank(54, 26, 184, 10, 14, 48, tile.getStorageScaled(48))
 
-        if (tile.burnTimeRemaining > 0)
+        if tile.burnTimeRemaining > 0 then
             GuiDraw.drawTexturedModalRect(93, 16, 199, 1, 7, 9)
         GuiLib.drawVerticalTank(93, 26, 199, 10, 7, 48, tile.getBurnTimeScaled(48))
 
-        if (tile.cond.charge < tile.getDrawFloor && (tile.powerStorage > 0 || tile.burnTimeRemaining > tile.getBurnUseOnCharge))
+        if tile.cond.charge < tile.getDrawFloor && (tile.powerStorage > 0 || tile.burnTimeRemaining > tile.getBurnUseOnCharge) then
             GuiDraw.drawTexturedModalRect(30, 46, 211, 0, 23, 9)
 
-        if (tile.burnTimeRemaining > tile.getBurnUseOnCharge && tile.powerStorage < tile.getMaxStorage)
+        if tile.burnTimeRemaining > tile.getBurnUseOnCharge && tile.powerStorage < tile.getMaxStorage then
             GuiDraw.drawTexturedModalRect(69, 45, 211, 10, 23, 9)
 
         GuiDraw.drawString("Electrotine Generator", 8, 6, EnumColour.GRAY.argb, false)
@@ -266,21 +266,21 @@ object GuiElectrotineGenerator extends TGuiFactory
 object RenderElectrotineGenerator extends SimpleBlockRenderer
 {
     import org.apache.commons.lang3.tuple.Triple
-    import mrtjp.projectred.expansion.BlockProperties._
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import mrtjp.projectred.expansion.BlockProperties.*
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
-    var bottom:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var side2a:TextureAtlasSprite = _
-    var side2b:TextureAtlasSprite = _
-    var side2c:TextureAtlasSprite = _
-    var side2d:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2a:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2b:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2c:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2d:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
-    var iconT3:UVTransformation = _
-    var iconT4:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
+    var iconT3:UVTransformation = scala.compiletime.uninitialized
+    var iconT4:UVTransformation = scala.compiletime.uninitialized
 
 
     override def handleState(state: IExtendedBlockState, world:IBlockAccess, pos:BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
@@ -314,7 +314,7 @@ object RenderElectrotineGenerator extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/top"))

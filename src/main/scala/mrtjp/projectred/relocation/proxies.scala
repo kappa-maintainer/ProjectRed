@@ -9,8 +9,8 @@ import java.util.concurrent.Callable
 
 import codechicken.lib.packet.PacketCustom
 import codechicken.multipart.{MultiPartRegistry, MultipartGenerator}
-import mrtjp.projectred.ProjectRedRelocation._
-import mrtjp.projectred.api.ProjectRedAPI.{relocationAPI => API}
+import mrtjp.projectred.ProjectRedRelocation.*
+import mrtjp.projectred.api.ProjectRedAPI.{relocationAPI as API}
 import mrtjp.projectred.api.{IConditionallyMovable, IFrame}
 import net.minecraft.nbt.NBTBase
 import net.minecraft.util.math.BlockPos
@@ -24,7 +24,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class RelocationProxy_server
 {
-    def preinit()
+    def preinit(): Unit =
     {
         API.registerTileMover("saveload",
             "Saves the tile and then reloads it in the next position. Reliable but CPU intensive.",
@@ -73,7 +73,7 @@ class RelocationProxy_server
         blockMovingRow.addTile(classOf[TileMovingRow], 0)
     }
 
-    def init()
+    def init(): Unit =
     {
         MultiPartRegistry.registerParts((_:ResourceLocation, _:Boolean) => new FramePart, Array(FramePart.partType))
         MultiPartRegistry.registerConverter(FrameBlockConverter)
@@ -81,7 +81,7 @@ class RelocationProxy_server
         CapabilityManager.INSTANCE.register(classOf[IFrame], new IStorage[IFrame] {
             override def writeNBT(capability:Capability[IFrame], instance:IFrame, side:EnumFacing):NBTBase = null
 
-            override def readNBT(capability:Capability[IFrame], instance:IFrame, side:EnumFacing, nbt:NBTBase){}
+            override def readNBT(capability:Capability[IFrame], instance:IFrame, side:EnumFacing, nbt:NBTBase): Unit ={}
         }, new Callable[IFrame]{
             override def call():IFrame = new IFrame {
                 override def stickIn(w:World, pos:BlockPos, side:EnumFacing) = false
@@ -91,7 +91,7 @@ class RelocationProxy_server
 
         CapabilityManager.INSTANCE.register(classOf[IConditionallyMovable], new IStorage[IConditionallyMovable] {
             override def writeNBT(capability:Capability[IConditionallyMovable], instance:IConditionallyMovable, side:EnumFacing):NBTBase = null
-            override def readNBT(capability:Capability[IConditionallyMovable], instance:IConditionallyMovable, side:EnumFacing, nbt:NBTBase){}
+            override def readNBT(capability:Capability[IConditionallyMovable], instance:IConditionallyMovable, side:EnumFacing, nbt:NBTBase): Unit ={}
         }, new Callable[IConditionallyMovable]{
             override def call():IConditionallyMovable = new IConditionallyMovable {
                 override def isMovable(w:World, pos:BlockPos) = true
@@ -99,7 +99,7 @@ class RelocationProxy_server
         })
     }
 
-    def postinit()
+    def postinit(): Unit =
     {
         MinecraftForge.EVENT_BUS.register(RelocationEventHandler)
         PacketCustom.assignHandler(RelocationSPH.channel, RelocationSPH)
@@ -109,7 +109,7 @@ class RelocationProxy_server
 class RelocationProxy_client extends RelocationProxy_server
 {
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
 
@@ -118,14 +118,14 @@ class RelocationProxy_client extends RelocationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
         MovingRenderer.init()
     }
 
     @SideOnly(Side.CLIENT)
-    override def postinit()
+    override def postinit(): Unit =
     {
         super.postinit()
 

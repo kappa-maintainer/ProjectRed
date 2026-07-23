@@ -65,20 +65,20 @@ object WireDef extends ItemDefinition
     val POWER_LOWLOAD = apply(typeLowLoad, typeFramedLowLoad, 1, 0xFFFFFF, "power/lowload")
 
     //Groups
-    val INSULATED_WIRES = INSULATED_0 to INSULATED_15 toArray
-    val BUNDLED_WIRES = BUNDLED_N to BUNDLED_15 toArray
+    val INSULATED_WIRES = INSULATED_0 `to` INSULATED_15 toArray
+    val BUNDLED_WIRES = BUNDLED_N `to` BUNDLED_15 toArray
 
     val oreDictDefinitionInsulated = "projredInsulatedWire"
     val oreDictDefinitionInsFramed = "projredInsFramedWire"
     val oreDictDefinitionBundled = "projredBundledCable"
 
-    def initOreDict()
+    def initOreDict(): Unit =
     {
-        for (w <- INSULATED_WIRES) {
-            if (w.hasFramedForm) OreDictionary.registerOre(oreDictDefinitionInsFramed, w.makeFramedStack)
+        for w <- INSULATED_WIRES do {
+            if w.hasFramedForm then OreDictionary.registerOre(oreDictDefinitionInsFramed, w.makeFramedStack)
             OreDictionary.registerOre(oreDictDefinitionInsulated, w.makeStack)
         }
-        for (w <- BUNDLED_WIRES) OreDictionary.registerOre(oreDictDefinitionBundled, w.makeStack)
+        for w <- BUNDLED_WIRES do OreDictionary.registerOre(oreDictDefinitionBundled, w.makeStack)
     }
 
     def apply(wireType:ResourceLocation, framedType:ResourceLocation, thickness:Int, itemColour:Int, textures:String*) =
@@ -86,22 +86,22 @@ object WireDef extends ItemDefinition
 
     class WireDef(val wireType:ResourceLocation, val framedType:ResourceLocation, val thickness:Int, val itemColour:Int, textures:Seq[String]) extends ItemDef(wireType.toString)
     {
-        var wireSprites:Array[TextureAtlasSprite] = _
+        var wireSprites:Array[TextureAtlasSprite] = scala.compiletime.uninitialized
 
         def hasWireForm = wireType != null
         def hasFramedForm = framedType != null
 
         @SideOnly(Side.CLIENT)
-        def loadTextures(map:TextureMap)
+        def loadTextures(map:TextureMap): Unit =
         {
             wireSprites = new Array[TextureAtlasSprite](textures.length)
-            for (i <- textures.indices)
+            for i <- textures.indices do
                 wireSprites(i) = map.registerSprite(
                     new ResourceLocation("projectred:blocks/integration/"+textures(i)))
         }
 
         def makeFramedStack:ItemStack = makeFramedStack(1)
         def makeFramedStack(i:Int) =
-        if (hasFramedForm) new ItemStack(ProjectRedTransmission.itemPartFramedWire, i, meta) else ItemStack.EMPTY
+        if hasFramedForm then new ItemStack(ProjectRedTransmission.itemPartFramedWire, i, meta) else ItemStack.EMPTY
     }
 }

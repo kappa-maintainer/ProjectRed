@@ -15,7 +15,7 @@ class ExpansionPH
 
 object ExpansionCPH extends ExpansionPH with IClientPacketHandler
 {
-    def handlePacket(packet:PacketCustom, mc:Minecraft, nethandler:INetHandlerPlayClient)
+    def handlePacket(packet:PacketCustom, mc:Minecraft, nethandler:INetHandlerPlayClient): Unit =
     {
         packet.getType match
         {
@@ -24,14 +24,14 @@ object ExpansionCPH extends ExpansionPH with IClientPacketHandler
         }
     }
 
-    def openMachineGui(packet:PacketCustom, mc:Minecraft)
+    def openMachineGui(packet:PacketCustom, mc:Minecraft): Unit =
     {
     }
 }
 
 object ExpansionSPH extends ExpansionPH with IServerPacketHandler
 {
-    def handlePacket(packet:PacketCustom, sender:EntityPlayerMP, nethandler:INetHandlerPlayServer)
+    def handlePacket(packet:PacketCustom, sender:EntityPlayerMP, nethandler:INetHandlerPlayServer): Unit =
     {
     }
 }

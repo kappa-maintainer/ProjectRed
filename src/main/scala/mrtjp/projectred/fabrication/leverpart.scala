@@ -20,25 +20,25 @@ class LeverICTile extends ICTile with TICTileAcquisitions with IRedwireICGate wi
     val outputRegs = Array(REG_ZERO, REG_ZERO, REG_ZERO, REG_ZERO)
     var on = false
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setBoolean("on", on)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         on = tag.getBoolean("on")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(on)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         on = in.readBoolean()
@@ -50,38 +50,38 @@ class LeverICTile extends ICTile with TICTileAcquisitions with IRedwireICGate wi
         case _ => super.read(in, key)
     }
 
-    override def readClientPacket(in:MCDataInput)
+    override def readClientPacket(in:MCDataInput): Unit =
     {
         on = !on
         pushToRegisters()
         sendStateUpdate()
     }
 
-    def sendStateUpdate()
+    def sendStateUpdate(): Unit =
     {
         writeStreamOf(1).writeBoolean(on)
     }
 
     override def getPartType = ICTileDefs.Lever
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
-        if (!editor.network.isRemote) notify(0xF)
+        if !editor.network.isRemote then notify(0xF)
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
-        if (!editor.network.isRemote) notify(0xF)
+        if !editor.network.isRemote then notify(0xF)
     }
 
-    def pushToRegisters()
+    def pushToRegisters(): Unit =
     {
-        for (r <- 0 until 4)
-            editor.simEngineContainer.simEngine.queueRegVal[Byte](outputRegs(r), if (on) 1 else 0)
+        for r <- 0 until 4 do
+            editor.simEngineContainer.simEngine.queueRegVal[Byte](outputRegs(r), if on then 1 else 0)
         editor.simEngineContainer.simEngine.propagate(editor.simEngineContainer)
     }
 
-    override def onRegistersChanged(regIDs:Set[Int]){} //we dont care if other registers change
+    override def onRegistersChanged(regIDs:Set[Int]): Unit ={} //we dont care if other registers change
 
     override def canOutputTo(r:Int) = true
 
@@ -89,21 +89,21 @@ class LeverICTile extends ICTile with TICTileAcquisitions with IRedwireICGate wi
 
     override def buildImplicitWireNet(r:Int):IWireNet = null //TODO
 
-    override def allocateOrFindRegisters(linker:ISELinker)
+    override def allocateOrFindRegisters(linker:ISELinker): Unit =
     {
-        for (r <- 0 until 4)
+        for r <- 0 until 4 do
             outputRegs(r) = linker.findOutputRegister(pos, r)
     }
 
-    override def declareOperations(linker:ISELinker)
+    override def declareOperations(linker:ISELinker): Unit =
     {
         on = false
-        if (editor != null)
+        if editor != null then
             sendStateUpdate()
     }
 
     @SideOnly(Side.CLIENT)
-    override def onClicked()
+    override def onClicked(): Unit =
     {
         sendClientPacket()//data not necessary, only 1 reason to send this.
     }
@@ -115,14 +115,14 @@ class LeverICTile extends ICTile with TICTileAcquisitions with IRedwireICGate wi
     override def getPickOp = TileEditorOpDefs.Lever.getOp
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(buffer:ListBuffer[String])
+    override def buildRolloverData(buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(buffer)
-        buffer += ChatFormatting.GRAY.toString+"state: "+(if (on) "on" else "off")
+        buffer += ChatFormatting.GRAY.toString+"state: "+(if on then "on" else "off")
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float)
+    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         RenderTileLever.prepairDynamic(this)
         RenderTileLever.render(ccrs, t, ortho)
@@ -131,7 +131,7 @@ class LeverICTile extends ICTile with TICTileAcquisitions with IRedwireICGate wi
 
 class OpLever extends SimplePlacementOp
 {
-    override def doPartRender(ccrs:CCRenderState, t:Transformation)
+    override def doPartRender(ccrs:CCRenderState, t:Transformation): Unit =
     {
         RenderTileLever.prepairInv()
         RenderTileLever.render(ccrs, t, true)

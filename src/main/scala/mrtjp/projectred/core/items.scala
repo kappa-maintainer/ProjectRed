@@ -1,6 +1,6 @@
 package mrtjp.projectred.core
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 import mrtjp.core.item.{ItemCore, ItemDefinition}
 import mrtjp.projectred.ProjectRedCore
 import mrtjp.projectred.api.IScrewdriver
@@ -23,7 +23,7 @@ abstract class ItemCraftingDamage extends ItemCore
     override def hasContainerItem(itemStack:ItemStack) = true
 
     override def getContainerItem(stack:ItemStack) =
-        if(isDamageable)
+        if isDamageable then
             new ItemStack(stack.getItem, 1, stack.getItemDamage+1)
         else
             stack
@@ -40,16 +40,16 @@ class ItemPart extends ItemCore
     setCreativeTab(ProjectRedCore.tabCore)
     setHasSubtypes(true)
 
-    override def getSubItems(tab:CreativeTabs, subItems:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, subItems:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab))
-            for (i <- PartDefs.values)
+        if isInCreativeTab(tab) then
+            for i <- PartDefs.values do
                 subItems.add(i.makeStack)
     }
 
     override def getTranslationKey(stack: ItemStack):String = {
         val col = PartDefs.fromMeta(stack.getItemDamage)
-        if (col != null) getTranslationKey() + "." + col.name
+        if col != null then getTranslationKey() + "." + col.name
         else super.getTranslationKey(stack)
     }
 }
@@ -140,14 +140,14 @@ object PartDefs extends ItemDefinition
     val NULLROUTINGCHIP = new PartVal(600, "null_chip")
 
     //Groups
-    val ILLUMARS = WHITEILLUMAR to BLACKILLUMAR toArray
+    val ILLUMARS = WHITEILLUMAR `to` BLACKILLUMAR toArray
 
     val oreDictDefinitionIllumar = "projredIllumar"
     val oreDictDefinitionRedIngot = "ingotRedAlloy"
 
     class PartVal(override val meta:Int, iconName:String) extends ItemDef(iconName)
     {
-        def setCustomModelResourceLocations()
+        def setCustomModelResourceLocations(): Unit =
         {
             ModelLoader.setCustomModelResourceLocation(getItem, meta,
                 new ModelResourceLocation("projectred:base/items", "type="+name))
@@ -168,9 +168,9 @@ class ItemScrewdriver extends ItemCore with IScrewdriver
 
     override def canUse(player:EntityPlayer, stack:ItemStack) = true
 
-    override def damageScrewdriver(player:EntityPlayer, stack:ItemStack)
+    override def damageScrewdriver(player:EntityPlayer, stack:ItemStack): Unit =
     {
-        if (!Configurator.unbreakableScrewdriver)
+        if !Configurator.unbreakableScrewdriver then
             stack.damageItem(1, player)
     }
 }

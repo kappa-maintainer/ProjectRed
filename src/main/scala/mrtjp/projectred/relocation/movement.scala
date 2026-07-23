@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.relocation
 
-import java.util.{ArrayList => JAList}
+import java.util.{ArrayList as JAList}
 
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.packet.PacketCustom
@@ -21,9 +21,9 @@ import net.minecraft.world.{NextTickListEntry, World, WorldServer}
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.immutable.HashSet
-import scala.collection.mutable.{HashMap => MHashMap, MultiMap => MMultiMap, Set => MSet}
+import scala.collection.mutable.{HashMap as MHashMap, MultiMap as MMultiMap, Set as MSet}
 import scala.ref.WeakReference
 
 object MovementManager
@@ -32,7 +32,7 @@ object MovementManager
     val clientRelocations:MHashMap[Int, WorldStructs] = MHashMap()
 
     def relocationMap(isClient:Boolean):MHashMap[Int, WorldStructs] =
-        if (isClient) clientRelocations else serverRelocations
+        if isClient then clientRelocations else serverRelocations
 
     def isValidWorld(w:World) = w != null && w.provider != null
 
@@ -43,14 +43,14 @@ object MovementManager
         getWorldStructs(w).structs.find(_.contains(pos)).orNull
 
     def getWorld(dim:Int, isClient:Boolean):World =
-        if (!isClient) DimensionManager.getWorld(dim)
+        if !isClient then DimensionManager.getWorld(dim)
         else getClientWorld(dim)
 
     @SideOnly(Side.CLIENT)
     private def getClientWorld(dim:Int):World =
     {
         val w = Minecraft.getMinecraft.world
-        if (w.provider.getDimension == dim) w else null
+        if w.provider.getDimension == dim then w else null
     }
 
     def isMoving(w:World, pos:BlockPos):Boolean = getWorldStructs(w).contains(pos)
@@ -60,19 +60,19 @@ object MovementManager
     def writeDesc(w:World, chunks:Set[ChunkPos], out:MCDataOutput):Boolean =
     {
         var send = false
-        for (s <- getWorldStructs(w).structs if s.getChunks.exists(chunks.contains)) {
+        for s <- getWorldStructs(w).structs if s.getChunks.exists(chunks.contains) do {
             send = true
             out.writeShort(s.id)
             s.writeDesc(out)
         }
-        if (send) out.writeShort(Short.MaxValue)
+        if send then out.writeShort(Short.MaxValue)
         send
     }
 
     def readDesc(w:World, in:MCDataInput):Unit =
     {
         var id = in.readUShort()
-        while (id != Short.MaxValue) {
+        while id != Short.MaxValue do {
             val struct = new BlockStruct
             struct.id = id
             struct.readDesc(in)
@@ -87,7 +87,7 @@ object MovementManager
             struct.id = in.readUShort()
             struct.readDesc(in)
             addStructToWorld(w, struct)
-            for (b <- struct.allBlocks) //rerender all moving blocks
+            for b <- struct.allBlocks do //rerender all moving blocks
                 w.markBlockRangeForRenderUpdate(b, b)
         case 2 =>
             val id = in.readUShort()
@@ -121,24 +121,24 @@ object MovementManager
 
     def tryStartMove(w:World, blocks:Set[BlockPos], moveDir:Int, speed:Double, c:IMovementCallback):Boolean =
     {
-        if (blocks.size > RelocationConfig.moveLimit) return false
+        if blocks.size > RelocationConfig.moveLimit then return false
 
         val map = new MHashMap[(Int, Int), MSet[Int]] with MMultiMap[(Int, Int), Int]
-        for (b <- blocks) map.addBinding(MathLib.normal(b, moveDir), MathLib.basis(b, moveDir))
+        for b <- blocks do map.addBinding(MathLib.normal(b, moveDir), MathLib.basis(b, moveDir))
 
-        val shift = if ((moveDir & 1) == 1) 1 else -1
+        val shift = if (moveDir & 1) == 1 then 1 else -1
         val rowB = Set.newBuilder[BlockRow]
-        for (normal <- map.keys) {
+        for normal <- map.keys do {
             val line = map(normal).toArray
-            val sline = if (shift == 1) line.sorted else line.sorted(Ordering[Int].reverse)
-            for ((basis, size) <- MathLib.splitLine(sline, shift)) {
+            val sline = if shift == 1 then line.sorted else line.sorted(using Ordering[Int].reverse)
+            for (basis, size) <- MathLib.splitLine(sline, shift) do {
                 val c = MathLib.rhrAxis(moveDir, normal, basis + shift)
                 rowB += new BlockRow(c, EnumFacing.byIndex(moveDir), size)
             }
         }
 
         val rows = rowB.result()
-        if (rows.exists(!_.canMove(w))) return false
+        if rows.exists(!_.canMove(w)) then return false
 
         val struct = new BlockStruct
         struct.id = BlockStruct.claimID()
@@ -148,25 +148,25 @@ object MovementManager
         addStructToWorld(w, struct)
         sendStruct(w, struct)
 
-        for (r <- rows) TileMovingRow.setBlockForRow(w, r)
+        for r <- rows do TileMovingRow.setBlockForRow(w, r)
         true
     }
 
-    def onTick(isClient:Boolean)
+    def onTick(isClient:Boolean): Unit =
     {
         val map = relocationMap(isClient)
-        for ((dim, ws) <- map) if (ws.nonEmpty) {
+        for (dim, ws) <- map do if ws.nonEmpty then {
             ws.pushAll()
             val world = getWorld(dim, isClient)
-            if (world != null) for (bs <- ws.structs) for (br <- bs.rows)
+            if world != null then for bs <- ws.structs do for br <- bs.rows do
                 br.pushEntities(world, bs.progress)
         }
 
-        if (!isClient) {
+        if !isClient then {
             val fin = map.map(pair => (pair._1, pair._2.removeFinished())).filter(_._2.nonEmpty)
-            for ((dim, b) <- fin) {
+            for (dim, b) <- fin do {
                 val w = getWorld(dim, isClient = false)
-                if (w != null) for (s <- b) {
+                if w != null then for s <- b do {
                     cycleMove(w, s)
                     sendCycle(w, s)
                 }
@@ -174,19 +174,19 @@ object MovementManager
         }
     }
 
-    def onWorldUnload(w:World)
+    def onWorldUnload(w:World): Unit =
     {
         getWorldStructs(w).clear()
     }
 
-    private def clientCycleMove(w:World, struct:BlockStruct)
+    private def clientCycleMove(w:World, struct:BlockStruct): Unit =
     {
         getWorldStructs(w).removeStruct(struct)
         struct.rows.foreach(_.pushEntities(w, 1.0))
         cycleMove(w, struct)
     }
 
-    private def cycleMove(w:World, struct:BlockStruct)
+    private def cycleMove(w:World, struct:BlockStruct): Unit =
     {
         struct.doMove(w)
         struct.postMove(w)
@@ -195,10 +195,10 @@ object MovementManager
         rescheduleTicks(w, struct.preMoveBlocks, struct.allBlocks, struct.moveDir)
 
         val changes = MSet[BlockPos]()
-        for (r <- struct.rows) r.cacheChanges(w, changes)
-        for (bc <- changes) w.neighborChanged(bc, Blocks.AIR, bc) // FIXME: Update source block?
+        for r <- struct.rows do r.cacheChanges(w, changes)
+        for bc <- changes do w.neighborChanged(bc, Blocks.AIR, bc) // FIXME: Update source block?
 
-        if (w.isRemote) for (b <- struct.allBlocks) {
+        if w.isRemote then for b <- struct.allBlocks do {
             Minecraft.getMinecraft.renderGlobal.markBlockRangeForRenderUpdate(
                 b.getX, b.getY, b.getZ,
                 b.getX, b.getY, b.getZ
@@ -206,7 +206,7 @@ object MovementManager
         }
     }
 
-    private def rescheduleTicks(world:World, blocks:Set[BlockPos], allBlocks:Set[BlockPos], dir:EnumFacing)
+    private def rescheduleTicks(world:World, blocks:Set[BlockPos], allBlocks:Set[BlockPos], dir:EnumFacing): Unit =
     {
         world match {
             case world:WorldServer =>
@@ -223,21 +223,21 @@ object MovementManager
                     case tList => tList.asScala.toSet
                 })
 
-                if (isOptifine) for (tick <- scheduledTicks) {
+                if isOptifine then for tick <- scheduledTicks do {
                     tree.remove(tick)
                     hash.remove(tick)
                     list.remove(tick)
                 }
 
-                for (tick <- scheduledTicks) {
+                for tick <- scheduledTicks do {
                     val bc = tick.position
-                    if (blocks(bc)) {
+                    if blocks(bc) then {
                         bc.offset(dir)
                         tick.position = bc
                     }
                 }
 
-                for (tick <- scheduledTicks) if (!hash.contains(tick)) {
+                for tick <- scheduledTicks do if !hash.contains(tick) then {
                     hash.add(tick)
                     tree.add(tick)
                 }
@@ -247,13 +247,13 @@ object MovementManager
 
     def getConditionallyMovable(w:World, pos:BlockPos):IConditionallyMovable = {
         val b = w.getBlockState(pos).getBlock
-        if (b.isInstanceOf[IConditionallyMovable]) return b.asInstanceOf[IConditionallyMovable]
+        if b.isInstanceOf[IConditionallyMovable] then return b.asInstanceOf[IConditionallyMovable]
 
         val te = w.getTileEntity(pos)
-        if (te != null && te.isInstanceOf[IConditionallyMovable])
+        if te != null && te.isInstanceOf[IConditionallyMovable] then
             return te.asInstanceOf[IConditionallyMovable]
 
-        if (te != null && te.hasCapability(IRelocationAPI.CONDITIONALLY_MOVABLE_CAPABILITY, null))
+        if te != null && te.hasCapability(IRelocationAPI.CONDITIONALLY_MOVABLE_CAPABILITY, null) then
             return te.getCapability(IRelocationAPI.CONDITIONALLY_MOVABLE_CAPABILITY, null)
 
         null
@@ -296,7 +296,7 @@ class WorldStructs
         structs -= s
     }
 
-    def clear()
+    def clear(): Unit =
     {
         structs = Set.empty
     }
@@ -313,7 +313,7 @@ object BlockStruct
 
     def claimID():Int =
     {
-        if (maxID < 32765) maxID += 1 //little less than Short.MaxValue (reserved for terminator)
+        if maxID < 32765 then maxID += 1 //little less than Short.MaxValue (reserved for terminator)
         else maxID = 0
         maxID
     }
@@ -360,7 +360,7 @@ class BlockStruct
 
     def isAdjacentTo(pos:BlockPos):Boolean = allAdjacentBlocks.contains(pos)
 
-    def push()
+    def push(): Unit =
     {
         progress = math.min(1.0, progress + speed)
     }
@@ -370,14 +370,14 @@ class BlockStruct
     def getChunks:Set[ChunkPos] =
     {
         val c = Set.newBuilder[ChunkPos]
-        for (b <- allBlocks)
+        for b <- allBlocks do
             c += new ChunkPos(b.getX >> 4, b.getZ >> 4)
         c.result()
     }
 
-    def onAdded(w:World)
+    def onAdded(w:World): Unit =
     {
-        if (!w.isRemote) callback match {
+        if !w.isRemote then callback match {
             case WeakReference(c) =>
                 c.setDescriptor(new MoveDesc(this))
                 c.onMovementStarted()
@@ -385,20 +385,20 @@ class BlockStruct
         }
     }
 
-    def doMove(w:World)
+    def doMove(w:World): Unit =
     {
-        for (r <- rows) r.doMove(w)
+        for r <- rows do r.doMove(w)
     }
 
-    def postMove(w:World)
+    def postMove(w:World): Unit =
     {
-        for (r <- rows) r.postMove(w)
+        for r <- rows do r.postMove(w)
     }
 
-    def endMove(w:World)
+    def endMove(w:World): Unit =
     {
-        for (r <- rows) r.endMove(w)
-        if (!w.isRemote) callback match {
+        for r <- rows do r.endMove(w)
+        if !w.isRemote then callback match {
             case WeakReference(c) => c.onMovementFinished()
             case _ =>
         }
@@ -409,24 +409,24 @@ class BlockStruct
         case _ => false
     }
 
-    def writeDesc(out:MCDataOutput)
+    def writeDesc(out:MCDataOutput): Unit =
     {
         out.writeFloat(progress.toFloat)
         out.writeFloat(speed.toFloat)
         out.writeByte(rows.size)
-        for (r <- rows) {
+        for r <- rows do {
             out.writePos(r.pos)
             out.writeByte(r.moveDir.getIndex)
             out.writeShort(r.size)
         }
     }
 
-    def readDesc(in:MCDataInput)
+    def readDesc(in:MCDataInput): Unit =
     {
         progress = in.readFloat()
         speed = in.readFloat()
         val rb = Set.newBuilder[BlockRow]
-        for (_ <- 0 until in.readUByte())
+        for _ <- 0 until in.readUByte() do
             rb += new BlockRow(in.readPos(), EnumFacing.byIndex(in.readUByte()), in.readShort())
         rows = rb.result()
     }
@@ -447,7 +447,7 @@ class BlockRow(val pos:BlockPos, val moveDir:EnumFacing, val size:Int)
 
         import math.{max, min}
 
-        if (normal(this.pos, moveDir.getIndex) == normal(pos, moveDir.getIndex)) {
+        if normal(this.pos, moveDir.getIndex) == normal(pos, moveDir.getIndex) then {
             val b1 = basis(this.pos, moveDir.getIndex)
             val b2 = b1 + size * shift(moveDir.getOpposite.getIndex)
             min(b1, b2) to max(b1, b2) contains basis(pos, moveDir.getOpposite.getIndex)
@@ -455,7 +455,7 @@ class BlockRow(val pos:BlockPos, val moveDir:EnumFacing, val size:Int)
         else false
     }
 
-    def pushEntities(w:World, progress:Double)
+    def pushEntities(w:World, progress:Double): Unit =
     {
         WorldLib.uncheckedGetTileEntity(w, pos) match {
             case te:TileMovingRow => te.pushEntities(this, progress)
@@ -465,41 +465,41 @@ class BlockRow(val pos:BlockPos, val moveDir:EnumFacing, val size:Int)
 
     def canMove(w:World):Boolean =
     {
-        if (!MovingTileRegistry.canRunOverBlock(w, pos))
+        if !MovingTileRegistry.canRunOverBlock(w, pos) then
             return false
 
-        for (b <- preMoveBlocks) {
+        for b <- preMoveBlocks do {
             val movable = MovementManager.getConditionallyMovable(w, b)
-            if (movable != null && !movable.isMovable(w, b))
+            if movable != null && !movable.isMovable(w, b) then
                 return false
         }
 
         true
     }
 
-    def doMove(w:World)
+    def doMove(w:World): Unit =
     {
-        if (pos.getY < 0 || pos.getY >= 256) return
+        if pos.getY < 0 || pos.getY >= 256 then return
 
         w.removeTileEntity(pos)
         WorldLib.uncheckedSetBlock(w, pos, Blocks.AIR.getDefaultState) //Remove movement block
 
-        for (b <- preMoveBlocks)
+        for b <- preMoveBlocks do
             MovingTileRegistry.move(w, b, moveDir)
     }
 
     def postMove(w:World):Unit =
-        for (b <- postMoveBlocks)
+        for b <- postMoveBlocks do
             MovingTileRegistry.postMove(w, b)
 
-    def endMove(w:World) {}
+    def endMove(w:World): Unit = {}
 
-    def cacheChanges(w:World, changes:MSet[BlockPos])
+    def cacheChanges(w:World, changes:MSet[BlockPos]): Unit =
     {
-        for (i <- 0 to size) {
+        for i <- 0 to size do {
             val c = pos.offset(moveDir.getOpposite, i)
             changes += c
-            for (s <- EnumFacing.VALUES; s1 <- EnumFacing.VALUES if s1 != s.getOpposite)
+            for s <- EnumFacing.VALUES; s1 <- EnumFacing.VALUES if s1 != s.getOpposite do
                 changes += c.offset(s).offset(s1)
         }
     }

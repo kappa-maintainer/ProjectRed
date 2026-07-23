@@ -23,9 +23,9 @@ trait IRouterContainer
     def getPipe:TNetworkPipe
     def getRouter:Router
 
-    def refreshState(sideMask:Int)
+    def refreshState(sideMask:Int): Unit 
 
-    def postNetworkEvent(e:NetworkEvent)
+    def postNetworkEvent(e:NetworkEvent): Unit 
 
     /** Separation of function **/
     def searchForLinks:Vector[StartEndPath]
@@ -36,24 +36,24 @@ trait IRouterContainer
     def getActiveFreeSpace(item:ItemKey):Int
 
     /** Item Broadcasting **/
-    def requestPromise(request:RequestBranchNode, existingPromises:Int){}
-    def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer){}
-    def getBroadcasts(col:ItemQueue){}
+    def requestPromise(request:RequestBranchNode, existingPromises:Int): Unit ={}
+    def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer): Unit ={}
+    def getBroadcasts(col:ItemQueue): Unit ={}
     def getBroadcastPriority:Int = 0
     def getWorkLoad:Double = 0
 
     /** Item Crafting **/
     def requestCraftPromise(request:RequestBranchNode):Seq[CraftingPromise] = Seq()
-    def registerExcess(promise:DeliveryPromise){}
+    def registerExcess(promise:DeliveryPromise): Unit ={}
     def getCraftedItems:Seq[ItemKeyStack] = Seq()
     def itemsToProcess:Int = 0
 
     /** Transport Layer **/
-    def queueStackToSend(item:ItemKey, amount:Int, path:SyncResponse)
+    def queueStackToSend(item:ItemKey, amount:Int, path:SyncResponse): Unit =
     {
         queueStackToSend(item, amount, path.priority, path.responder)
     }
-    def queueStackToSend(item:ItemKey, amount:Int, priority:NetworkPriority, destination:Int)
+    def queueStackToSend(item:ItemKey, amount:Int, priority:NetworkPriority, destination:Int): Unit 
 
     /** Session Layer **/
     def getLogisticPath(item:ItemKey, exclusions:BitSet, excludeStart:Boolean):SyncResponse
@@ -73,10 +73,10 @@ abstract class NetworkEvent(isCancelable:Boolean)
 
     def isCanceled = canceled
 
-    def setCanceled()
+    def setCanceled(): Unit =
     {
-        if (!isCancelable) throw new Exception(s"Network event ${this.getClass.getSimpleName} cannot be canceled")
-        if (canceled) throw new Exception(s"Network event ${this.getClass.getSimpleName} is already canceled")
+        if !isCancelable then throw new Exception(s"Network event ${this.getClass.getSimpleName} cannot be canceled")
+        if canceled then throw new Exception(s"Network event ${this.getClass.getSimpleName} is already canceled")
         canceled = true
     }
 }
@@ -149,7 +149,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
     var statsSent = 0
     var statsRelayed = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setString("rid", getRouterId.toString)
@@ -158,7 +158,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
         tag.setInteger("relay", statsRelayed)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         routerIDLock synchronized{
@@ -170,7 +170,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
         statsRelayed = tag.getInteger("relay")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(linkMap)
@@ -178,7 +178,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
         packet.writeLong(getRouterId.getLeastSignificantBits)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         linkMap = packet.readByte
@@ -195,22 +195,22 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
         case _ => super.read(packet, key)
     }
 
-    def sendLinkMapUpdate()
+    def sendLinkMapUpdate(): Unit =
     {
         getWriteStreamOf(5).writeByte(linkMap)
     }
 
-    private def handleLinkMap(packet:MCDataInput)
+    private def handleLinkMap(packet:MCDataInput): Unit =
     {
         val old = linkMap
         linkMap = packet.readByte
         val high = ~old&linkMap
         val low = ~linkMap&old
 
-        for (i <- 0 until 6)
+        for i <- 0 until 6 do
         {
-            if ((high&1<<i) != 0) RouteFX2.spawnType3(RouteFX2.color_linked, i, this)
-            if ((low&1<<i) != 0) RouteFX2.spawnType2(RouteFX2.color_unlinked, i, this)
+            if (high&1<<i) != 0 then RouteFX2.spawnType3(RouteFX2.color_linked, i, this)
+            if (low&1<<i) != 0 then RouteFX2.spawnType2(RouteFX2.color_unlinked, i, this)
         }
 
         tile.markRender()
@@ -218,15 +218,15 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
 
     private def getRouterId =
     {
-        if (routerId == null) routerIDLock synchronized {
-            routerId = if (router != null) router.getID else UUID.randomUUID
+        if routerId == null then routerIDLock synchronized {
+            routerId = if router != null then router.getID else UUID.randomUUID
         }
         routerId
     }
 
     override def getRouter:Router =
     {
-        if (router == null) routerIDLock synchronized {
+        if router == null then routerIDLock synchronized {
             router = RouterServices.getOrCreateRouter(getRouterId, this)
         }
         router
@@ -234,11 +234,11 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
 
     protected def countInTransit(key:ItemKey) = transitQueue(key)
 
-    private def dispatchQueuedPayload(r:NetworkPayload)
+    private def dispatchQueuedPayload(r:NetworkPayload): Unit =
     {
         injectPayload(r, r.input)
         val dest = RouterServices.getRouter(r.destinationIP)
-        if (dest != null)
+        if dest != null then
         {
             val wr = dest.getContainer
             wr.postNetworkEvent(PayloadDepartedEvent(r.payload.key, r.payload.stackSize, this))
@@ -249,37 +249,37 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
         statsSent += 1
     }
 
-    final abstract override def update()
+    final abstract override def update(): Unit =
     {
         super.update()
 
-        if (!world.isRemote)
+        if !world.isRemote then
             getRouter.update(world.getTotalWorldTime)
 
         // Dispatch next item in queue
-        if (sendQueue.nonEmpty) {
+        if sendQueue.nonEmpty then {
             val out = sendQueue.head
             sendQueue = sendQueue.tail
             dispatchQueuedPayload(out)
         }
 
-        if (world.isRemote) updateClient()
+        if world.isRemote then updateClient()
         else updateServer()
     }
 
-    protected def updateServer(){}
+    protected def updateServer(): Unit ={}
 
-    protected def updateClient()
+    protected def updateClient(): Unit =
     {
-        if (world.getTotalWorldTime%(Configurator.detectionFrequency*10) == searchDelay)
-            for (i <- 0 until 6) if ((linkMap&1<<i) != 0)
+        if world.getTotalWorldTime%(Configurator.detectionFrequency*10) == searchDelay then
+            for i <- 0 until 6 do if (linkMap&1<<i) != 0 then
                 RouteFX2.spawnType3(RouteFX2.color_blink, i, this)
     }
 
-    override def refreshState(sideMask:Int)
+    override def refreshState(sideMask:Int): Unit =
     {
-        if (world.isRemote) return
-        if (linkMap != sideMask) {
+        if world.isRemote then return
+        if linkMap != sideMask then {
             linkMap = sideMask.toByte
             sendLinkMapUpdate()
         }
@@ -296,25 +296,25 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
 
     override def getPipe = this
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
         TNetworkPipe.delayDelta = math.max(TNetworkPipe.delayDelta-1, 0)
         val r = getRouter
-        if (r != null) r.decommision()
+        if r != null then r.decommision()
     }
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (super.activate(player, hit, item, hand)) return true
+        if super.activate(player, hit, item, hand) then return true
 
-        if (!item.isEmpty && item.getItem.isInstanceOf[ItemRouterUtility]) {
-            if (!world.isRemote) {
+        if !item.isEmpty && item.getItem.isInstanceOf[ItemRouterUtility] then {
+            if !world.isRemote then {
                 val s = "/#f"+"R"+getRouter.getIPAddress+" route statistics: "+
                         "\nreceived: "+statsReceived+
                         "\nsent: "+statsSent+
                         "\nrelayed: "+statsRelayed+
-                        "\n\nroute table size: "+getRouter.getRouteTable.foldLeft(0)((b, v) => if (v != null) b+1 else b)
+                        "\n\nroute table size: "+getRouter.getRouteTable.foldLeft(0)((b, v) => if v != null then b+1 else b)
                 val packet = Messenger.createPacket
                 packet.writeDouble(pos.getX+0.0D)
                 packet.writeDouble(pos.getY+0.5D)
@@ -331,12 +331,12 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
     override def getIcon(side:Int):TextureAtlasSprite =
     {
         val array = PipeDefs.ROUTEDJUNCTION.sprites
-        val ind = if (side == inOutSide) 2 else 0
-        if ((linkMap&1<<side) != 0) array(1+ind)
+        val ind = if side == inOutSide then 2 else 0
+        if (linkMap&1<<side) != 0 then array(1+ind)
         else array(2+ind)
     }
 
-    override def resolveDestination(r:NetworkPayload)
+    override def resolveDestination(r:NetworkPayload): Unit =
     {
         var colour = getRouter.resolvePayload(r) match {
             case RoutePayload(toDir) =>
@@ -347,7 +347,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
                 RouteFX2.color_relay
             case RecievePayload() =>
                 r.output = getDirForIncomingItem(r)
-                if (r.output != 6)
+                if r.output != 6 then
                     postNetworkEvent(PayloadArrivedEvent(r.payload.key, r.payload.stackSize)) //TODO router should handle events now
                 RouteFX2.color_receive
             case UnresolvedPayload() =>
@@ -355,10 +355,10 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
                 RouteFX2.color_routeLost
         }
 
-        if (r.output == 6) {
+        if r.output == 6 then {
             r.resetTrip()
             var m = 0
-            for (i <- 0 until 6) if (getStraight(i).isInstanceOf[TNetworkSubsystem]) m |= 1<<i
+            for i <- 0 until 6 do if getStraight(i).isInstanceOf[TNetworkSubsystem] then m |= 1<<i
             chooseRandomDestination(r, ~m)
             colour = RouteFX2.color_routeLost
         }
@@ -425,18 +425,18 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
     override def injectPayload(r:NetworkPayload, in:Int) =
     {
         super.injectPayload(r, in)
-        if (r.netPriority == Priorities.WANDERING)
+        if r.netPriority == Priorities.WANDERING then
             r.tickPayloadWander()
     }
 
     def getDirForIncomingItem(r:NetworkPayload):Int = inOutSide
 
-    override def adjustSpeed(r:NetworkPayload)
+    override def adjustSpeed(r:NetworkPayload): Unit =
     {
         r.speed = r.netPriority.boost
     }
 
-    override def postNetworkEvent(event:NetworkEvent)
+    override def postNetworkEvent(event:NetworkEvent): Unit =
     {
         event match {
             case e:PayloadDepartedEvent => transitQueue.add(e.item, e.amount)
@@ -448,7 +448,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
 
     override def getSyncResponse(item:ItemKey, rival:SyncResponse):SyncResponse = null
 
-    override def queueStackToSend(item:ItemKey, amount:Int, priority:NetworkPriority, destination:Int)
+    override def queueStackToSend(item:ItemKey, amount:Int, priority:NetworkPriority, destination:Int): Unit =
     {
         val stack2 = ItemKeyStack.get(item, amount)
         var r = new NetworkPayload(AbstractPipePayload.claimID())
@@ -475,7 +475,7 @@ trait TNetworkPipe extends PayloadPipePart[NetworkPayload] with TInventoryPipe[N
     override def getActiveFreeSpace(item:ItemKey) =
     {
         val real = getInventory
-        if (real == null) 0
+        if real == null then 0
         else real.getSpaceForItem(item)
     }
 }

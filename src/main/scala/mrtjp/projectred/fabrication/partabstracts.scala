@@ -13,7 +13,7 @@ trait TICTileOrient extends ICTile
 
     def rotation = orientation&0x3
 
-    def setRotation(r:Int)
+    def setRotation(r:Int): Unit =
     {
         orientation = (orientation&0xFC|r).toByte
     }
@@ -41,8 +41,8 @@ trait TICTileAcquisitions extends ICTile
     def posOfStraight(r:Int) = pos.offset(r)
     def rotFromStraight(r:Int) = (r+2)%4
 
-    def notifyToDir(r:Int){editor.notifyNeighbor(posOfStraight(r))}
-    def notify(mask:Int){editor.notifyNeighbors(pos, mask)}
+    def notifyToDir(r:Int): Unit ={editor.notifyNeighbor(posOfStraight(r))}
+    def notify(mask:Int): Unit ={editor.notifyNeighbors(pos, mask)}
 }
 
 trait TConnectableICTile extends ICTile with TICTileAcquisitions
@@ -61,10 +61,10 @@ trait TConnectableICTile extends ICTile with TICTileAcquisitions
 
     def connect(tile:ICTile, r:Int) =
     {
-        if (canConnectTile(tile, r)) {
+        if canConnectTile(tile, r) then {
             val oldConn = connMap
             connMap = (connMap|1<<r).toByte
-            if (oldConn != connMap) onMaskChanged()
+            if oldConn != connMap then onMaskChanged()
             true
         }
         else false
@@ -73,8 +73,8 @@ trait TConnectableICTile extends ICTile with TICTileAcquisitions
     def updateConns() =
     {
         var newConn = 0
-        for (r <- 0 until 4) if (discover(r)) newConn |= 1<<r
-        if (newConn != connMap) {
+        for r <- 0 until 4 do if discover(r) then newConn |= 1<<r
+        if newConn != connMap then {
             connMap = newConn.toByte
             onMaskChanged()
             true
@@ -84,5 +84,5 @@ trait TConnectableICTile extends ICTile with TICTileAcquisitions
 
     def canConnectTile(tile:ICTile, r:Int):Boolean
 
-    def onMaskChanged(){}
+    def onMaskChanged(): Unit ={}
 }

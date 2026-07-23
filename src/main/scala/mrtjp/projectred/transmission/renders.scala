@@ -1,6 +1,6 @@
 package mrtjp.projectred.transmission
 
-import codechicken.lib.render._
+import codechicken.lib.render.*
 import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.render.pipeline.IVertexOperation
 import codechicken.lib.texture.TextureUtils
@@ -18,15 +18,15 @@ trait TWireItemRenderCommon extends IItemRenderer
     override def isGui3d = true
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
-    override def renderItem(item:ItemStack, transformType: TransformType)
+    override def renderItem(item:ItemStack, transformType: TransformType): Unit =
     {
         renderWireInventory(item.getItemDamage, 0, 0, 0, 1)
     }
 
-    def renderWireInventory(meta:Int, x:Float, y:Float, z:Float, scale:Float)
+    def renderWireInventory(meta:Int, x:Float, y:Float, z:Float, scale:Float): Unit =
     {
         val wdef = WireDef.values(meta)
-        if (wdef == null) return
+        if wdef == null then return
 
         val ccrs = CCRenderState.instance()
         TextureUtils.bindBlockTexture()
@@ -40,7 +40,7 @@ trait TWireItemRenderCommon extends IItemRenderer
         ccrs.draw()
     }
 
-    def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*)
+    def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit 
 }
 
 object WireItemRenderer extends TWireItemRenderCommon
@@ -59,9 +59,9 @@ object WireItemRenderer extends TWireItemRenderCommon
 //        }
 //    }
 
-    override def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*)
+    override def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
     {
-        RenderWire.renderInv(thickness, renderHue, ccrs, ops:_*)
+        RenderWire.renderInv(thickness, renderHue, ccrs, ops*)
     }
 }
 
@@ -81,8 +81,8 @@ object FramedWireItemRenderer extends TWireItemRenderCommon
 //        }
 //    }
 
-    override def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*)
+    override def doRender(thickness:Int, renderHue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
     {
-        RenderFramedWire.renderInv(thickness, renderHue, ccrs, ops:_*)
+        RenderFramedWire.renderInv(thickness, renderHue, ccrs, ops*)
     }
 }

@@ -1,17 +1,17 @@
 package mrtjp.projectred.expansion
 
-import mezz.jei.api._
-import mezz.jei.api.recipe.VanillaRecipeCategoryUid._
+import mezz.jei.api.*
+import mezz.jei.api.recipe.VanillaRecipeCategoryUid.*
 import mezz.jei.api.recipe.transfer.IRecipeTransferInfo
-import mrtjp.projectred.ProjectRedExpansion._
+import mrtjp.projectred.ProjectRedExpansion.*
 import net.minecraft.item.ItemStack
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 @JEIPlugin
 class ExpansionJEIPlugin extends BlankModPlugin
 {
-    override def register(registry:IModRegistry)
+    override def register(registry:IModRegistry): Unit =
     {
         //Inductive furnace
         registry.addRecipeCatalyst(new ItemStack(machine1, 1, 0), SMELTING)
@@ -27,7 +27,7 @@ class ExpansionJEIPlugin extends BlankModPlugin
         registry.addRecipeCatalyst(new ItemStack(machine2, 1, 11), CRAFTING) //auto crafting bench
     }
 
-    override def onRuntimeAvailable(jeiRuntime:IJeiRuntime){}
+    override def onRuntimeAvailable(jeiRuntime:IJeiRuntime): Unit ={}
 }
 
 object ProjectBenchRecipeTransferInfo extends IRecipeTransferInfo[ContainerProjectBench]

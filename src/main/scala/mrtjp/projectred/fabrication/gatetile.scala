@@ -26,15 +26,15 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
     def subID = gateSubID&0xFF
 
     def shape = gateShape&0xFF
-    def setShape(s:Int){ gateShape = s.toByte }
+    def setShape(s:Int): Unit ={ gateShape = s.toByte }
 
-    def preparePlacement(rot:Int, meta:Int)
+    def preparePlacement(rot:Int, meta:Int): Unit =
     {
         gateSubID = meta.toByte
         setRotation(rot)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setByte("orient", orientation)
         tag.setByte("subID", gateSubID)
@@ -42,7 +42,7 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
         tag.setByte("connMap", connMap)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         orientation = tag.getByte("orient")
         gateSubID = tag.getByte("subID")
@@ -50,14 +50,14 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
         connMap = tag.getByte("connMap")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         out.writeByte(orientation)
         out.writeByte(gateSubID)
         out.writeByte(gateShape)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         orientation = in.readByte()
         gateSubID = in.readByte()
@@ -71,7 +71,7 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
         case _ => super.read(in, key)
     }
 
-    override def readClientPacket(in:MCDataInput)
+    override def readClientPacket(in:MCDataInput): Unit =
     {
         readClientPacket(in, in.readUByte())
     }
@@ -87,43 +87,43 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
     override def canConnectTile(part:ICTile, r:Int) =
         getLogicPrimitive.canConnectTo(this, part, toInternal(r))
 
-    def onSchematicChanged()
+    def onSchematicChanged(): Unit =
     {
         editor.markSchematicChanged()
     }
 
-    override def update()
+    override def update(): Unit =
     {
         getLogicPrimitive.onTick(this)
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
-        if (!editor.network.isRemote) {
-            if (updateConns())
+        if !editor.network.isRemote then {
+            if updateConns() then
                 onSchematicChanged()
         }
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         super.onAdded()
-        if (!editor.network.isRemote) {
+        if !editor.network.isRemote then {
             updateConns()
             getLogicPrimitive.onGatePlaced(this)
         }
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
-        if (!editor.network.isRemote)
+        if !editor.network.isRemote then
             notify(0xF)
     }
 
-    def configure()
+    def configure(): Unit =
     {
-        if (getLogicPrimitive.cycleShape(this)) {
+        if getLogicPrimitive.cycleShape(this) then {
             updateConns()
             editor.network.markSave()
             sendShapeUpdate()
@@ -132,7 +132,7 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
         }
     }
 
-    def rotate()
+    def rotate(): Unit =
     {
         setRotation((rotation+1)%4)
         updateConns()
@@ -142,12 +142,12 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
         onSchematicChanged()
     }
 
-    def sendShapeUpdate()
+    def sendShapeUpdate(): Unit =
     {
         writeStreamOf(2).writeByte(gateShape)
     }
 
-    def sendOrientUpdate()
+    def sendOrientUpdate(): Unit =
     {
         writeStreamOf(1).writeByte(orientation)
     }
@@ -156,10 +156,10 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
     {
         val net = new ImplicitWireNet(tileMap, pos, r)
         net.calculateNetwork()
-        if (net.isRedundant) null else net
+        if net.isRedundant then null else net
     }
 
-    override def allocateOrFindRegisters(linker:ISELinker)
+    override def allocateOrFindRegisters(linker:ISELinker): Unit =
     {
         getLogicPrimitive.allocateOrFindRegisters(this, linker)
     }
@@ -168,18 +168,18 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
 
     def getOutputRegister(r:Int, linker:ISELinker):Int =  linker.findOutputRegister(pos, toAbsolute(r))
 
-    override def declareOperations(linker:ISELinker)
+    override def declareOperations(linker:ISELinker): Unit =
     {
         getLogicPrimitive.declareOperations(this, linker)
     }
 
-    override def onRegistersChanged(regIDs:Set[Int])
+    override def onRegistersChanged(regIDs:Set[Int]): Unit =
     {
         getLogicPrimitive.onRegistersChanged(this, regIDs)
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float)
+    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         RenderGateTile.renderDynamic(ccrs, this, t, ortho, frame)
     }
@@ -188,7 +188,7 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
     override def getPartName = ICGateDefinition(subID).name
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(buffer:ListBuffer[String])
+    override def buildRolloverData(buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(buffer)
         getLogicPrimitive.buildRolloverData(this, buffer)
@@ -198,7 +198,7 @@ abstract class GateICTile extends ICTile with TConnectableICTile with TICTileOri
     override def createGui = getLogicPrimitive.createGui(this)
 
     @SideOnly(Side.CLIENT)
-    override def onClicked()
+    override def onClicked(): Unit =
     {
         sendClientPacket(_.writeByte(2))
     }
@@ -214,20 +214,20 @@ abstract class GateTileLogic[T <: GateICTile]
 
     def cycleShape(gate:T) = false
 
-    def onGatePlaced(gate:T){}
+    def onGatePlaced(gate:T): Unit ={}
 
-    def onTick(gate:T){}
+    def onTick(gate:T): Unit ={}
 
-    def activate(gate:T){}
+    def activate(gate:T): Unit ={}
 
-    def allocateOrFindRegisters(gate:T, linker:ISELinker)
+    def allocateOrFindRegisters(gate:T, linker:ISELinker): Unit 
 
-    def declareOperations(gate:T, linker:ISELinker)
+    def declareOperations(gate:T, linker:ISELinker): Unit 
 
-    def onRegistersChanged(gate:T, regIDs:Set[Int]){}
+    def onRegistersChanged(gate:T, regIDs:Set[Int]): Unit ={}
 
     @SideOnly(Side.CLIENT)
-    def buildRolloverData(gate:T, buffer:ListBuffer[String]){}
+    def buildRolloverData(gate:T, buffer:ListBuffer[String]): Unit ={}
 
     @SideOnly(Side.CLIENT)
     def createGui(gate:T):ICTileGui = new ICGateGui(gate)
@@ -237,7 +237,7 @@ object ICGateDefinition extends Enum
 {
     type EnumVal = ICGateDef
 
-    import mrtjp.projectred.integration.{GateDefinition => gd}
+    import mrtjp.projectred.integration.{GateDefinition as gd}
 
     val IOSimple = ICGateDef("Simple IO", ICTileDefs.IOGate.id)
     val IOAnalog = ICGateDef("Analog IO", ICTileDefs.IOGate.id)

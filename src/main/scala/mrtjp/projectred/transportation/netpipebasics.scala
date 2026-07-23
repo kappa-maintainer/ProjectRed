@@ -27,31 +27,31 @@ class NetworkValvePipePart extends AbstractNetPipe with TNetworkSubsystem with T
      */
     var pathMatrix = 0x0FFF
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setShort("ioflag", pathMatrix.toShort)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         pathMatrix = tag.getShort("ioflag")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeShort(pathMatrix)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         pathMatrix = packet.readShort()
     }
 
-    def sendIOFlagsUpdate()
+    def sendIOFlagsUpdate(): Unit =
     {
         getWriteStreamOf(6).writeShort(pathMatrix)
     }
@@ -67,20 +67,20 @@ class NetworkValvePipePart extends AbstractNetPipe with TNetworkSubsystem with T
     override def chooseRandomDestination(r:NetworkPayload, mask:Int) =
     {
         var moves = Seq[Int]()
-        for (s <- 0 until 6)
-            if((connMap&1<<s) != 0 && s != (r.input^1) && (mask&1<<s) == 0)
-                if (((pathMatrix>>(s*2))&2) != 0) moves :+= s
-        if (moves.isEmpty) r.output = r.input^1
+        for s <- 0 until 6 do
+            if (connMap&1<<s) != 0 && s != (r.input^1) && (mask&1<<s) == 0 then
+                if ((pathMatrix>>(s*2))&2) != 0 then moves :+= s
+        if moves.isEmpty then r.output = r.input^1
         else r.output = moves(world.rand.nextInt(moves.size))
     }
 
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (!item.isEmpty && item.getItem.isInstanceOf[IScrewdriver] &&
+        if !item.isEmpty && item.getItem.isInstanceOf[IScrewdriver] &&
                 item.getItem.asInstanceOf[IScrewdriver].canUse(player, item) &&
-                ((0 until 6) contains hit.cuboid6.data.asInstanceOf[Int]) && !player.isSneaking) {
-            if (!world.isRemote) {
+                ((0 until 6) contains hit.cuboid6.data.asInstanceOf[Int]) && !player.isSneaking then {
+            if !world.isRemote then {
                 val side = hit.cuboid6.data.asInstanceOf[Int]
                 val mode = (pathMatrix>>(side*2))&3
                 val newMode = (mode+1)%3+1 //cycle 1,2,3
@@ -103,8 +103,8 @@ class NetworkValvePipePart extends AbstractNetPipe with TNetworkSubsystem with T
         var flags = 0
         val to1 = (pathMatrix>>(input*2))&3
         val to2 = (pathMatrix>>(output*2))&3
-        if ((to1&1|to2&2) == 0x3) flags |= 0x1
-        if ((to2&1|to1&2) == 0x3) flags |= 0x2
+        if (to1&1|to2&2) == 0x3 then flags |= 0x1
+        if (to2&1|to1&2) == 0x3 then flags |= 0x2
         flags
     }
 

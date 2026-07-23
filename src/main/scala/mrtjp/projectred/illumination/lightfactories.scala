@@ -1,27 +1,27 @@
 package mrtjp.projectred.illumination
 
 import codechicken.lib.render.CCModel
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.util.{BlockRenderLayer, ResourceLocation}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object LightFactoryFixture extends LightFactory
 {
     val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(3.5 / 16D, 0, 3.5 / 16D, 12.5 / 16D, 6.5 / 16D, 12.5 / 16D))
     val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4 / 16D, 1.5 / 16, 4 / 16D, 12 / 16D, 6.5 / 16D, 12 / 16D))
 
-    var icon:TextureAtlasSprite = _
+    var icon:TextureAtlasSprite = scala.compiletime.uninitialized
 
     val bulbModels = new Array[CCModel](6)
     val chassiModels = new Array[CCModel](6)
 
-    override def getTranslationKey(inv: Boolean): String = if (inv) "fixtureLightInverted" else "fixtureLight"
+    override def getTranslationKey(inv: Boolean): String = if inv then "fixtureLightInverted" else "fixtureLight"
 
-    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_fixture_light" else "fixture_light"
+    override def getItemRegistryName(inv: Boolean): String = if inv then "inverted_fixture_light" else "fixture_light"
     override def getType = new ResourceLocation("projectred-illumination:fixture_light")
 
     override def getBounds(side: Int): Cuboid6 = bounds(side)
@@ -44,7 +44,7 @@ object LightFactoryFixture extends LightFactory
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
 
-        for (s <- 0 until 6) {
+        for s <- 0 until 6 do {
             bulbModels(s) = bakeCopy(s, bulb)
             chassiModels(s) = bakeCopy(s, chassi)
         }
@@ -56,15 +56,15 @@ object LightFactoryFallout extends LightFactory
     val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(2 / 16D, 0, 2 / 16D, 14 / 16D, 11 / 16D, 14 / 16D))
     val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4 / 16D, 1.5 / 16, 4 / 16D, 12 / 16D, 10 / 16D, 12 / 16D).expand(-0.002))
 
-    var icon: TextureAtlasSprite = _
+    var icon: TextureAtlasSprite = scala.compiletime.uninitialized
 
     val bulbModels: Array[CCModel] = new Array[CCModel](6)
     val chassiModels: Array[CCModel] = new Array[CCModel](6)
 
 
-    override def getTranslationKey(inv: Boolean): String = if (inv) "falloutLampInverted" else "falloutLamp"
+    override def getTranslationKey(inv: Boolean): String = if inv then "falloutLampInverted" else "falloutLamp"
 
-    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_fallout_lamp" else "fallout_lamp"
+    override def getItemRegistryName(inv: Boolean): String = if inv then "inverted_fallout_lamp" else "fallout_lamp"
     override def getType = new ResourceLocation("projectred-illumination:fallout_lamp")
 
     override def getBounds(side: Int): Cuboid6 = bounds(side)
@@ -87,7 +87,7 @@ object LightFactoryFallout extends LightFactory
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
 
-        for (s <- 0 until 6) {
+        for s <- 0 until 6 do {
             bulbModels(s) = bakeCopy(s, bulb)
             chassiModels(s) = bakeCopy(s, chassi)
         }
@@ -99,15 +99,15 @@ object LightFactoryCage extends LightFactory
     val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(3.5 / 16D, 0, 3.5 / 16D, 12.5 / 16D, 12 / 16D, 12.5 / 16D))
     val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4.5 / 16D, 1.5 / 16, 4.5 / 16D, 11.5 / 16D, 11.5 / 16D, 11.5 / 16D))
 
-    var icon: TextureAtlasSprite = _
+    var icon: TextureAtlasSprite = scala.compiletime.uninitialized
 
     val bulbModels: Array[CCModel] = new Array[CCModel](6)
     val chassiModels: Array[CCModel] = new Array[CCModel](6)
 
 
-    override def getTranslationKey(inv: Boolean): String = if (inv) "cageLampInverted" else "cageLamp"
+    override def getTranslationKey(inv: Boolean): String = if inv then "cageLampInverted" else "cageLamp"
 
-    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_cage_lamp" else "cage_lamp"
+    override def getItemRegistryName(inv: Boolean): String = if inv then "inverted_cage_lamp" else "cage_lamp"
 
     override def getType: ResourceLocation = new ResourceLocation("projectred-illumination:cage_lamp")
 
@@ -134,7 +134,7 @@ object LightFactoryCage extends LightFactory
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
 
-        for (s <- 0 until 6) {
+        for s <- 0 until 6 do {
             bulbModels(s) = bakeCopy(s, bulb)
             chassiModels(s) = bakeCopy(s, chassi)
         }
@@ -146,14 +146,14 @@ object LightFactoryLantern extends LightFactory
     private val bounds: Cuboid6 = new Cuboid6(0.35D, 0.25D, 0.35D, 0.65D, 0.75D, 0.65D)
     private val lBounds: Cuboid6 = bounds.copy.expand(-1 / 64D)
 
-    var icon: TextureAtlasSprite = _
+    var icon: TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var bulbModel: CCModel = _
+    var bulbModel: CCModel = scala.compiletime.uninitialized
     val chassiModels: Array[CCModel] = new Array[CCModel](7)
 
-    override def getTranslationKey(inv: Boolean): String = if (inv) "lanternInverted" else "lantern"
+    override def getTranslationKey(inv: Boolean): String = if inv then "lanternInverted" else "lantern"
 
-    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_lantern" else "lantern"
+    override def getItemRegistryName(inv: Boolean): String = if inv then "inverted_lantern" else "lantern"
 
     override def getType: ResourceLocation = new ResourceLocation("projectred-illumination:lantern")
 
@@ -200,7 +200,7 @@ object LightFactoryLantern extends LightFactory
         chassiModels(1) = CCModel.combine(Seq(body, top, topRing).asJava)
         chassiModels(6) = CCModel.combine(Seq(body, topRing).asJava) //Inv model
 
-        for (s <- 2 until 6) {
+        for s <- 2 until 6 do {
             val mSide = side.copy.apply(Rotation.sideOrientation(0, Rotation.rotationTo(0, s)).at(Vector3.center))
             val mRing = topRing.copy.apply(Rotation.sideOrientation(0, Rotation.rotationTo(0, s)).at(Vector3.center))
             chassiModels(s) = CCModel.combine(Seq(body, mSide, mRing).asJava)

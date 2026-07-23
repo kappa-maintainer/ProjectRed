@@ -11,13 +11,13 @@ import codechicken.multipart.{MultiPartRegistry, TMultiPart}
 import mrtjp.core.block.{ItemBlockCore, MultiTileBlock}
 import mrtjp.core.data.{TClientKeyTracker, TServerKeyTracker}
 import mrtjp.core.gui.GuiHandler
-import mrtjp.projectred.ProjectRedExpansion._
+import mrtjp.projectred.ProjectRedExpansion.*
 import mrtjp.projectred.core.IProxy
-import mrtjp.projectred.expansion.BlockProperties._
+import mrtjp.projectred.expansion.BlockProperties.*
 import net.minecraft.block.Block
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemMeshDefinition
-import net.minecraft.client.renderer.block.model.{ModelResourceLocation, ModelBakery => MCModelBakery}
+import net.minecraft.client.renderer.block.model.{ModelResourceLocation, ModelBakery as MCModelBakery}
 import net.minecraft.client.renderer.block.statemap.IStateMapper
 import net.minecraft.client.renderer.block.statemap.StateMap.Builder
 import net.minecraft.item.{Item, ItemStack}
@@ -29,7 +29,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class ExpansionProxy_server extends IProxy with IPartFactory
 {
-    def preinit()
+    def preinit(): Unit =
     {
         PacketCustom.assignHandler(ExpansionSPH.channel, ExpansionSPH)
 
@@ -99,12 +99,12 @@ class ExpansionProxy_server extends IProxy with IPartFactory
         machine2.addTile(classOf[TileDiamondBlockBreaker], 12)
     }
 
-    def init()
+    def init(): Unit =
     {
         CapabilityTeleposedEnderPearl.registerCapability()
     }
 
-    def postinit()
+    def postinit(): Unit =
     {
         InductiveFurnaceRecipeLib.init()
 
@@ -132,7 +132,7 @@ class ExpansionProxy_client extends ExpansionProxy_server
     val autoCrafterGui = 27
 
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
         PacketCustom.assignHandler(ExpansionCPH.channel, ExpansionCPH)
@@ -158,9 +158,9 @@ class ExpansionProxy_client extends ExpansionProxy_server
         MCModelBakery.registerItemVariants(itemScrewdriver, new ModelResourceLocation("projectred:mechanical/items", "type=screwdriver"))
         ModelLoader.setCustomModelResourceLocation(itemInfusedEnderPearl, 0, new ModelResourceLocation("projectred:mechanical/items", "type=infused_pearl"))
         ModelLoader.setCustomMeshDefinition(itemPlan, new ItemMeshDefinition {
-            override def getModelLocation(stack: ItemStack) = new ModelResourceLocation("projectred:mechanical/items", s"type=${if (ItemPlan.hasRecipeInside(stack)) "written" else "blank"}_plan")
+            override def getModelLocation(stack: ItemStack) = new ModelResourceLocation("projectred:mechanical/items", s"type=${if ItemPlan.hasRecipeInside(stack) then "written" else "blank"}_plan")
         })
-        for (t <- Array[String]("written", "blank"))
+        for t <- Array[String]("written", "blank") do
             MCModelBakery.registerItemVariants(itemPlan, new ModelResourceLocation("projectred:mechanical/items", s"type=${t}_plan"))
 
         machine1Bakery.registerSubBakery(0, RenderInductiveFurnace, new IBlockStateKeyGenerator {
@@ -242,7 +242,7 @@ class ExpansionProxy_client extends ExpansionProxy_server
             }
         }, new IItemStackKeyGenerator {
             override def generateKey(stack: ItemStack):String = {
-                val charge = if(stack.hasTagCompound) stack.getTagCompound.getInteger("rstorage") else 0
+                val charge = if stack.hasTagCompound then stack.getTagCompound.getInteger("rstorage") else 0
                 stack.getItem.getRegistryName.toString + "|" + stack.getItemDamage + s",c=$charge"
             }
         })
@@ -307,19 +307,19 @@ class ExpansionProxy_client extends ExpansionProxy_server
             override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(regLoc, "normal")
         })
         ModelRegistryHelper.register(new ModelResourceLocation(regLoc, "normal"), model)
-        if (iconRegister != null) {
+        if iconRegister != null then {
             TextureUtils.addIconRegister(iconRegister)
         }
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
     }
 
     @SideOnly(Side.CLIENT)
-    override def postinit()
+    override def postinit(): Unit =
     {
         super.postinit()
 

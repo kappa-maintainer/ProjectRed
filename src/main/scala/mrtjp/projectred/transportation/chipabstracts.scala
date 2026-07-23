@@ -20,7 +20,7 @@ abstract class RoutingChip
     private var invProv:IInventoryProvider = null
     private var s = -1
 
-    def setEnvironment(inventoryProvider:IInventoryProvider, irc:IRouterContainer, slot:Int)
+    def setEnvironment(inventoryProvider:IInventoryProvider, irc:IRouterContainer, slot:Int): Unit =
     {
         invProv = inventoryProvider
         routerContainer = irc
@@ -31,44 +31,44 @@ abstract class RoutingChip
     def router = routerContainer
     def slot = s
 
-    def update(){}
+    def update(): Unit ={}
 
-    def onEventReceived(event:NetworkEvent){}
+    def onEventReceived(event:NetworkEvent): Unit ={}
 
     /** Syncing **/
     def getSyncResponse(item:ItemKey, rival:SyncResponse):SyncResponse = null
 
     /** Broadcasting **/
-    def requestPromise(request:RequestBranchNode, existingPromises:Int){}
-    def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer){}
-    def getBroadcasts(col:ItemQueue){}
+    def requestPromise(request:RequestBranchNode, existingPromises:Int): Unit ={}
+    def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer): Unit ={}
+    def getBroadcasts(col:ItemQueue): Unit ={}
 
     def getBroadcastPriority = Integer.MAX_VALUE
     def getWorkLoad = 0.0D
 
     /** Crafting **/
     def requestCraftPromise(requeset:RequestBranchNode):CraftingPromise = null
-    def registerExcess(promise:DeliveryPromise){}
+    def registerExcess(promise:DeliveryPromise): Unit ={}
     def getCraftedItem:ItemKeyStack = null
     def getProcessingItems = 0
 
     /** World interactions **/
-    def onAdded(){}
-    def onRemoved(){}
-    def onNeighborTileChanged(side:Int, weak:Boolean){}
+    def onAdded(): Unit ={}
+    def onRemoved(): Unit ={}
+    def onNeighborTileChanged(side:Int, weak:Boolean): Unit ={}
     def weakTileChanges = false
 
-    def save(tag:NBTTagCompound){}
+    def save(tag:NBTTagCompound): Unit ={}
 
-    def load(tag:NBTTagCompound){}
+    def load(tag:NBTTagCompound): Unit ={}
 
-    def infoCollection(list:ListBuffer[String]){}
+    def infoCollection(list:ListBuffer[String]): Unit ={}
 
     def getChipType:ChipVal
 
-    def openGui(player:EntityPlayer)
+    def openGui(player:EntityPlayer): Unit =
     {
-        if (player.world.isRemote) return
+        if player.world.isRemote then return
         GuiChipConfig.open(player, createContainer(player), _.writeByte(player.inventory.currentItem))
     }
 
@@ -90,44 +90,44 @@ trait TChipFilter extends RoutingChip
     // 0-none, 1-type, 2-slot
     var hideMode = 0
 
-    def toggleExcludeMode()
+    def toggleExcludeMode(): Unit =
     {
         filterExclude = !filterExclude
     }
 
-    def toggleMetaMode()
+    def toggleMetaMode(): Unit =
     {
         metaMatch = !metaMatch
     }
 
-    def toggleNBTMode()
+    def toggleNBTMode(): Unit =
     {
         nbtMatch = !nbtMatch
     }
 
-    def toggleOreMode()
+    def toggleOreMode(): Unit =
     {
         oreMatch = !oreMatch
     }
 
-    def shiftDamageGroup()
+    def shiftDamageGroup(): Unit =
     {
         damageGroupMode = (damageGroupMode+1)%5
     }
 
-    def shiftHiding()
+    def shiftHiding(): Unit =
     {
         hideMode = (hideMode+1)%3
     }
 
     def applyFilter(inv:InvWrapper, patterns:Boolean=true, hide:Boolean=true):InvWrapper =
     {
-        if (inv == null) return null
+        if inv == null then return null
 
-        if (enablePatterns && patterns)
+        if enablePatterns && patterns then
             inv.setMatchOptions(metaMatch, nbtMatch, oreMatch).setDamageGroup(grpPerc(damageGroupMode))
 
-        if (enableHiding && hide) hideMode match
+        if enableHiding && hide then hideMode match
         {
             case 1 => inv.setHidePerType(true)
             case 2 => inv.setHidePerSlot(true)
@@ -141,7 +141,7 @@ trait TChipFilter extends RoutingChip
     def enableFilter = true
     def enablePatterns = true
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         filter.saveInv(tag)
         tag.setBoolean("mode", filterExclude)
@@ -153,7 +153,7 @@ trait TChipFilter extends RoutingChip
         super.save(tag)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         filter.loadInv(tag)
         filterExclude = tag.getBoolean("mode")
@@ -166,38 +166,38 @@ trait TChipFilter extends RoutingChip
     }
 
     val hide = Seq("off", "one per type", "one per stack")
-    def addFilterInfo(list:ListBuffer[String])
+    def addFilterInfo(list:ListBuffer[String]): Unit =
     {
-        if (enableHiding) list+=(ChatFormatting.GRAY.toString+"Hide mode: "+hide(hideMode))
+        if enableHiding then list+=(ChatFormatting.GRAY.toString+"Hide mode: "+hide(hideMode))
 
-        if (enablePatterns)
+        if enablePatterns then
         {
             var s = ""
-            def sep = if (s == "") "" else ", "
-            if (metaMatch) s += "Meta"
-            if (nbtMatch) s += sep+"NBT"
-            if (oreMatch) s += sep+"Ore Dictionary"
-            list+=(ChatFormatting.GRAY.toString+"Matching: "+(if (s.isEmpty) "ignore all" else s))
-            if (damageGroupMode!=0)list+=(ChatFormatting.GRAY.toString+"Damage group: "+grpPerc(damageGroupMode)+"%")
+            def sep = if s == "" then "" else ", "
+            if metaMatch then s += "Meta"
+            if nbtMatch then s += sep+"NBT"
+            if oreMatch then s += sep+"Ore Dictionary"
+            list+=(ChatFormatting.GRAY.toString+"Matching: "+(if s.isEmpty then "ignore all" else s))
+            if damageGroupMode!=0 then list+=(ChatFormatting.GRAY.toString+"Damage group: "+grpPerc(damageGroupMode)+"%")
         }
 
-        if (enableFilter)
+        if enableFilter then
         {
-            list+=(ChatFormatting.GRAY.toString+"Filter mode: "+(if (filterExclude) "blacklist" else "whitelist"))
+            list+=(ChatFormatting.GRAY.toString+"Filter mode: "+(if filterExclude then "blacklist" else "whitelist"))
             list+=(ChatFormatting.GRAY.toString+"Filter: ")
             var added = false
 
-            for (i <- 0 until filter.getSizeInventory)
+            for i <- 0 until filter.getSizeInventory do
             {
                 val stack = filter.getStackInSlot(i)
-                if (!stack.isEmpty)
+                if !stack.isEmpty then
                 {
                     list+=(ChatFormatting.GRAY.toString+" - "+stack.getDisplayName)
                     added = true
                 }
             }
 
-            if (!added) list+=(ChatFormatting.GRAY.toString+" - empty")
+            if !added then list+=(ChatFormatting.GRAY.toString+" - empty")
         }
     }
 }
@@ -206,32 +206,32 @@ trait TChipPriority extends RoutingChip
 {
     var preference = 0
 
-    private def shift = if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) 10 else 1
-    def prefUp()
+    private def shift = if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then 10 else 1
+    def prefUp(): Unit =
     {
         preference = Math.min(prefScale, preference+shift)
     }
 
-    def prefDown()
+    def prefDown(): Unit =
     {
         preference = Math.max(-prefScale, preference-shift)
     }
 
     def prefScale = 32
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("pref", preference)
         super.save(tag)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         preference = tag.getInteger("pref")
         super.load(tag)
     }
 
-    def addPriorityInfo(list:ListBuffer[String])
+    def addPriorityInfo(list:ListBuffer[String]): Unit =
     {
         list+=(ChatFormatting.GRAY.toString+"Preference: "+preference)
     }
@@ -241,15 +241,15 @@ trait TChipOrientation extends RoutingChip
 {
     var extractOrient = -1
 
-    def extractSide = if (extractOrient <= -1) invProvider.getInterfacedSide else extractOrient
+    def extractSide = if extractOrient <= -1 then invProvider.getInterfacedSide else extractOrient
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("orient", extractOrient)
         super.save(tag)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         extractOrient = tag.getInteger("orient")
         super.load(tag)
@@ -257,9 +257,9 @@ trait TChipOrientation extends RoutingChip
 
     private val dirs = Seq("Down", "Up", "North", "South", "West", "East")
 
-    def addOrientInfo(list:ListBuffer[String])
+    def addOrientInfo(list:ListBuffer[String]): Unit =
     {
-        list+=(ChatFormatting.GRAY.toString+"Extract orientation: "+(if (extractOrient == -1) "Default" else dirs(extractOrient)))
+        list+=(ChatFormatting.GRAY.toString+"Extract orientation: "+(if extractOrient == -1 then "Default" else dirs(extractOrient)))
     }
 }
 
@@ -268,26 +268,26 @@ trait TChipStock extends RoutingChip
     val stock = new SimpleInventory(9, "stock", 127)
     var requestMode = 0 //0 - stock continuous, 1 - stock empty, 2 - stock infinite
 
-    def shiftRequestMode()
+    def shiftRequestMode(): Unit =
     {
         requestMode = (requestMode+1)%3
     }
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         stock.saveInv(tag)
         tag.setByte("rmode", requestMode.toByte)
         super.save(tag)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         stock.loadInv(tag)
         requestMode = tag.getByte("rmode")
         super.load(tag)
     }
 
-    def addStockInfo(list:ListBuffer[String])
+    def addStockInfo(list:ListBuffer[String]): Unit =
     {
         list += (ChatFormatting.GRAY.toString+"Fill mode: "+(requestMode match
         {
@@ -297,16 +297,16 @@ trait TChipStock extends RoutingChip
         }))
         list += (ChatFormatting.GRAY.toString+"Stock: ")
         var added = false
-        for (i <- 0 until stock.getSizeInventory)
+        for i <- 0 until stock.getSizeInventory do
         {
             val stack = stock.getStackInSlot(i)
-            if (!stack.isEmpty)
+            if !stack.isEmpty then
             {
                 list += (ChatFormatting.GRAY.toString+" - "+stack.getDisplayName+" ("+stack.getCount+")")
                 added = true
             }
         }
-        if (!added) list += (ChatFormatting.GRAY.toString+" - empty")
+        if !added then list += (ChatFormatting.GRAY.toString+" - empty")
     }
 }
 
@@ -318,7 +318,7 @@ trait TChipMatchMatrix extends RoutingChip
 
     def getMatchInventory:IInventory
 
-    def setData(i:Int, meta:Boolean, nbt:Boolean, ore:Boolean, group:Int)
+    def setData(i:Int, meta:Boolean, nbt:Boolean, ore:Boolean, group:Int): Unit =
     {
         matchData(i) = packMatchData(meta, nbt, ore, group)
     }
@@ -328,9 +328,9 @@ trait TChipMatchMatrix extends RoutingChip
     def packMatchData(meta:Boolean, nbt:Boolean, ore:Boolean, group:Int) =
     {
         var data = 0
-        if (meta) data |= 1<<0
-        if (nbt) data |= 1<<1
-        if (ore) data |= 1<<2
+        if meta then data |= 1<<0
+        if nbt then data |= 1<<1
+        if ore then data |= 1<<2
         data |= group<<3
         data
     }
@@ -363,13 +363,13 @@ trait TChipMatchMatrix extends RoutingChip
         setData(i, meta, nbt, ore, (group+1)%5)
     }
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setIntArray("matchData", matchData)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         matchData = tag.getIntArray("matchData")
@@ -394,14 +394,14 @@ trait TChipCrafter extends RoutingChip
                     RoutingChipDefs.getForStack(stack) == RoutingChipDefs.ITEMEXTENSION
     }
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         matrix.saveInv(tag)
         extMatrix.saveInv(tag)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         matrix.loadInv(tag)
@@ -411,10 +411,10 @@ trait TChipCrafter extends RoutingChip
     def getAmountForIngredient(item:ItemKey) =
     {
         var amount = 0
-        for (i <- 0 until 9)
+        for i <- 0 until 9 do
         {
             val s = matrix.getStackInSlot(i)
-            if (!s.isEmpty && ItemKey.get(s) == item)
+            if !s.isEmpty && ItemKey.get(s) == item then
                 amount += s.getCount
         }
         amount
@@ -422,37 +422,37 @@ trait TChipCrafter extends RoutingChip
 
     def isIngredient(item:ItemKey):Boolean =
     {
-        for (i <- 0 until 9)
+        for i <- 0 until 9 do
         {
             val s = matrix.getStackInSlot(i)
-            if (!s.isEmpty && ItemKey.get(s) == item)
+            if !s.isEmpty && ItemKey.get(s) == item then
                 return true
         }
         false
     }
 
-    def addMatrixInfo(list:ListBuffer[String])
+    def addMatrixInfo(list:ListBuffer[String]): Unit =
     {
         list += (ChatFormatting.GRAY.toString+"Matrix: ")
         var added = false
 
-        for (i <- 0 until 9)
+        for i <- 0 until 9 do
         {
             val stack = matrix.getStackInSlot(i)
 
-            if (!stack.isEmpty)
+            if !stack.isEmpty then
             {
                 list += (ChatFormatting.GRAY.toString+" - "+stack.getDisplayName+" (" + stack.getCount + ")")
                 added = true
             }
         }
-        if (!added) list += (ChatFormatting.GRAY.toString+" - empty")
+        if !added then list += (ChatFormatting.GRAY.toString+" - empty")
 
         val stack = matrix.getStackInSlot(9)
-        if (!stack.isEmpty) list += (ChatFormatting.GRAY.toString+" - Yields: "+stack.getDisplayName+" (" + stack.getCount + ")")
+        if !stack.isEmpty then list += (ChatFormatting.GRAY.toString+" - Yields: "+stack.getDisplayName+" (" + stack.getCount + ")")
     }
 
-    def addExtInfo(list:ListBuffer[String])
+    def addExtInfo(list:ListBuffer[String]): Unit =
     {
         list += (ChatFormatting.GRAY.toString+"Extensions: "+
                 ChatFormatting.GRAY.toString+(0 until 9).count{!extMatrix.getStackInSlot(_).isEmpty})
@@ -463,22 +463,22 @@ trait TChipCrafterExtension extends RoutingChip
 {
     var id = UUID.randomUUID()
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setString("extid", id.toString)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         id = UUID.fromString(tag.getString("extid"))
     }
 
-    def randomizeUUID()
+    def randomizeUUID(): Unit =
     {
         id = UUID.randomUUID()
     }
 
-    def addExtIDInfo(list:ListBuffer[String])
+    def addExtIDInfo(list:ListBuffer[String]): Unit =
     {
         list += ChatFormatting.GRAY.toString+"Extension ID: "+id.toString.split("-")(0)+" ..."
     }

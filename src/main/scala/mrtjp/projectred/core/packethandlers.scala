@@ -14,7 +14,7 @@ class CorePH
 
 object CoreCPH extends CorePH with IClientPacketHandler
 {
-    def handlePacket(packet:PacketCustom, mc:Minecraft, nethandler:INetHandlerPlayClient)
+    def handlePacket(packet:PacketCustom, mc:Minecraft, nethandler:INetHandlerPlayClient): Unit =
     {
         val world = mc.world
         packet.getType match
@@ -26,7 +26,7 @@ object CoreCPH extends CorePH with IClientPacketHandler
 
 object CoreSPH extends CorePH with IServerPacketHandler
 {
-    override def handlePacket(packet:PacketCustom, sender:EntityPlayerMP, nethandler:INetHandlerPlayServer)
+    override def handlePacket(packet:PacketCustom, sender:EntityPlayerMP, nethandler:INetHandlerPlayServer): Unit =
     {
         packet.getType match
         {

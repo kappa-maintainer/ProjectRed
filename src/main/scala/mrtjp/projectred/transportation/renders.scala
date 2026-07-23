@@ -2,20 +2,20 @@ package mrtjp.projectred.transportation
 
 import codechicken.lib.colour.EnumColour
 import codechicken.lib.lighting.LightModel
-import codechicken.lib.render._
+import codechicken.lib.render.*
 import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.render.pipeline.{ColourMultiplier, IVertexOperation}
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.texture.TextureUtils.IIconRegister
 import codechicken.lib.util.TransformUtils
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.lib.vec.uv.{IconTransformation, UV, UVScale, UVTransformation}
 import codechicken.microblock.{BlockMicroMaterial, CommonMicroFactory, IMicroHighlightRenderer, MicroMaterialRegistry}
 import codechicken.multipart.{BlockMultipart, PartRayTraceResult}
 import com.google.common.collect.ImmutableList
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager._
+import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
 import net.minecraft.client.renderer.block.model.{ItemCameraTransforms, ItemOverrideList}
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
@@ -56,25 +56,25 @@ object RenderPipe extends IIconRegister
         centerModelsWool = woolgen.centerModels
     }
 
-    override def registerIcons(textureMap:TextureMap)
+    override def registerIcons(textureMap:TextureMap): Unit =
     {
-        for (p <- PipeDefs.values) p.registerIcon(textureMap)
-        for (c <- RoutingChipDefs.values) c.registerIcons(textureMap)
+        for p <- PipeDefs.values do p.registerIcon(textureMap)
+        for c <- RoutingChipDefs.values do c.registerIcons(textureMap)
     }
 
-    def renderPipe(p:SubcorePipePart, pos:Vector3, ccrs:CCRenderState)
+    def renderPipe(p:SubcorePipePart, pos:Vector3, ccrs:CCRenderState): Unit =
     {
         val t = pos.translation()
         var uvt = new IconTransformation(p.getPipeType.sprites(0))
         val connMap = p.connMap&0x3F
 
-        if (connMap == 0x3 || connMap == 0xC || connMap == 0x30) for (a <- 0 until 3)
+        if connMap == 0x3 || connMap == 0xC || connMap == 0x30 then for a <- 0 until 3 do
         {
-            if ((connMap>>a*2) == 3) centerModels(a).render(ccrs, t, uvt)
+            if (connMap>>a*2) == 3 then centerModels(a).render(ccrs, t, uvt)
         }
         else centerModels(3).render(ccrs, t, uvt)
 
-        for (s <- 0 until 6) if ((connMap&1<<s) != 0)
+        for s <- 0 until 6 do if (connMap&1<<s) != 0 then
         {
             uvt = new IconTransformation(p.getIcon(s))
             sideModels(s).render(ccrs, t, uvt)
@@ -96,60 +96,60 @@ object RenderPipe extends IIconRegister
 
     }
 
-    def renderRSWiring(p:TRedstonePipe, pos:Vector3, signal:Byte, ccrs:CCRenderState)
+    def renderRSWiring(p:TRedstonePipe, pos:Vector3, signal:Byte, ccrs:CCRenderState): Unit =
     {
         val t = pos.translation()
         val colour = ColourMultiplier.instance((signal&0xFF)/2+60<<24|0xFF)
         val uvt2 = new IconTransformation(PipeDefs.BASIC.sprites(1))
         val connMap = p.connMap&0x3F
 
-        if (connMap == 0x3 || connMap == 0xC || connMap == 0x30) for (a <- 0 until 3)
+        if connMap == 0x3 || connMap == 0xC || connMap == 0x30 then for a <- 0 until 3 do
         {
-            if ((connMap>>a*2) == 3) centerModelsRS(a).render(ccrs, t, uvt2, colour)
+            if (connMap>>a*2) == 3 then centerModelsRS(a).render(ccrs, t, uvt2, colour)
         }
         else centerModelsRS(3).render(ccrs, t, uvt2, colour)
 
-        for (s <- 0 until 6) if ((connMap&1<<s) != 0)
+        for s <- 0 until 6 do if (connMap&1<<s) != 0 then
             sideModelsRS(s).render(ccrs, t, uvt2, colour)
     }
 
-    def renderColourWool(p:TColourFilterPipe, pos:Vector3, colour:Byte, ccrs:CCRenderState)
+    def renderColourWool(p:TColourFilterPipe, pos:Vector3, colour:Byte, ccrs:CCRenderState): Unit =
     {
         val t = pos.translation()
         val uvt2 = new IconTransformation(PipeDefs.PRESSURETUBE.sprites(1+colour))
         val connMap = p.connMap&0x3F
 
-        if (connMap == 0x3 || connMap == 0xC || connMap == 0x30) for (a <- 0 until 3)
+        if connMap == 0x3 || connMap == 0xC || connMap == 0x30 then for a <- 0 until 3 do
         {
-            if ((connMap>>a*2) == 3) centerModelsWool(a).render(ccrs, t, uvt2)
+            if (connMap>>a*2) == 3 then centerModelsWool(a).render(ccrs, t, uvt2)
         }
         else centerModelsWool(3).render(ccrs, t, uvt2)
 
-        for (s <- 0 until 6) if ((connMap&1<<s) != 0)
+        for s <- 0 until 6 do if (connMap&1<<s) != 0 then
             sideModelsWool(s).render(ccrs, t, uvt2)
     }
 
-    def renderBreakingOverlay(icon:TextureAtlasSprite, pipe:SubcorePipePart, ccrs:CCRenderState)
+    def renderBreakingOverlay(icon:TextureAtlasSprite, pipe:SubcorePipePart, ccrs:CCRenderState): Unit =
     {
         ccrs.setPipeline(new Translation(pipe.pos), new IconTransformation(icon))
-        import scala.jdk.CollectionConverters._
-        for (box <- pipe.getCollisionBoxes.asScala)
+        import scala.jdk.CollectionConverters.*
+        for box <- pipe.getCollisionBoxes.asScala do
             BlockRenderer.renderCuboid(ccrs, box, 0)
     }
 
-    def renderInv(ccrs:CCRenderState, ops:IVertexOperation*)
+    def renderInv(ccrs:CCRenderState, ops:IVertexOperation*): Unit =
     {
-        centerModels(3).render(ccrs, ops:_*)
-        for (s <- 0 to 1) sideModels(s).render(ccrs, ops:_*)
+        centerModels(3).render(ccrs, ops*)
+        for s <- 0 to 1 do sideModels(s).render(ccrs, ops*)
     }
 
-    def renderItemFlow[T <: AbstractPipePayload](p:PayloadPipePart[T], pos:Vector3, frame:Float, ccrs:CCRenderState)
+    def renderItemFlow[T <: AbstractPipePayload](p:PayloadPipePart[T], pos:Vector3, frame:Float, ccrs:CCRenderState): Unit =
     {
         pushMatrix()
         disableLighting()
-        for (r <- p.itemFlow.delegate) if (!p.itemFlow.outputQueue.contains(r))
+        for r <- p.itemFlow.delegate do if !p.itemFlow.outputQueue.contains(r) then
         {
-            val dir = if (r.isEntering) r.input else r.output
+            val dir = if r.isEntering then r.input else r.output
             val prog = r.progress+(r.speed*frame)
 
             var frameX = pos.x+0.5D
@@ -179,9 +179,9 @@ object RenderPipe extends IIconRegister
         popMatrix()
     }
 
-    private def doRenderItem(r:AbstractPipePayload, x:Double, y:Double, z:Double)
+    private def doRenderItem(r:AbstractPipePayload, x:Double, y:Double, z:Double): Unit =
     {
-        if (r == null || r.getItemStack == null) return
+        if r == null || r.getItemStack == null then return
         val renderScale = 0.7f
         val itemstack = r.getItemStack
 
@@ -195,7 +195,7 @@ object RenderPipe extends IIconRegister
         popMatrix()
     }
 
-    private def renderPayloadColour(colour:Int, x:Double, y:Double, z:Double, ccrs:CCRenderState)
+    private def renderPayloadColour(colour:Int, x:Double, y:Double, z:Double, ccrs:CCRenderState): Unit =
     {
         pushMatrix()
         prepareRenderState(ccrs)
@@ -212,7 +212,7 @@ object RenderPipe extends IIconRegister
         popMatrix()
     }
 
-    private def prepareRenderState(ccrs:CCRenderState)
+    private def prepareRenderState(ccrs:CCRenderState): Unit =
     {
         enableBlend()
         blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE)
@@ -224,7 +224,7 @@ object RenderPipe extends IIconRegister
         ccrs.pullLightmap()
     }
 
-    private def restoreRenderState(ccrs:CCRenderState)
+    private def restoreRenderState(ccrs:CCRenderState): Unit =
     {
         ccrs.draw()
         depthMask(true)
@@ -236,7 +236,7 @@ object RenderPipe extends IIconRegister
         disableBlend()
     }
 
-    private def renderMicroHighlight(part:SubcorePipePart, ccrs:CCRenderState, tFunc:() => _)
+    private def renderMicroHighlight(part:SubcorePipePart, ccrs:CCRenderState, tFunc:() => ?): Unit =
     {
         val pos = part.pos
         pushMatrix()
@@ -260,12 +260,12 @@ object RenderPipe extends IIconRegister
         popMatrix()
     }
 
-    def renderRSMicroHighlight(part:TRedstonePipe, ccrs:CCRenderState)
+    def renderRSMicroHighlight(part:TRedstonePipe, ccrs:CCRenderState): Unit =
     {
         renderMicroHighlight(part, ccrs, {() => renderRSWiring(part, Vector3.zero, 255.toByte, ccrs)})
     }
 
-    def renderWoolMicroHighlight(part:TColourFilterPipe, colour:Byte, ccrs:CCRenderState)
+    def renderWoolMicroHighlight(part:TColourFilterPipe, colour:Byte, ccrs:CCRenderState): Unit =
     {
         renderMicroHighlight(part, ccrs, {() => renderColourWool(part, Vector3.zero, colour, ccrs)})
     }
@@ -277,7 +277,7 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
     var centerModels = new Array[CCModel](4)
     generateModels()
 
-    def generateModels()
+    def generateModels(): Unit =
     {
         generateCenterModel()
         generateCrossExclusiveModels()
@@ -285,7 +285,7 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
         finishModels()
     }
 
-    def generateCenterModel()
+    def generateCenterModel(): Unit =
     {
         val model = CCModel.quadModel(48)
         model.verts(0) = new Vertex5(0.5-w, 0.5-w, 0.5-w, 4, 8)
@@ -300,7 +300,7 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
         centerModels(3) = model
     }
 
-    def generateCrossExclusiveModels()
+    def generateCrossExclusiveModels(): Unit =
     {
         val model = CCModel.quadModel(32)
         model.verts(0) = new Vertex5(0.5-w, 0.5-w, 0.5-w, 0, 16)
@@ -312,14 +312,14 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
         model.verts(6) = new Vertex5(0.5+w, 0.5-w+d, 0.5-w, 8, 8)
         model.verts(7) = new Vertex5(0.5-w, 0.5-w+d, 0.5-w, 0, 8)
 
-        for (s <- 1 until 4) model.generateSidedPart(0, s, Vector3.center, 0, 8*s, 8)
+        for s <- 1 until 4 do model.generateSidedPart(0, s, Vector3.center, 0, 8*s, 8)
 
         centerModels(0) = model.copy.apply(Rotation.sideOrientation(2, 1).at(Vector3.center))
         centerModels(1) = model.copy.apply(Rotation.sideOrientation(0, 1).at(Vector3.center))
         centerModels(2) = model
     }
 
-    def generateSideModels()
+    def generateSideModels(): Unit =
     {
         val model = CCModel.quadModel(36)
         model.verts(0) = new Vertex5(0.5-w, 0, 0.5+w, 0, 0)
@@ -330,7 +330,7 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
         model.verts(5) = new Vertex5(0.5-w, 0, 0.5+w-d, 0, 8)
         model.verts(6) = new Vertex5(0.5-w, 0.5-w, 0.5+w-d, 4, 8)
         model.verts(7) = new Vertex5(0.5+w, 0.5-w, 0.5+w-d, 4, 0)
-        for (r <- 1 until 4) model.apply(Rotation.quarterRotations(r).at(Vector3.center), 0, r*8, 8)
+        for r <- 1 until 4 do model.apply(Rotation.quarterRotations(r).at(Vector3.center), 0, r*8, 8)
 
         model.verts(32) = new Vertex5(0.5-w, 0, 0.5-w, 8, 16)
         model.verts(33) = new Vertex5(0.5+w, 0, 0.5-w, 16, 16)
@@ -338,21 +338,21 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
         model.verts(35) = new Vertex5(0.5-w, 0, 0.5+w, 8, 8)
         sideModels(0) = model
 
-        for (s <- 1 until 6)
+        for s <- 1 until 6 do
         {
             sideModels(s) = model.copy.apply(Rotation.sideRotations(s).at(Vector3.center))
-            if (s%2 == 1)
+            if s%2 == 1 then
             {
                 val verts = sideModels(s).verts
                 val t = new UVT(Rotation.quarterRotations(2).at(new Vector3(8, 0, 4)))
-                for (i <- 0 until 32) verts(i).apply(t)
+                for i <- 0 until 32 do verts(i).apply(t)
             }
         }
     }
 
-    def finishModels()
+    def finishModels(): Unit =
     {
-        for (m <- centerModels++sideModels)
+        for m <- centerModels++sideModels do
         {
             m.apply(new UVScale(1/16D))
             m.shrinkUVs(0.0005)
@@ -361,7 +361,7 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
         }
     }
 
-    def applyScale(scale:Double)
+    def applyScale(scale:Double): Unit =
     {
         val nscale = 2.0-scale-(1.0-scale)*0.001
         val tscale = (1-scale)/2D
@@ -374,17 +374,17 @@ private class PipeModelGenerator(val w:Double = 2/8D, val d:Double = 1/16D-0.002
             new Translation(-tscale, 0, 0)
         )
 
-        for (s <- Seq(0, 1))
+        for s <- Seq(0, 1) do
             sideModels(s).apply(new Scale(scale, nscale, scale).at(Vector3.center)).apply(trans(s))
 
-        for (s <- Seq(2, 3))
+        for s <- Seq(2, 3) do
             sideModels(s).apply(new Scale(scale, scale, nscale).at(Vector3.center)).apply(trans(s))
 
-        for (s <- Seq(4, 5))
+        for s <- Seq(4, 5) do
             sideModels(s).apply(new Scale(nscale, scale, scale).at(Vector3.center)).apply(trans(s))
 
         val cscale = scale
-        for (f <- 0 until 4) centerModels(f).apply(new Scale(cscale, cscale, cscale).at(Vector3.center))
+        for f <- 0 until 4 do centerModels(f).apply(new Scale(cscale, cscale, cscale).at(Vector3.center))
     }
 
 }
@@ -393,7 +393,7 @@ private class UVT(t:Transformation) extends UVTransformation
 {
     private val vec = new Vector3
 
-    def transform(uv:UV)
+    def transform(uv:UV): Unit =
     {
         vec.set(uv.u, 0, uv.v).apply(t)
         uv.set(vec.x, vec.z)
@@ -412,9 +412,9 @@ object PipeRSHighlightRenderer extends IMicroHighlightRenderer
 {
     override def renderHighlight(player:EntityPlayer, hit:RayTraceResult, mcrFactory:CommonMicroFactory, size:Int, material:Int):Boolean =
     {
-        if (mcrFactory.getFactoryID != 3 || size != 1 || player.isSneaking) return false
+        if mcrFactory.getFactoryID != 3 || size != 1 || player.isSneaking then return false
         val tile = BlockMultipart.getTile(player.world, hit.getBlockPos)
-        if (tile == null) return false
+        if tile == null then return false
 
         MicroMaterialRegistry.getMaterial(material) match
         {
@@ -434,9 +434,9 @@ object PipeColourHighlightRenderer extends IMicroHighlightRenderer
 {
     override def renderHighlight(player:EntityPlayer, hit:RayTraceResult, mcrFactory:CommonMicroFactory, size:Int, material:Int):Boolean =
     {
-        if (mcrFactory.getFactoryID != 3 || size != 1 || player.isSneaking) return false
+        if mcrFactory.getFactoryID != 3 || size != 1 || player.isSneaking then return false
         val tile = BlockMultipart.getTile(player.world, hit.getBlockPos)
-        if (tile == null) return false
+        if tile == null then return false
 
         MicroMaterialRegistry.getMaterial(material) match
         {
@@ -465,10 +465,10 @@ object PipeItemRenderer extends IItemRenderer
         renderWireInventory(damage, 0, 0, 0, 1, CCRenderState.instance())
     }
 
-    def renderWireInventory(meta:Int, x:Float, y:Float, z:Float, scale:Float, ccrs:CCRenderState)
+    def renderWireInventory(meta:Int, x:Float, y:Float, z:Float, scale:Float, ccrs:CCRenderState): Unit =
     {
         val pdef = PipeDefs.fromMeta(meta)
-        if (pdef == null) return
+        if pdef == null then return
         TextureUtils.bindBlockTexture()
         ccrs.reset()
         ccrs.pullLightmap()

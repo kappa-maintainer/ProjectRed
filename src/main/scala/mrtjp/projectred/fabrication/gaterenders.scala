@@ -9,15 +9,15 @@ import codechicken.lib.colour.EnumColour
 import codechicken.lib.math.MathHelper
 import codechicken.lib.render.CCRenderState
 import codechicken.lib.vec.Transformation
-import mrtjp.projectred.core.TFaceOrient._
-import mrtjp.projectred.fabrication.ICComponentStore._
+import mrtjp.projectred.core.TFaceOrient.*
+import mrtjp.projectred.fabrication.ICComponentStore.*
 import net.minecraft.client.renderer.texture.TextureMap
 
 object RenderGateTile
 {
     var renderers = buildRenders()
 
-    def buildRenders() = Seq[ICGateRenderer[_]](
+    def buildRenders() = Seq[ICGateRenderer[?]](
         new RenderSimpleIO,
         new RenderAnalogIO,
         new RenderBundledIO,
@@ -47,16 +47,16 @@ object RenderGateTile
         new RenderBufferCell
     )
 
-    def registerIcons(reg:TextureMap){}
+    def registerIcons(reg:TextureMap): Unit ={}
 
-    def renderDynamic(ccrs:CCRenderState, gate:GateICTile, t:Transformation, ortho:Boolean, frame:Float)
+    def renderDynamic(ccrs:CCRenderState, gate:GateICTile, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         val r = renderers(gate.subID).asInstanceOf[ICGateRenderer[GateICTile]]
         r.prepareDynamic(gate, frame)
         r.renderDynamic(ccrs, gate.rotationT `with` t, ortho)
     }
 
-    def renderInv(ccrs:CCRenderState, t:Transformation, id:Int)
+    def renderInv(ccrs:CCRenderState, t:Transformation, id:Int): Unit =
     {
         val r = renderers(id)
         r.prepareInv()
@@ -71,18 +71,18 @@ abstract class ICGateRenderer[T <: GateICTile]
     def coreModels:Seq[ICComponentModel]
     def switchModels = Seq[ICComponentModel]()
 
-    def prepareInv(){}
-    def prepareDynamic(gate:T, frame:Float){}
+    def prepareInv(): Unit ={}
+    def prepareDynamic(gate:T, frame:Float): Unit ={}
 
-    def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean)
+    def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean): Unit =
     {
-        renderModels(ccrs, t, if (reflect) 1 else 0, ortho)
+        renderModels(ccrs, t, if reflect then 1 else 0, ortho)
     }
 
-    def renderModels(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean)
+    def renderModels(ccrs:CCRenderState, t:Transformation, orient:Int, ortho:Boolean): Unit =
     {
         prepairRender(ccrs)
-        for (m <- coreModels++switchModels) m.renderModel(ccrs, t, orient, ortho)
+        for m <- coreModels++switchModels do m.renderModel(ccrs, t, orient, ortho)
         finishRender(ccrs)
     }
 }
@@ -94,14 +94,14 @@ abstract class RenderIO extends ICGateRenderer[IOGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("iosimp"))++wires:+iosig
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         iosig.on = false
         iosig.colour = invColour
     }
 
-    override def prepareDynamic(gate:IOGateICTile, frame:Float)
+    override def prepareDynamic(gate:IOGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x44) != 0
         iosig.on = wires(0).on
@@ -115,7 +115,7 @@ abstract class RenderIO extends ICGateRenderer[IOGateICTile]
 class RenderSimpleIO extends RenderIO
 {
     override def invColour = signalColour(0)
-    override def dynColour(gate:IOGateICTile) = signalColour((if (iosig.on) 255 else 0).toByte)
+    override def dynColour(gate:IOGateICTile) = signalColour((if iosig.on then 255 else 0).toByte)
 }
 
 class RenderAnalogIO extends RenderIO
@@ -137,7 +137,7 @@ class RenderOR extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("or"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -150,7 +150,7 @@ class RenderOR extends ICGateRenderer[ComboGateICTile]
         torches(1).on = false
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x10) == 0
         wires(1).on = (gate.state&2) != 0
@@ -171,7 +171,7 @@ class RenderNOR extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("nor"))++wires:+torch
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -183,7 +183,7 @@ class RenderNOR extends ICGateRenderer[ComboGateICTile]
         torch.on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x11) != 0
         wires(1).on = (gate.state&2) != 0
@@ -203,7 +203,7 @@ class RenderNOT extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("not"))++wires:+torch
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = true
@@ -215,7 +215,7 @@ class RenderNOT extends ICGateRenderer[ComboGateICTile]
         torch.on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x11) != 0
         wires(1).on = (gate.state&0x22) != 0
@@ -236,7 +236,7 @@ class RenderAND extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("and2"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -251,7 +251,7 @@ class RenderAND extends ICGateRenderer[ComboGateICTile]
         torches(3).on = false
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x11) == 0
         wires(3).on = (gate.state&2) != 0
@@ -275,7 +275,7 @@ class RenderNAND extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("nand"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -289,7 +289,7 @@ class RenderNAND extends ICGateRenderer[ComboGateICTile]
         torches(2).on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x11) != 0
         wires(3).on = (gate.state&2) != 0
@@ -312,7 +312,7 @@ class RenderXOR extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("xor"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(3).on = false
@@ -323,7 +323,7 @@ class RenderXOR extends ICGateRenderer[ComboGateICTile]
         torches(2).on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x11) != 0
         wires(3).on = (gate.state&2) != 0
@@ -343,7 +343,7 @@ class RenderXNOR extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("xnor"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(3).on = false
@@ -355,7 +355,7 @@ class RenderXNOR extends ICGateRenderer[ComboGateICTile]
         torches(3).on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&2) != 0 && (gate.state&8) == 0
         wires(1).on = (gate.state&8) != 0 && (gate.state&2) == 0
@@ -376,7 +376,7 @@ class RenderBuffer extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("buffer"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -388,7 +388,7 @@ class RenderBuffer extends ICGateRenderer[ComboGateICTile]
         torches(1).on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&4) == 0
         wires(1).on = (gate.state&0x22) != 0
@@ -409,7 +409,7 @@ class RenderMultiplexer extends ICGateRenderer[ComboGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("multiplexer"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(1).on = true
@@ -423,7 +423,7 @@ class RenderMultiplexer extends ICGateRenderer[ComboGateICTile]
         torches(3).on = true
     }
 
-    override def prepareDynamic(gate:ComboGateICTile, frame:Float)
+    override def prepareDynamic(gate:ComboGateICTile, frame:Float): Unit =
     {
         wires(2).on = (gate.state&4) == 0
         wires(3).on = (gate.state&4) != 0
@@ -446,7 +446,7 @@ class RenderPulse extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("pulse"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -456,7 +456,7 @@ class RenderPulse extends ICGateRenderer[SequentialGateICTile]
         torches(2).on = false
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&4) == 0
         wires(1).on = (gate.state&4) != 0
@@ -482,7 +482,7 @@ class RenderRepeater extends ICGateRenderer[SequentialGateICTile]
 
     override def switchModels = Seq(varTorches(shape))
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = false
@@ -491,7 +491,7 @@ class RenderRepeater extends ICGateRenderer[SequentialGateICTile]
         varTorches(0).on = true
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&0x10) == 0
         wires(1).on = (gate.state&4) != 0
@@ -508,7 +508,7 @@ class RenderRandomizer extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("rand"))++wires++chips
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(1).on = false
@@ -528,7 +528,7 @@ class RenderRandomizer extends ICGateRenderer[SequentialGateICTile]
         chips(2).on = false
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         wires(2).on = (gate.state&4) != 0
         wires(0).on = (gate.state&0x11) != 0
@@ -564,9 +564,9 @@ class RenderSRLatch extends ICGateRenderer[SequentialGateICTile]
     var shape = 0
 
     override val coreModels = Seq()
-    override def switchModels = if (shape == 0) m1 else m2
+    override def switchModels = if shape == 0 then m1 else m2
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         reflect = false
         shape = 0
@@ -576,13 +576,13 @@ class RenderSRLatch extends ICGateRenderer[SequentialGateICTile]
         torches1(1).on = true
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         reflect = (gate.shape&1) != 0
         shape = gate.shape>>1
         var state = gate.state
-        if (reflect) state = flipMaskZ(state>>4)<<4|flipMaskZ(state)
-        if (shape == 0)
+        if reflect then state = flipMaskZ(state>>4)<<4|flipMaskZ(state)
+        if shape == 0 then
         {
             wires1(0).on = (state&0x88) != 0
             wires1(1).on = (state&0x22) != 0
@@ -609,7 +609,7 @@ class RenderToggleLatch extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("toglatch"))++wires++torches:+lever
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(1).on = false
@@ -618,7 +618,7 @@ class RenderToggleLatch extends ICGateRenderer[SequentialGateICTile]
         lever.on = true
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         wires(0).on = (gate.state&8) != 0
         wires(1).on = (gate.state&2) != 0
@@ -636,7 +636,7 @@ class RenderTransparentLatch extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("translatch"))++wires++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         reflect = false
         wires(0).on = true
@@ -651,7 +651,7 @@ class RenderTransparentLatch extends ICGateRenderer[SequentialGateICTile]
         torches(4).on = false
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         reflect = gate.shape == 1
         val on = (gate.state&0x10) != 0
@@ -676,7 +676,7 @@ class RenderTimer extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("time"))++wires++Seq(pointer)++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(1).on = false
@@ -685,7 +685,7 @@ class RenderTimer extends ICGateRenderer[SequentialGateICTile]
         pointer.angle = 0
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         torches(0).on = (gate.state&0x10) != 0
         wires(0).on = (gate.state&0x88) != 0
@@ -705,7 +705,7 @@ class RenderSequencer extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("sequencer"), pointer)++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         torches(1).on = true
         torches(2).on = false
@@ -715,7 +715,7 @@ class RenderSequencer extends ICGateRenderer[SequentialGateICTile]
         pointer.angle = 0
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         torches(1).on = (gate.state&0x10) != 0
         torches(2).on = (gate.state&0x20) != 0
@@ -723,8 +723,8 @@ class RenderSequencer extends ICGateRenderer[SequentialGateICTile]
         torches(4).on = (gate.state&0x80) != 0
 
         val max = gate.getLogic[Sequencer].pointer_max*4
-        pointer.angle = if (gate.editor != null) (gate.editor.getTotalSimTimeClient%max+frame)/max*2*MathHelper.pi else 0
-        if (gate.shape == 1) pointer.angle *= -1
+        pointer.angle = if gate.editor != null then (gate.editor.getTotalSimTimeClient%max+frame)/max*2*MathHelper.pi else 0
+        if gate.shape == 1 then pointer.angle *= -1
     }
 }
 
@@ -739,7 +739,7 @@ class RenderCounter extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("count"))++wires++Seq(pointer)++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         reflect = false
         wires(0).on = false
@@ -749,7 +749,7 @@ class RenderCounter extends ICGateRenderer[SequentialGateICTile]
         pointer.angle = 220*MathHelper.torad
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         reflect = gate.shape == 1
         wires(0).on = (gate.state&8) != 0
@@ -760,7 +760,7 @@ class RenderCounter extends ICGateRenderer[SequentialGateICTile]
         val max = gate.getLogic[Counter].max
         val value = gate.getLogic[Counter].currentValue
         pointer.angle = (value/max.toDouble*(340-220)+210)*MathHelper.torad
-        if (gate.shape == 1) reflect = true
+        if gate.shape == 1 then reflect = true
     }
 }
 
@@ -773,7 +773,7 @@ class RenderStateCell extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("statecell"))++wires++Seq(chip, pointer)++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         reflect = false
         wires(0).on = false
@@ -787,12 +787,12 @@ class RenderStateCell extends ICGateRenderer[SequentialGateICTile]
         pointer.angle = -MathHelper.pi/2
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         reflect = gate.shape == 1
         val logic = gate.getLogic[StateCell]
         var state = gate.state
-        if (reflect) state = flipMaskZ(state>>4)<<4|flipMaskZ(state)
+        if reflect then state = flipMaskZ(state>>4)<<4|flipMaskZ(state)
 
         wires(0).on = (state&0x10) != 0
         wires(1).on = (state&4) != 0
@@ -816,7 +816,7 @@ class RenderSynchronizer extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("sync"))++wires++chips++Seq(torch)
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = true
         wires(1).on = true
@@ -829,7 +829,7 @@ class RenderSynchronizer extends ICGateRenderer[SequentialGateICTile]
         torch.on = false
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         val logic = gate.getLogic[Synchronizer]
         val left = (logic.bitState&2) != 0
@@ -855,7 +855,7 @@ class RenderDecRandomizer extends ICGateRenderer[SequentialGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("DECRAND"))++wires++chips++torches
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         wires(0).on = false
         wires(1).on = false
@@ -874,7 +874,7 @@ class RenderDecRandomizer extends ICGateRenderer[SequentialGateICTile]
         chips(2).on = true
     }
 
-    override def prepareDynamic(gate:SequentialGateICTile, frame:Float)
+    override def prepareDynamic(gate:SequentialGateICTile, frame:Float): Unit =
     {
         val state = gate.state
         wires(0).on = (state>>4) == 2
@@ -902,16 +902,16 @@ class RenderNullCell extends ICGateRenderer[ArrayGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("nullcell"), bottom, new CellStandModel, top)
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         bottom.signal = 0
         top.signal = 0
     }
 
-    override def prepareDynamic(gate:ArrayGateICTile, frame:Float)
+    override def prepareDynamic(gate:ArrayGateICTile, frame:Float): Unit =
     {
-        bottom.signal = (if ((gate.state&0x55) != 0) 255 else 0).toByte
-        top.signal = (if ((gate.state&0xAA) != 0) 255 else 0).toByte
+        bottom.signal = (if (gate.state&0x55) != 0 then 255 else 0).toByte
+        top.signal = (if (gate.state&0xAA) != 0 then 255 else 0).toByte
     }
 }
 
@@ -924,7 +924,7 @@ class RenderInvertCell extends ICGateRenderer[ArrayGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("invcell"))++wires++Seq(bottom, torch, new CellStandModel, top)
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         bottom.signal = 0
         top.signal = 255.toByte
@@ -932,10 +932,10 @@ class RenderInvertCell extends ICGateRenderer[ArrayGateICTile]
         torch.on = true
     }
 
-    override def prepareDynamic(gate:ArrayGateICTile, frame:Float)
+    override def prepareDynamic(gate:ArrayGateICTile, frame:Float): Unit =
     {
-        bottom.signal = (if ((gate.state&0x55) != 0) 255 else 0).toByte
-        top.signal = (if ((gate.state&0xAA) != 0) 255 else 0).toByte
+        bottom.signal = (if (gate.state&0x55) != 0 then 255 else 0).toByte
+        top.signal = (if (gate.state&0xAA) != 0 then 255 else 0).toByte
         wires(0).on = bottom.signal != 0
         torch.on = bottom.signal == 0
     }
@@ -950,7 +950,7 @@ class RenderBufferCell extends ICGateRenderer[ArrayGateICTile]
 
     override val coreModels = Seq(new BaseComponentModel("buffcell"))++wires++Seq(bottom)++torches++Seq(new CellStandModel, top)
 
-    override def prepareInv()
+    override def prepareInv(): Unit =
     {
         bottom.signal = 0
         top.signal = 0
@@ -960,10 +960,10 @@ class RenderBufferCell extends ICGateRenderer[ArrayGateICTile]
         torches(1).on = false
     }
 
-    override def prepareDynamic(gate:ArrayGateICTile, frame:Float)
+    override def prepareDynamic(gate:ArrayGateICTile, frame:Float): Unit =
     {
-        bottom.signal = (if ((gate.state&0x55) != 0) 255 else 0).toByte
-        top.signal = (if ((gate.state&0xAA) != 0) 255 else 0).toByte
+        bottom.signal = (if (gate.state&0x55) != 0 then 255 else 0).toByte
+        top.signal = (if (gate.state&0xAA) != 0 then 255 else 0).toByte
         torches(0).on = bottom.signal == 0
         torches(1).on = bottom.signal != 0
         wires(0).on = bottom.signal != 0

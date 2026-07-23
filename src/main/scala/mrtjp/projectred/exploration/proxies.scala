@@ -29,7 +29,7 @@ class ExplorationProxy_server extends IProxy
 {
     val guiIDBackpack = 1
 
-    override def preinit()
+    override def preinit(): Unit =
     {
         itemWoolGin = new ItemWoolGin
         itemWoolGin.setTranslationKey("projectred.exploration.woolGin")
@@ -47,13 +47,13 @@ class ExplorationProxy_server extends IProxy
         blockOres.setTranslationKey("projectred.exploration.ore")
         ForgeRegistries.BLOCKS.register(blockOres.setRegistryName("ore"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockOres).setRegistryName(blockOres.getRegistryName))
-        for (o <- OreDefs.values) blockOres.setHarvestLevel("pickaxe", o.harvest, blockOres.getStateFromMeta(o.meta))
+        for o <- OreDefs.values do blockOres.setHarvestLevel("pickaxe", o.harvest, blockOres.getStateFromMeta(o.meta))
 
         blockDecorativeStone = new BlockDecorativeStone
         blockDecorativeStone.setTranslationKey("projectred.exploration.stone")
         ForgeRegistries.BLOCKS.register(blockDecorativeStone.setRegistryName("stone"))
         ForgeRegistries.ITEMS.register(new ItemBlockCore(blockDecorativeStone).setRegistryName(blockDecorativeStone.getRegistryName))
-        for (b <- DecorativeStoneDefs.values) {
+        for b <- DecorativeStoneDefs.values do {
             blockDecorativeStone.setHarvestLevel("pickaxe", b.harvest, blockDecorativeStone.getStateFromMeta(b.meta))
             BlockMicroMaterial.createAndRegister(blockDecorativeStone.getStateFromMeta(b.meta)) //Register as microblocks
         }
@@ -132,12 +132,12 @@ class ExplorationProxy_server extends IProxy
         initOreDict()
     }
 
-    override def init()
+    override def init(): Unit =
     {
         //World Gen
 
         //Ruby
-        if (Configurator.gen_Ruby)
+        if Configurator.gen_Ruby then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_ruby"
@@ -155,7 +155,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Sapphire
-        if (Configurator.gen_Sapphire)
+        if Configurator.gen_Sapphire then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_sapphire"
@@ -173,7 +173,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Peridot
-        if (Configurator.gen_Peridot)
+        if Configurator.gen_Peridot then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_peridot"
@@ -191,7 +191,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Marble
-        if (Configurator.gen_MarbleCave)
+        if Configurator.gen_MarbleCave then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_marblecave"
@@ -210,7 +210,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Volcano
-        if (Configurator.gen_Volcano)
+        if Configurator.gen_Volcano then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_volcano"
@@ -245,7 +245,7 @@ class ExplorationProxy_server extends IProxy
 //        }
 
         //Copper
-        if (Configurator.gen_Copper)
+        if Configurator.gen_Copper then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_copper"
@@ -264,7 +264,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Tin
-        if (Configurator.gen_Tin)
+        if Configurator.gen_Tin then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_tin"
@@ -283,7 +283,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Silver
-        if (Configurator.gen_Silver)
+        if Configurator.gen_Silver then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_silver"
@@ -301,7 +301,7 @@ class ExplorationProxy_server extends IProxy
         }
 
         //Electrotine
-        if (Configurator.gen_Electrotine)
+        if Configurator.gen_Electrotine then
         {
             val logic = new GenLogicUniform
             logic.name = "pr_electrotine"
@@ -329,14 +329,14 @@ class ExplorationProxy_server extends IProxy
         GameRegistry.addSmelting(OreDefs.OREELECTROTINE.makeStack, PartDefs.ELECTROTINE.makeStack, 0.7f)
     }
 
-    override def postinit()
+    override def postinit(): Unit =
     {
         InvWrapper.register(BarrelInvWrapper)
     }
 
-    private def initOreDict()
+    private def initOreDict(): Unit =
     {
-        for (i <- 0 until 16)
+        for i <- 0 until 16 do
             OreDictionary.registerOre(ItemBackpack.oreDictionaryVal, new ItemStack(ProjectRedExploration.itemBackpack, 1, i))
 
         OreDictionary.registerOre("oreRuby", OreDefs.ORERUBY.makeStack)
@@ -362,7 +362,7 @@ class ExplorationProxy_server extends IProxy
 class ExplorationProxy_client extends ExplorationProxy_server
 {
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
         ModelLoader.setCustomStateMapper(blockOres, new StateMapperBase {
@@ -377,16 +377,16 @@ class ExplorationProxy_client extends ExplorationProxy_server
         })
         registerItemModelTypes(Item.getItemFromBlock(blockOres), "projectred:world/ore", OreDefs)
         registerItemModelTypes(Item.getItemFromBlock(blockDecorativeStone), "projectred:world/deceratives", DecorativeStoneDefs)
-        for (v <- DecorativeStoneDefs.values) {
+        for v <- DecorativeStoneDefs.values do {
             val modelloc = new ModelResourceLocation("projectred:world/wall", "type=" + v.getVariantName + ",up=true,east=true,west=true")
             ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(blockDecorativeWall), v.meta, modelloc)
         }
         ModelLoader.setCustomStateMapper(blockDecorativeWall, new StateMapperBase {
             override protected def getModelResourceLocation(state: IBlockState): ModelResourceLocation = {
-                import java.lang.{Boolean => JBool}
+                import java.lang.{Boolean as JBool}
 
-                import mrtjp.projectred.exploration.BlockProperties._
-                import net.minecraft.block.BlockWall._
+                import mrtjp.projectred.exploration.BlockProperties.*
+                import net.minecraft.block.BlockWall.*
                 def parseLocation(state :IBlockState):String = {
                     val t = "type=" + state.getValue(STONE_TYPES)
                     val u = "up=" + JBool.toString(state.getValue(UP.asInstanceOf[IProperty[Nothing]]))
@@ -408,7 +408,7 @@ class ExplorationProxy_client extends ExplorationProxy_server
 
         registerModelType(itemWoolGin, "projectred:world/items", "wool_gin")
         registerModelType(itemAthame, "projectred:world/items", "athame")
-        for (i <- 0 until 16) {
+        for i <- 0 until 16 do {
             registerModelType(itemBackpack, i, "projectred:world/items", "backpack_" + i)
         }
 
@@ -467,7 +467,7 @@ class ExplorationProxy_client extends ExplorationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
 
@@ -477,26 +477,26 @@ class ExplorationProxy_client extends ExplorationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    def registerItemModelTypes(item:Item, regName:String, itemDef:ItemDefinition) {
-        for (v <- itemDef.values) {
+    def registerItemModelTypes(item:Item, regName:String, itemDef:ItemDefinition): Unit = {
+        for v <- itemDef.values do {
             val modelloc = new ModelResourceLocation(regName, "type=" + v.getVariantName)
             ModelLoader.setCustomModelResourceLocation(item, v.meta, modelloc)
         }
     }
 
     @SideOnly(Side.CLIENT)
-    def registerModelType(item:Item, jsonLocation:String, typeValue:String){
+    def registerModelType(item:Item, jsonLocation:String, typeValue:String): Unit ={
         registerModelType(item, 0, jsonLocation, typeValue)
     }
 
     @SideOnly(Side.CLIENT)
-    def registerModelType(item:Item, meta:Int, jsonLocation:String, typeValue:String) {
+    def registerModelType(item:Item, meta:Int, jsonLocation:String, typeValue:String): Unit = {
         val modelLoc = new ModelResourceLocation(jsonLocation, "type=" + typeValue)
         ModelLoader.setCustomModelResourceLocation(item, meta, modelLoc)
     }
 
     @SideOnly(Side.CLIENT)
-    def registerToolModel(item: Item, variant:String) {
+    def registerToolModel(item: Item, variant:String): Unit = {
         val modelLoc = new ModelResourceLocation("projectred:world/tools", "type=" + variant)
         ModelLoader.setCustomModelResourceLocation(item, 0, modelLoc)
         ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition {

@@ -14,8 +14,8 @@ import codechicken.lib.vec.{Cuboid6, Vector3}
 import mrtjp.core.vec.VecLib
 import mrtjp.projectred.api.{IBundledEmitter, IBundledTile, IConnectable, IScrewdriver}
 import mrtjp.projectred.core.Configurator
-import mrtjp.projectred.core.TFaceOrient._
-import mrtjp.projectred.transmission.BundledCommons._
+import mrtjp.projectred.core.TFaceOrient.*
+import mrtjp.projectred.transmission.BundledCommons.*
 import mrtjp.projectred.transmission.{APIImpl_Transmission, TFaceBundledAquisitions}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
@@ -40,16 +40,16 @@ trait TBundledGatePart extends GatePart with TFaceBundledAquisitions with IBundl
     {
         val ir = toInternal(r)
         val logic = getLogicBundled
-        if ((logic.bundledOutputMask(shape)&1<<ir) != 0) logic.getBundledOutput(this, ir)
+        if (logic.bundledOutputMask(shape)&1<<ir) != 0 then logic.getBundledOutput(this, ir)
         else null
     }
 
     def getBundledInput(r:Int) =
     {
         val ar = toAbsolute(r)
-        if (maskConnectsCorner(ar)) calcCornerArray(ar)
-        else if (maskConnectsStraight(ar)) calcStraightArray(ar)
-        else if (maskConnectsInside(ar)) calcInternalArray(ar)
+        if maskConnectsCorner(ar) then calcCornerArray(ar)
+        else if maskConnectsStraight(ar) then calcStraightArray(ar)
+        else if maskConnectsInside(ar) then calcInternalArray(ar)
         else null
     }
 
@@ -83,9 +83,9 @@ class BundledGatePart extends RedstoneGatePart with TBundledGatePart with TCompl
 
     override def getLogic[T]:T = logic.asInstanceOf[T]
 
-    override def assertLogic()
+    override def assertLogic(): Unit =
     {
-        if (logic == null) logic = BundledGateLogic.create(this, subID)
+        if logic == null then logic = BundledGateLogic.create(this, subID)
     }
 
     override def getType = GateDefinition.typeBundledGate
@@ -115,7 +115,7 @@ class BusTransceiver(gate:BundledGatePart) extends BundledGateLogic(gate)
     override def outputMask(shape:Int) = 0
     override def inputMask(shape:Int) = 10
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         saveSignal(tag, "in0", input0)
         saveSignal(tag, "out0", output0)
@@ -123,7 +123,7 @@ class BusTransceiver(gate:BundledGatePart) extends BundledGateLogic(gate)
         saveSignal(tag, "out2", output2)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         input0 = loadSignal(tag, "in0")
         input2 = loadSignal(tag, "in2")
@@ -131,12 +131,12 @@ class BusTransceiver(gate:BundledGatePart) extends BundledGateLogic(gate)
         output2 = loadSignal(tag, "out2")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeInt(packClientData)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         unpackClientData(packet.readInt)
     }
@@ -147,64 +147,64 @@ class BusTransceiver(gate:BundledGatePart) extends BundledGateLogic(gate)
         case _ =>
     }
 
-    def sendClientUpdate()
+    def sendClientUpdate(): Unit =
     {
         gate.getWriteStreamOf(11).writeInt(packClientData)
     }
 
     def packClientData = packDigital(output0)|packDigital(output2)<<16
 
-    def unpackClientData(packed:Int)
+    def unpackClientData(packed:Int): Unit =
     {
         output0 = unpackDigital(output0, packed&0xFFFF)
         output2 = unpackDigital(output2, packed>>>16)
     }
 
-    override def getBundledOutput(gate:BundledGatePart, r:Int) = if (r == 0) output0 else output2
+    override def getBundledOutput(gate:BundledGatePart, r:Int) = if r == 0 then output0 else output2
 
     def getBundledInput(r:Int) = raiseSignal(copySignal(gate.getBundledInput(r)), getBundledOutput(gate, r)) //OR'd w/ output
 
-    override def onChange(gate:BundledGatePart)
+    override def onChange(gate:BundledGatePart): Unit =
     {
         var inputChanged = false
 
         val oldInput = gate.state&0xF
         val newInput = getInput(gate, 10)
-        if (oldInput != newInput)
+        if oldInput != newInput then
         {
             gate.setState(gate.state&0xF0|newInput)
             inputChanged = true
         }
 
         val newInput0 = getBundledInput(0)
-        if (!signalsEqual(input0, newInput0))
+        if !signalsEqual(input0, newInput0) then
         {
             input0 = newInput0
             inputChanged = true
         }
 
         val newInput2 = getBundledInput(2)
-        if (!signalsEqual(input2, newInput2))
+        if !signalsEqual(input2, newInput2) then
         {
             input2 = newInput2
             inputChanged = true
         }
 
-        if (inputChanged) gate.onInputChange()
-        if (!signalsEqual(output0, getBundledOutput(0)) || !signalsEqual(output2, getBundledOutput(2))) gate.scheduleTick(2)
+        if inputChanged then gate.onInputChange()
+        if !signalsEqual(output0, getBundledOutput(0)) || !signalsEqual(output2, getBundledOutput(2)) then gate.scheduleTick(2)
     }
 
     def getBundledOutput(r:Int):Array[Byte] =
     {
         var input = gate.state&0xF
-        if (gate.shape == 1) input = flipMaskZ(input)
+        if gate.shape == 1 then input = flipMaskZ(input)
 
-        if (r == 0) return if ((input&2) != 0) input2 else null
-        if (r == 2) return if ((input&8) != 0) input0 else null
+        if r == 0 then return if (input&2) != 0 then input2 else null
+        if r == 2 then return if (input&8) != 0 then input0 else null
         null
     }
 
-    override def scheduledTick(gate:BundledGatePart)
+    override def scheduledTick(gate:BundledGatePart): Unit =
     {
         output0 = getBundledOutput(0)
         output2 = getBundledOutput(2)
@@ -234,26 +234,26 @@ class BusRandomizer(gate:BundledGatePart) extends BundledGateLogic(gate)
     override def inputMask(shape:Int) = 10
     override def outputMask(shape:Int) = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setShort("in", (mask&0xFFFF).asInstanceOf[Short])
         tag.setShort("out", (output&0xFFFF).asInstanceOf[Short])
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         mask = tag.getShort("in")
         output = tag.getShort("out")
         unpackedOut = unpackDigital(unpackedOut, output)
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeShort(output)
         packet.writeShort(mask)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         output = packet.readUShort()
         mask = packet.readUShort()
@@ -266,45 +266,45 @@ class BusRandomizer(gate:BundledGatePart) extends BundledGateLogic(gate)
         case _ =>
     }
 
-    def sendOutUpdate()
+    def sendOutUpdate(): Unit =
     {
         gate.getWriteStreamOf(11).writeShort(output)
     }
 
-    def sendMaskUpdate()
+    def sendMaskUpdate(): Unit =
     {
         gate.getWriteStreamOf(12).writeShort(mask)
     }
 
-    override def onChange(gate:BundledGatePart)
+    override def onChange(gate:BundledGatePart): Unit =
     {
         var inputChanged = false
         val oldInput = gate.state&0xF
         val newInput = getInput(gate, 10)
-        if (oldInput != newInput)
+        if oldInput != newInput then
         {
             gate.setState(gate.state&0xF0|newInput)
             inputChanged = true
         }
 
         var newMask = packDigital(gate.getBundledInput(2))
-        if (newMask == 0) newMask = 0xFFFF
-        if (mask != newMask)
+        if newMask == 0 then newMask = 0xFFFF
+        if mask != newMask then
         {
             mask = newMask
             inputChanged = true
             sendMaskUpdate()
         }
 
-        if (inputChanged) gate.onInputChange()
-        if (newInput != 0) gate.scheduleTick(2)
+        if inputChanged then gate.onInputChange()
+        if newInput != 0 then gate.scheduleTick(2)
     }
 
-    override def scheduledTick(gate:BundledGatePart)
+    override def scheduledTick(gate:BundledGatePart): Unit =
     {
         val oldOut = output
-        output = if ((gate.state&0xF) != 0) if (gate.shape == 0) calc1BitOut else calcNBitOut else oldOut
-        if (oldOut != output)
+        output = if (gate.state&0xF) != 0 then if gate.shape == 0 then calc1BitOut else calcNBitOut else oldOut
+        if oldOut != output then
         {
             unpackedOut = unpackDigital(unpackedOut, output)
             gate.onOutputChange(1)
@@ -318,18 +318,18 @@ class BusRandomizer(gate:BundledGatePart) extends BundledGateLogic(gate)
         val high = Integer.bitCount(mask)
         val n = rand.nextInt(high)
         var v = 0
-        for (i <- 0 until 16) if ((mask&1<<i) != 0 && {v+=1; v-1} == n) return 1<<i
+        for i <- 0 until 16 do if (mask&1<<i) != 0 && {v+=1; v-1} == n then return 1<<i
         0
     }
 
     def calcNBitOut =
     {
         var out = 0
-        for (i <- 0 until 16) if ((mask&1<<i) != 0 && rand.nextBoolean) out |= 1<<i
+        for i <- 0 until 16 do if (mask&1<<i) != 0 && rand.nextBoolean then out |= 1<<i
         out
     }
 
-    override def getBundledOutput(gate:BundledGatePart, r:Int) = if (r == 0) unpackedOut else null
+    override def getBundledOutput(gate:BundledGatePart, r:Int) = if r == 0 then unpackedOut else null
 
     override def cycleShape(gate:BundledGatePart) =
     {
@@ -346,19 +346,19 @@ class BusConverter(gate:BundledGatePart) extends BundledGateLogic(gate)
     var rsIn, rsOut = 0
     var bOutUnpacked:Array[Byte] = null
 
-    override def bundledOutputMask(shape:Int) = if (shape == 0) 1 else 0
-    override def bundledInputMask(shape:Int) = if (shape == 0) 0 else 1
-    override def outputMask(shape:Int) = if (shape == 0) 10 else 14
-    override def inputMask(shape:Int) = if (shape == 0) 4 else 0
+    override def bundledOutputMask(shape:Int) = if shape == 0 then 1 else 0
+    override def bundledInputMask(shape:Int) = if shape == 0 then 0 else 1
+    override def outputMask(shape:Int) = if shape == 0 then 10 else 14
+    override def inputMask(shape:Int) = if shape == 0 then 4 else 0
 
-    def setBOut(newBOut:Int)
+    def setBOut(newBOut:Int): Unit =
     {
-        if (bOut == newBOut) return
+        if bOut == newBOut then return
         bOut = newBOut
         bOutUnpacked = unpackDigital(bOutUnpacked, bOut)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setByte("in", rsIn.toByte)
         tag.setByte("out", rsOut.toByte)
@@ -366,7 +366,7 @@ class BusConverter(gate:BundledGatePart) extends BundledGateLogic(gate)
         tag.setByte("out0", bOut.toByte)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         rsIn = tag.getByte("in")
         rsOut = tag.getByte("out")
@@ -374,12 +374,12 @@ class BusConverter(gate:BundledGatePart) extends BundledGateLogic(gate)
         setBOut(tag.getByte("out0"))
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeShort(packClientData)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         unpackClientData(packet.readUShort)
     }
@@ -390,14 +390,14 @@ class BusConverter(gate:BundledGatePart) extends BundledGateLogic(gate)
         case _ =>
     }
 
-    def sendClientUpdate()
+    def sendClientUpdate(): Unit =
     {
         gate.getWriteStreamOf(11).writeShort(packClientData)
     }
 
     def packClientData = rsIn|rsOut<<4|mostSignificantBit(bIn)<<8|mostSignificantBit(bOut)<<12
 
-    def unpackClientData(data:Int)
+    def unpackClientData(data:Int): Unit =
     {
         rsIn = data&0xF
         rsOut = data>>4&0xF
@@ -406,23 +406,23 @@ class BusConverter(gate:BundledGatePart) extends BundledGateLogic(gate)
     }
 
     override def getOutput(gate:BundledGatePart, r:Int) =
-        if (gate.shape != 0 && r == 2) rsOut else if ((gate.state&0x10 << r) != 0) 15 else 0
+        if gate.shape != 0 && r == 2 then rsOut else if (gate.state&0x10 << r) != 0 then 15 else 0
 
-    override def getBundledOutput(gate:BundledGatePart, r:Int) = if (gate.shape == 0 && r == 0) bOutUnpacked else null
+    override def getBundledOutput(gate:BundledGatePart, r:Int) = if gate.shape == 0 && r == 0 then bOutUnpacked else null
 
-    override def onChange(gate:BundledGatePart)
+    override def onChange(gate:BundledGatePart): Unit =
     {
         var changed = false
 
         val oldRSIn = rsIn
-        rsIn = if (gate.shape == 0) gate.getRedstoneInput(2)/17 else 0
-        if (oldRSIn != rsIn) changed = true
+        rsIn = if gate.shape == 0 then gate.getRedstoneInput(2)/17 else 0
+        if oldRSIn != rsIn then changed = true
 
         val oldBIn = bIn
-        bIn = if (gate.shape == 0) 0 else packDigital(gate.getBundledInput(0))
-        if (oldBIn != bIn) changed = true
+        bIn = if gate.shape == 0 then 0 else packDigital(gate.getBundledInput(0))
+        if oldBIn != bIn then changed = true
 
-        if (changed)
+        if changed then
         {
             gate.onInputChange()
             gate.scheduleTick(2)
@@ -430,27 +430,27 @@ class BusConverter(gate:BundledGatePart) extends BundledGateLogic(gate)
         }
     }
 
-    override def scheduledTick(gate:BundledGatePart)
+    override def scheduledTick(gate:BundledGatePart): Unit =
     {
         var changeMask = 0
 
         val oldBOut = bOut
-        setBOut(if (gate.shape == 0) 1<<rsIn else 0)
-        if (oldBOut != bOut) changeMask |= 1
+        setBOut(if gate.shape == 0 then 1<<rsIn else 0)
+        if oldBOut != bOut then changeMask |= 1
 
         val oldRSOut = rsOut
-        rsOut = if (gate.shape == 0) 0 else mostSignificantBit(bIn)
-        if (rsOut != oldRSOut) changeMask |= 4
+        rsOut = if gate.shape == 0 then 0 else mostSignificantBit(bIn)
+        if rsOut != oldRSOut then changeMask |= 4
 
         val oldOut2 = gate.state>>4
-        val newOut2 = if ((if (gate.shape == 0) rsIn else bIn) != 0) 10 else 0
-        if (oldOut2 != newOut2)
+        val newOut2 = if (if gate.shape == 0 then rsIn else bIn) != 0 then 10 else 0
+        if oldOut2 != newOut2 then
         {
             gate.setState(gate.state&0xF|newOut2<<4)
             changeMask |= 10
         }
 
-        if (changeMask != 0)
+        if changeMask != 0 then
         {
             gate.onOutputChange(changeMask)
             sendClientUpdate()
@@ -490,31 +490,31 @@ class BusInputPanel(gate:BundledGatePart) extends BundledGateLogic(gate)
     override def outputMask(shape:Int) = 0
     override def inputMask(shape:Int) = 1
 
-    def setBOut(newBOut:Int)
+    def setBOut(newBOut:Int): Unit =
     {
-        if (bOut == newBOut) return
+        if bOut == newBOut then return
         bOut = newBOut
         bOutUnpack = unpackDigital(bOutUnpack, bOut)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setShort("press", pressMask.toShort)
         tag.setShort("mask", bOut.toShort)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         pressMask = tag.getShort("press")
         setBOut(tag.getShort("mask")&0xFFFF)
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeShort(pressMask)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         pressMask = packet.readUShort
     }
@@ -525,65 +525,65 @@ class BusInputPanel(gate:BundledGatePart) extends BundledGateLogic(gate)
         case _ =>
     }
 
-    def sendClientUpdate()
+    def sendClientUpdate(): Unit =
     {
         gate.getWriteStreamOf(11).writeShort(pressMask)
     }
 
-    override def getOutput(gate:BundledGatePart, r:Int) = if ((gate.state&0x10<<r) != 0) 15 else 0
+    override def getOutput(gate:BundledGatePart, r:Int) = if (gate.state&0x10<<r) != 0 then 15 else 0
 
     override def getBundledOutput(gate:BundledGatePart, r:Int) = bOutUnpack
 
-    override def onChange(gate:BundledGatePart)
+    override def onChange(gate:BundledGatePart): Unit =
     {
         var inputChanged = false
 
         val oldInput = gate.state&0xF
         val newInput = getInput(gate, 1)
-        if (oldInput != newInput) {
+        if oldInput != newInput then {
             gate.setState(gate.state&0xF0|newInput)
             inputChanged = true
         }
 
-        if ((gate.state&1) != 0) pressMask = 0
+        if (gate.state&1) != 0 then pressMask = 0
 
         val oldBInput = bOut
         val newBInput = pressMask
-        if (oldBInput != newBInput) inputChanged = true
+        if oldBInput != newBInput then inputChanged = true
 
-        if (inputChanged) {
+        if inputChanged then {
             gate.onInputChange()
             gate.scheduleTick(2)
         }
     }
 
-    override def scheduledTick(gate:BundledGatePart)
+    override def scheduledTick(gate:BundledGatePart): Unit =
     {
         var outputChanged:Boolean = false
 
         val oldBOut = bOut
         val newBOut = pressMask
-        if (oldBOut != newBOut) {
+        if oldBOut != newBOut then {
             setBOut(pressMask)
             outputChanged = true
             sendClientUpdate()
         }
 
-        if (outputChanged) gate.onOutputChange(bundledOutputMask(gate.shape))
+        if outputChanged then gate.onOutputChange(bundledOutputMask(gate.shape))
         onChange(gate)
     }
 
-    import mrtjp.projectred.integration.BusInputPanel._
+    import mrtjp.projectred.integration.BusInputPanel.*
     override def getSubParts(gate:BundledGatePart) = (0 until 16).map(i => new IndexedCuboid6(i,
-        (if ((pressMask&1<<i) != 0) pressed else unpressed)(i).copy.apply(VecLib.orientT(gate.orientation))))
+        (if (pressMask&1<<i) != 0 then pressed else unpressed)(i).copy.apply(VecLib.orientT(gate.orientation))))
 
     override def activate(part:BundledGatePart, player:EntityPlayer, held:ItemStack, hit:CuboidRayTraceResult):Boolean =
     {
-        if (!held.isEmpty && held.getItem.isInstanceOf[IScrewdriver]) return false
+        if !held.isEmpty && held.getItem.isInstanceOf[IScrewdriver] then return false
 
         val hitdata = hit.cuboid6.data.asInstanceOf[Int]
-        if (hitdata != -1) {
-            if (!part.world.isRemote) {
+        if hitdata != -1 then {
+            if !part.world.isRemote then {
                 pressMask ^= (1<<hitdata)
                 onChange(part)
             }
@@ -600,25 +600,25 @@ class SegmentDisplay(gate:BundledGatePart) extends BundledGateLogic(gate)
 
     override def bundledInputMask(shape:Int) = 1
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setByte("in", bInH.toByte)
         tag.setByte("col", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         bInH = tag.getByte("in")
         colour = tag.getByte("col")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeByte(bInH)
         packet.writeByte(colour)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         bInH = packet.readByte()
         colour = packet.readByte()
@@ -629,16 +629,16 @@ class SegmentDisplay(gate:BundledGatePart) extends BundledGateLogic(gate)
         case 11 => bInH = packet.readByte()
         case 12 =>
             colour = packet.readByte()
-            if (Configurator.staticGates) gate.tile.markRender()
+            if Configurator.staticGates then gate.tile.markRender()
         case _ =>
     }
 
-    def sendClientUpdate()
+    def sendClientUpdate(): Unit =
     {
         gate.getWriteStreamOf(11).writeByte(bInH)
     }
 
-    def sendColourUpdate()
+    def sendColourUpdate(): Unit =
     {
         gate.getWriteStreamOf(12).writeByte(colour)
     }
@@ -649,10 +649,10 @@ class SegmentDisplay(gate:BundledGatePart) extends BundledGateLogic(gate)
         true
     }
 
-    override def onChange(gate:BundledGatePart)
+    override def onChange(gate:BundledGatePart): Unit =
     {
         val newBIn = packDigital(gate.getBundledInput(0))
-        if ((bInH<<8|gate.state) != newBIn) {
+        if (bInH<<8|gate.state) != newBIn then {
             gate.setState(newBIn&0xFF)
             bInH = newBIn>>8
             gate.onInputChange()
@@ -661,17 +661,17 @@ class SegmentDisplay(gate:BundledGatePart) extends BundledGateLogic(gate)
         }
     }
 
-    override def scheduledTick(gate:BundledGatePart)
+    override def scheduledTick(gate:BundledGatePart): Unit =
     {
         onChange(gate)
     }
 
     override def activate(gate:BundledGatePart, player:EntityPlayer, held:ItemStack, hit:CuboidRayTraceResult):Boolean =
     {
-        if (!held.isEmpty) {
+        if !held.isEmpty then {
             val c = EnumColour.fromDyeStack(held)
-            if (c != null && c.ordinal != (colour&0xFF) && c != EnumColour.BLACK) {
-                if (!gate.world.isRemote) {
+            if c != null && c.ordinal != (colour&0xFF) && c != EnumColour.BLACK then {
+                if !gate.world.isRemote then {
                     colour = c.ordinal.toByte
                     sendColourUpdate()
                 }

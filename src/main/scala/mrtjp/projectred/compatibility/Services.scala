@@ -25,8 +25,8 @@ object Services
     def servicesLoad(): Unit =
     {
         try {
-            for (p <- rootPlugins)
-                if (p.isEnabled && p.getModIDs.forall(Loader.isModLoaded))
+            for p <- rootPlugins do
+                if p.isEnabled && p.getModIDs.forall(Loader.isModLoaded) then
                     plugins :+= p
                 else
                     ProjectRedCore.log.warn(p.loadFailedDesc())
@@ -38,16 +38,16 @@ object Services
 
     def doPreInit(): Unit =
     {
-        for (p <- plugins) p.preInit()
+        for p <- plugins do p.preInit()
     }
 
     def doInit(): Unit =
     {
-        for (p <- plugins) p.init()
+        for p <- plugins do p.init()
     }
 
     def doPostInit(): Unit =
     {
-        for (p <- plugins) p.postInit()
+        for p <- plugins do p.postInit()
     }
 }

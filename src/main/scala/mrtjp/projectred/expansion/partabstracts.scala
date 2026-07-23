@@ -8,7 +8,7 @@ package mrtjp.projectred.expansion
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.raytracer.CuboidRayTraceResult
 import codechicken.lib.vec.{Rotation, Vector3}
-import codechicken.multipart._
+import codechicken.multipart.*
 import mrtjp.projectred.api.{IConnectable, IScrewdriver}
 import mrtjp.projectred.core.{PRLib, TFaceConnectable, TFacePowerPart, TSwitchPacket}
 import net.minecraft.entity.player.EntityPlayer
@@ -17,34 +17,34 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{EnumFacing, EnumHand}
 import net.minecraft.util.math.BlockPos
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOcclusionPart with TFaceConnectable with TSwitchPacket with TIconHitEffectsPart with TFacePowerPart
 {
-    def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int)
+    def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int): Unit =
     {
         setSide(side^1)
         setRotation((Rotation.getSidedRotation(player, side)+2)%4)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setByte("orient", orientation)
         tag.setInteger("connMap", connMap)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         orientation = tag.getByte("orient")
-        connMap = if (tag.getBoolean("nolegacy")) tag.getInteger("connMap") else tag.getShort("connMap")|0xF000
+        connMap = if tag.getBoolean("nolegacy") then tag.getInteger("connMap") else tag.getShort("connMap")|0xF000
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeByte(orientation)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         orientation = packet.readByte()
     }
@@ -57,7 +57,7 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
         case _ => super.read(packet, key)
     }
 
-    def sendOrientUpdate()
+    def sendOrientUpdate(): Unit =
     {
         getWriteStreamOf(1).writeByte(orientation)
     }
@@ -68,34 +68,34 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
 
     override def canConnectCorner(r:Int) = false
 
-    override def onPartChanged(part:TMultiPart)
+    override def onPartChanged(part:TMultiPart): Unit =
     {
-        if (!world.isRemote)
-            if (updateOutward())
+        if !world.isRemote then
+            if updateOutward() then
                 onMaskChanged()
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
-        if (!world.isRemote) {
-            if (dropIfCantStay()) return
-            if (updateExternalConns())
+        if !world.isRemote then {
+            if dropIfCantStay() then return
+            if updateExternalConns() then
                 onMaskChanged()
         }
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         super.onAdded()
-        if (!world.isRemote)
-            if (updateInward())
+        if !world.isRemote then
+            if updateInward() then
                 onMaskChanged()
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
-        if (!world.isRemote) notifyAllExternals()
+        if !world.isRemote then notifyAllExternals()
     }
 
     def canStay =
@@ -106,7 +106,7 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
 
     def dropIfCantStay() =
     {
-        if (!canStay)
+        if !canStay then
         {
             drop()
             true
@@ -114,7 +114,7 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
         else false
     }
 
-    def drop()
+    def drop(): Unit =
     {
         TileMultipart.dropItem(getItem, world, Vector3.fromTileCenter(tile))
         tile.remPart(this)
@@ -132,9 +132,9 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, held:ItemStack, hand:EnumHand):Boolean =
     {
-        if (!held.isEmpty && doesRotate && held.getItem.isInstanceOf[IScrewdriver] && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held))
+        if !held.isEmpty && doesRotate && held.getItem.isInstanceOf[IScrewdriver] && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held) then
         {
-            if (!world.isRemote)
+            if !world.isRemote then
             {
                 rotate()
                 held.getItem.asInstanceOf[IScrewdriver].damageScrewdriver(player, held)
@@ -144,10 +144,10 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
         false
     }
 
-    def rotate()
+    def rotate(): Unit =
     {
         setRotation((rotation+1)%4)
-        if (updateInward())
+        if updateInward() then
             onMaskChanged()
         tile.markDirty()
         tile.notifyPartChange(this)

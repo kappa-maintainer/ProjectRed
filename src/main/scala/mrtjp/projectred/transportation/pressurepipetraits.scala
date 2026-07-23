@@ -29,7 +29,7 @@ trait TPressureSubsystem extends PayloadPipePart[PressurePayload]
 
     override def passPayload(r:PressurePayload):Boolean =
     {
-        if (passToPressureDevice(r)) return true
+        if passToPressureDevice(r) then return true
 
         super.passPayload(r)
     }
@@ -47,13 +47,13 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
 {
     var lastFlow = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("flow", lastFlow.toByte)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         lastFlow = tag.getByte("flow")
@@ -61,23 +61,23 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
 
     def openOuts = clientConnMap
 
-    override def adjustSpeed(r:PressurePayload)
+    override def adjustSpeed(r:PressurePayload): Unit =
     {
         r.speed = 0.05f
     }
 
     def resolveOutputConflict(outs:Int):Int =
     {
-        import java.lang.Integer.{bitCount => count, numberOfTrailingZeros => trail}
+        import java.lang.Integer.{bitCount as count, numberOfTrailingZeros as trail}
 
         val out2 = outs&openOuts&0x3F
-        if (count(out2) == 1)
+        if count(out2) == 1 then
         {
             val dest = trail(out2)
             lastFlow = 1<<((dest+1)%6)
             return dest
         }
-        else if (count(out2) > 1)
+        else if count(out2) > 1 then
         {
             val strip = trail(lastFlow)
             val dest = (trail((out2<<6|out2)>>strip)+strip)%6
@@ -90,7 +90,7 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
     def hasDestination(r:PressurePayload, from:Int):Boolean =
     {
         val dim = (~(1<<from))&openOuts
-        if (dim == 0) return false
+        if dim == 0 then return false
 
         PressurePathFinder.clear()
         PressurePathFinder.pipe = this
@@ -103,9 +103,9 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
         result != 0
     }
 
-    override def resolveDestination(r:PressurePayload)
+    override def resolveDestination(r:PressurePayload): Unit =
     {
-        if (Integer.bitCount(openOuts) > 2 || r.travelData == 0)
+        if Integer.bitCount(openOuts) > 2 || r.travelData == 0 then
         {
             val dim = (~(1<<(r.input^1)))&openOuts
 
@@ -119,12 +119,12 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
             val backlogDirs = PressurePathFinder.backlogDirs
             PressurePathFinder.clear()
 
-            if (invDirs != 0)
+            if invDirs != 0 then
             {
                 r.output = resolveOutputConflict(invDirs)
                 r.travelData = PressurePriority.inventory
             }
-            else if (backlogDirs != 0)
+            else if backlogDirs != 0 then
             {
                 r.output = resolveOutputConflict(backlogDirs)
                 r.travelData = PressurePriority.backlog
@@ -134,16 +134,16 @@ trait TPressureTube extends TPressureSubsystem with TColourFilterPipe
         else chooseRandomDestination(r)
     }
 
-    override def injectPayload(r:PressurePayload, in:Int)
+    override def injectPayload(r:PressurePayload, in:Int): Unit =
     {
         super.injectPayload(r, in)
-        if (r.travelData == 0)
+        if r.travelData == 0 then
             r.tickPayloadWander()
     }
 
     abstract override def discoverStraightOverride(s:Int):Boolean =
     {
-        if (super.discoverStraightOverride(s)) return true
+        if super.discoverStraightOverride(s) then return true
         world.getTileEntity(posOfStraight(s)) match {
             case sinv:ISidedInventory => sinv.getSlotsForFace(EnumFacing.values()(s^1)).nonEmpty
             case inv:IInventory => true

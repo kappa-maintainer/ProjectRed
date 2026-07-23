@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 object ProjectRedIntegration
 {
     /** Multipart items **/
-    var itemPartGate:ItemPartGate = _
+    var itemPartGate:ItemPartGate = scala.compiletime.uninitialized
 
     val tabIntegration = new CreativeTabs("projectred.integration")
     {

@@ -20,7 +20,7 @@ trait TCachedPowerConductor extends IPowerConnectable
 
     override def conductorOut(id:Int) =
     {
-        if (needsCache) rebuildCache()
+        if needsCache then rebuildCache()
 
         var wr = condCache(id)
 
@@ -37,12 +37,12 @@ trait TCachedPowerConductor extends IPowerConnectable
         }
     }
 
-    def rebuildCache()
+    def rebuildCache(): Unit =
     {
-        for (i <- 0 until condCache.length) condCache(i) = new WeakReference(null)
-        for (id <- idRange) {
+        for i <- 0 until condCache.length do condCache(i) = new WeakReference(null)
+        for id <- idRange do {
             val c = getExternalCond(id)
-            if (c != null && c.isValid) condCache(id) = new WeakReference(c)
+            if c != null && c.isValid then condCache(id) = new WeakReference(c)
         }
         needsCache = false
     }
@@ -50,7 +50,7 @@ trait TCachedPowerConductor extends IPowerConnectable
 
 trait TPowerPartCommons extends TMultiPart with TCachedPowerConductor with TConnectableCommons
 {
-    abstract override def onMaskChanged()
+    abstract override def onMaskChanged(): Unit =
     {
         super.onMaskChanged()
         needsCache = true
@@ -63,10 +63,10 @@ trait TFacePowerPart extends TMultiPart with TFaceConnectable with TPowerPartCom
 
     override def getExternalCond(id:Int):PowerConductor =
     {
-        if (0 to 3 contains id)
+        if 0 to 3 contains id then
         {
-            if (!maskConnects(id)) return null
-            if ((connMap&1<<id) != 0) getCorner(id) match //corner
+            if !maskConnects(id) then return null
+            if (connMap&1<<id) != 0 then getCorner(id) match //corner
             {
                 case p:IPowerConnectable => return p.conductor(rotFromCorner(id))
                 case _ => world.getTileEntity(posOfCorner(id)) match
@@ -75,7 +75,7 @@ trait TFacePowerPart extends TMultiPart with TFaceConnectable with TPowerPartCom
                     case _ =>
                 }
             }
-            else if ((connMap&0x10<<id) != 0) getStraight(id) match //straight
+            else if (connMap&0x10<<id) != 0 then getStraight(id) match //straight
             {
                 case p:IPowerConnectable => return p.conductor(rotFromStraight(id))
                 case _ => world.getTileEntity(posOfStraight(id)) match
@@ -84,13 +84,13 @@ trait TFacePowerPart extends TMultiPart with TFaceConnectable with TPowerPartCom
                     case _ =>
                 }
             }
-            else if ((connMap&0x100<<id) != 0) getInternal(id) match //internal face
+            else if (connMap&0x100<<id) != 0 then getInternal(id) match //internal face
             {
                 case p:IPowerConnectable => return p.conductor(id)
                 case _ =>
             }
         }
-        else if (id == 4) getCenter match
+        else if id == 4 then getCenter match
         {
             case p:IPowerConnectable => return p.conductor(side)
             case _ =>
@@ -106,9 +106,9 @@ trait TCenterPowerPart extends TMultiPart with TCenterConnectable with TPowerPar
 
     override def getExternalCond(id:Int):PowerConductor =
     {
-        if (0 until 6 contains id)
+        if 0 until 6 contains id then
         {
-            if ((connMap&1<<id) != 0) getStraight(id) match //straight
+            if (connMap&1<<id) != 0 then getStraight(id) match //straight
             {
                 case p:IPowerConnectable => return p.conductor(id^1)
                 case _ => world.getTileEntity(posOfStraight(id)) match {
@@ -116,7 +116,7 @@ trait TCenterPowerPart extends TMultiPart with TCenterConnectable with TPowerPar
                     case _ =>
                 }
             }
-            else if ((connMap&1<<id+6) != 0) getInternal(id) match //internal
+            else if (connMap&1<<id+6) != 0 then getInternal(id) match //internal
             {
                 case p:IPowerConnectable => return p.conductor(id^1)
                 case _ =>

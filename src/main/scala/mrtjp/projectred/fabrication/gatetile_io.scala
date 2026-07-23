@@ -7,7 +7,7 @@ package mrtjp.projectred.fabrication
 
 import codechicken.lib.colour.EnumColour
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
-import mrtjp.projectred.fabrication.SEIntegratedCircuit._
+import mrtjp.projectred.fabrication.SEIntegratedCircuit.*
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
@@ -39,9 +39,9 @@ class IOGateICTile extends RedstoneGateICTile with IIOGateTile with TComplexGate
     override def getLogic[T] = logic.asInstanceOf[T]
     def getLogicIO = getLogic[IOGateTileLogic]
 
-    override def assertLogic()
+    override def assertLogic(): Unit =
     {
-        if (logic == null) logic = IOGateTileLogic.create(this, subID)
+        if logic == null then logic = IOGateTileLogic.create(this, subID)
     }
 
     override def readClientPacket(in:MCDataInput, key:Int) = key match
@@ -69,7 +69,7 @@ class IOGateICTile extends RedstoneGateICTile with IIOGateTile with TComplexGate
 
 object IOGateTileLogic
 {
-    import mrtjp.projectred.fabrication.{ICGateDefinition => defs}
+    import mrtjp.projectred.fabrication.{ICGateDefinition as defs}
 
     def create(gate:IOGateICTile, subID:Int) = subID match
     {
@@ -82,7 +82,7 @@ object IOGateTileLogic
 
 abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLogic[IOGateICTile] with TComplexGateTileLogic[IOGateICTile]
 {
-    import IIOGateTile._
+    import IIOGateTile.*
 
     var inputReg = REG_ZERO
     var outputReg = REG_ZERO
@@ -115,13 +115,13 @@ abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLo
 
     def getFreqName:String
 
-    def toggleWorldInput()
+    def toggleWorldInput(): Unit 
 
-    override def onRegistersChanged(gate:IOGateICTile, regIDs:Set[Int])
+    override def onRegistersChanged(gate:IOGateICTile, regIDs:Set[Int]): Unit =
     {
         val oldState = gate.state
         val newState = pullInput(gate)&0xF | pullOutput(gate)<<4
-        if (oldState != newState) {
+        if oldState != newState then {
             gate.setState(newState)
             gate.sendStateUpdate()
         }
@@ -129,17 +129,17 @@ abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLo
 
     def pullInput(gate:IOGateICTile) = //Pull the input from the sim engine
     {
-        if (getIOMode(gate) == Input && gate.editor.simEngineContainer.simEngine.getRegVal[Byte](inputReg) != 0)
+        if getIOMode(gate) == Input && gate.editor.simEngineContainer.simEngine.getRegVal[Byte](inputReg) != 0 then
             4 else 0
     }
 
     def pullOutput(gate:IOGateICTile) = //Pull the output form the sim engine
     {
-        if (getIOMode(gate) == Output && gate.editor.simEngineContainer.simEngine.getRegVal[Byte](outputReg) != 0)
+        if getIOMode(gate) == Output && gate.editor.simEngineContainer.simEngine.getRegVal[Byte](outputReg) != 0 then
             4 else 0
     }
 
-    override def allocateOrFindRegisters(gate:IOGateICTile, linker:ISELinker)
+    override def allocateOrFindRegisters(gate:IOGateICTile, linker:ISELinker): Unit =
     {
         getIOMode(gate) match {
             case Input => //From world to simulation
@@ -151,7 +151,7 @@ abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLo
         }
     }
 
-    override def declareOperations(gate:IOGateICTile, linker:ISELinker)
+    override def declareOperations(gate:IOGateICTile, linker:ISELinker): Unit =
     {
         val comp = getOutputOp(inputReg, outputReg)
         linker.addGate(linker.allocateGateID(Set(gate.pos)), comp, Seq(inputReg), Seq(outputReg))
@@ -161,8 +161,8 @@ abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLo
     {
         new ISEGate {
             private val serialVersionUID = 1L
-            override def compute(ic:SEIntegratedCircuit) {
-                ic.queueRegVal[Byte](output, if (ic.getRegVal(input) != 0) 1 else 0)
+            override def compute(ic:SEIntegratedCircuit): Unit = {
+                ic.queueRegVal[Byte](output, if ic.getRegVal(input) != 0 then 1 else 0)
             }
         }
     }
@@ -171,20 +171,20 @@ abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLo
     override def buildRolloverData(gate:IOGateICTile, buffer:ListBuffer[String]) =
     {
         super.buildRolloverData(gate, buffer)
-        import com.mojang.realmsclient.gui.ChatFormatting._
+        import com.mojang.realmsclient.gui.ChatFormatting.*
         buffer += GRAY.toString + "freq: "+getFreqName
         buffer += GRAY.toString + "mode: "+(gate.shape match {
             case 0 => "I"
             case 1 => "O"
         })
 
-        if (gate.getIOMode == Input)
-            buffer += GRAY.toString + "I: "+(if ((gate.state&0xF) != 0) "high" else "low")
+        if gate.getIOMode == Input then
+            buffer += GRAY.toString + "I: "+(if (gate.state&0xF) != 0 then "high" else "low")
         else
-            buffer += GRAY.toString + "O: "+(if ((gate.state>>4) != 0) "high" else "low")
+            buffer += GRAY.toString + "O: "+(if (gate.state>>4) != 0 then "high" else "low")
     }
 
-    override def activate(gate:IOGateICTile)
+    override def activate(gate:IOGateICTile): Unit =
     {
         toggleWorldInput()
         gate.editor.simEngineContainer.onInputChanged(1<<gate.rotation)
@@ -200,7 +200,7 @@ class SimpleIOGateTileLogic(gate:IOGateICTile) extends IOGateTileLogic(gate)
 
     override def getFreqName = "rs_gpio"
 
-    override def toggleWorldInput()
+    override def toggleWorldInput(): Unit =
     {
         gate.editor.simEngineContainer.setInput(gate.rotation,
             (gate.editor.simEngineContainer.iostate(gate.rotation)&0xFFFF)^1)
@@ -214,25 +214,25 @@ trait TFreqIOGateTileLogic extends IOGateTileLogic
 {
     var freq = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("freq", freq.toByte)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         freq = tag.getByte("freq")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(freq)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         freq = in.readUByte()
@@ -244,23 +244,23 @@ trait TFreqIOGateTileLogic extends IOGateTileLogic
         case _ => super.read(in, key)
     }
 
-    def sendFreqUpdate()
+    def sendFreqUpdate(): Unit =
     {
         gate.writeStreamOf(12).writeByte(freq)
     }
 
-    def freqUp()
+    def freqUp(): Unit =
     {
-        if (freq < 15) {
+        if freq < 15 then {
             freq += 1
             sendFreqUpdate()
             gate.onSchematicChanged()
         }
     }
 
-    def freqDown()
+    def freqDown(): Unit =
     {
-        if (freq > 0) {
+        if freq > 0 then {
             freq -= 1
             sendFreqUpdate()
             gate.onSchematicChanged()
@@ -269,7 +269,7 @@ trait TFreqIOGateTileLogic extends IOGateTileLogic
 
     override def getInputRegisterOffset = freq
 
-    override def onGatePlaced(gate:IOGateICTile)
+    override def onGatePlaced(gate:IOGateICTile): Unit =
     {
         super.onGatePlaced(gate)
         val ioParts = gate.editor.tileMapContainer.tiles.collect {
@@ -279,9 +279,9 @@ trait TFreqIOGateTileLogic extends IOGateTileLogic
                         gate != io => io
         }
 
-        if (ioParts.nonEmpty) {
+        if ioParts.nonEmpty then {
             val largestFreq = ioParts.map(_.getLogic[TFreqIOGateTileLogic].freq).max
-            if (largestFreq < 15) {
+            if largestFreq < 15 then {
                 freq = largestFreq + 1
                 sendFreqUpdate()
                 gate.onSchematicChanged()
@@ -299,10 +299,10 @@ class AnalogIOGateTileLogic(gate:IOGateICTile) extends IOGateTileLogic(gate) wit
 
     override def getFreqName = "0x"+Integer.toHexString(freq)
 
-    override def toggleWorldInput()
+    override def toggleWorldInput(): Unit =
     {
         val newInput = (gate.editor.simEngineContainer.iostate(gate.rotation)&1<<freq)^1<<freq
-        gate.editor.simEngineContainer.setInput(gate.rotation, if (newInput == 0) 1 else newInput)
+        gate.editor.simEngineContainer.setInput(gate.rotation, if newInput == 0 then 1 else newInput)
     }
 }
 
@@ -312,7 +312,7 @@ class BundledIOGateTileLogic(gate:IOGateICTile) extends IOGateTileLogic(gate) wi
 
     override def getFreqName = EnumColour.values()(freq).name.toLowerCase
 
-    override def toggleWorldInput()
+    override def toggleWorldInput(): Unit =
     {
         gate.editor.simEngineContainer.setInput(gate.rotation,
             (gate.editor.simEngineContainer.iostate(gate.rotation)&0xFFFF)^1<<freq)

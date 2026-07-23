@@ -28,25 +28,25 @@ abstract class RedwireICTile extends WireICTile with IRedwireICPart
     private var stateRegister = 0
     var signal:Byte = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("signal", signal)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         signal = tag.getByte("signal")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(signal)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         signal = in.readByte()
@@ -58,7 +58,7 @@ abstract class RedwireICTile extends WireICTile with IRedwireICPart
         case _ => super.read(in, key)
     }
 
-    def sendSignalUpdate()
+    def sendSignalUpdate(): Unit =
     {
         writeStreamOf(10).writeByte(signal)
     }
@@ -76,9 +76,9 @@ abstract class RedwireICTile extends WireICTile with IRedwireICPart
 
     override def isNetOutput(r:Int):Boolean =
     {
-        if (maskConnects(r)) getStraight(r) match {
+        if maskConnects(r) then getStraight(r) match {
             case gate:IRedwireICGate =>
-                if(gate.canInputFrom(rotFromStraight(r))) return true
+                if gate.canInputFrom(rotFromStraight(r)) then return true
             case _ =>
         }
         false
@@ -86,36 +86,36 @@ abstract class RedwireICTile extends WireICTile with IRedwireICPart
 
     override def isNetInput(r:Int):Boolean =
     {
-        if (maskConnects(r)) getStraight(r) match {
+        if maskConnects(r) then getStraight(r) match {
             case gate:IRedwireICGate =>
-                if (gate.canOutputTo(rotFromStraight(r))) return true
+                if gate.canOutputTo(rotFromStraight(r)) then return true
             case _ =>
         }
         false
     }
 
-    override def cacheStateRegisters(linker:ISELinker)
+    override def cacheStateRegisters(linker:ISELinker): Unit =
     {
         stateRegister = linker.getWirenetOutputRegister(pos, 0)
     }
 
-    override def onRegistersChanged(regIDs:Set[Int])
+    override def onRegistersChanged(regIDs:Set[Int]): Unit =
     {
         val oldSignal = signal
-        signal = if (editor.simEngineContainer.simEngine.getRegVal[Byte](stateRegister) != 0)
+        signal = if editor.simEngineContainer.simEngine.getRegVal[Byte](stateRegister) != 0 then
                     255.toByte else 0
 
-        if (oldSignal != signal)
+        if oldSignal != signal then
             sendSignalUpdate()
     }
 
     @SideOnly(Side.CLIENT)
-    override def buildRolloverData(buffer:ListBuffer[String])
+    override def buildRolloverData(buffer:ListBuffer[String]): Unit =
     {
         super.buildRolloverData(buffer)
 
-        import com.mojang.realmsclient.gui.ChatFormatting._
-        buffer += GRAY.toString+"state: "+(if (signal != 0) "high" else "low")
+        import com.mojang.realmsclient.gui.ChatFormatting.*
+        buffer += GRAY.toString+"state: "+(if signal != 0 then "high" else "low")
     }
 }
 
@@ -129,7 +129,7 @@ class AlloyWireICTile extends RedwireICTile
     override def getOutputColourMask(r:Int) = 0xFFFF
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float)
+    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         RenderTileAlloyWire.prepairDynamic(this)
         RenderTileAlloyWire.render(ccrs, t, ortho)
@@ -146,25 +146,25 @@ class InsulatedWireICTile extends RedwireICTile with IInsulatedRedwireICPart
 {
     var colour:Byte = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("colour", colour)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         colour = tag.getByte("colour")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(colour)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         colour = in.readByte()
@@ -187,7 +187,7 @@ class InsulatedWireICTile extends RedwireICTile with IInsulatedRedwireICPart
     override def getInsulatedColour = colour
 
     @SideOnly(Side.CLIENT)
-    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float)
+    override def renderDynamic(ccrs:CCRenderState, t:Transformation, ortho:Boolean, frame:Float): Unit =
     {
         RenderTileInsulatedWire.prepairDynamic(this)
         RenderTileInsulatedWire.render(ccrs, t, ortho)

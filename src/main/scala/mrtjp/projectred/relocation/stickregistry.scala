@@ -5,9 +5,9 @@
  */
 package mrtjp.projectred.relocation
 
-import java.util.{Set => JSet}
+import java.util.{Set as JSet}
 
-import mrtjp.projectred.api._
+import mrtjp.projectred.api.*
 import net.minecraft.block.Block
 import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
@@ -15,7 +15,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.matching.Regex
 
 object StickRegistry
@@ -43,7 +43,7 @@ object StickRegistry
         }.toArray
     }
 
-    def addLatchSet(b1:BlockStateFilter, b2:BlockStateFilter)
+    def addLatchSet(b1:BlockStateFilter, b2:BlockStateFilter): Unit =
     {
         latchMap += b1 -> (latchMap(b1) + b2)
     }
@@ -57,22 +57,22 @@ object StickRegistry
 
     def getFrame(w:World, pos:BlockPos):IFrame = {
         val b = w.getBlockState(pos).getBlock
-        if (b.isInstanceOf[IFrame]) return b.asInstanceOf[IFrame]
+        if b.isInstanceOf[IFrame] then return b.asInstanceOf[IFrame]
 
         val te = w.getTileEntity(pos)
-        if (te != null && te.isInstanceOf[IFrame])
+        if te != null && te.isInstanceOf[IFrame] then
             return te.asInstanceOf[IFrame]
 
-        if (te != null && te.hasCapability(IRelocationAPI.FRAME_CAPABILITY, null))
+        if te != null && te.hasCapability(IRelocationAPI.FRAME_CAPABILITY, null) then
             return te.getCapability(IRelocationAPI.FRAME_CAPABILITY, null)
 
         interactionList.find(_.canInteract(w, pos)).orNull
     }
 }
 
-case class BlockStateFilter(block:Block, constraints:Map[IProperty[_], Comparable[_]])
+case class BlockStateFilter(block:Block, constraints:Map[IProperty[?], Comparable[?]])
 {
-    private def getPropValue[T <: Comparable[T]](prop:IProperty[T], value:Comparable[_]):String = prop.getName(value.asInstanceOf[T])
+    private def getPropValue[T <: Comparable[T]](prop:IProperty[T], value:Comparable[?]):String = prop.getName(value.asInstanceOf[T])
 
     def matches(state:IBlockState):Boolean =
         state.getBlock == block &&
@@ -80,10 +80,10 @@ case class BlockStateFilter(block:Block, constraints:Map[IProperty[_], Comparabl
 
     override val toString:String = {
         var s = block.getRegistryName.toString
-        if (constraints.nonEmpty) {
+        if constraints.nonEmpty then {
             s += "#" + constraints
                     .map(it => it._1.getName + "=" + getPropValue(it._1, it._2))
-                    .fold("")((a, b) => if (a.nonEmpty) s"$a,$b" else b)
+                    .fold("")((a, b) => if a.nonEmpty then s"$a,$b" else b)
         }
         s
     }
@@ -100,7 +100,7 @@ object BlockStateFilter
                         case Array(key, value) =>
                             val prop = block.getBlockState.getProperty(key)
                             val pvalue = prop.parseValue(value).get
-                            (prop, pvalue.asInstanceOf[Comparable[_]])
+                            (prop, pvalue.asInstanceOf[Comparable[?]])
                         case _ => throw new MatchError(s"Illegal key/value pair $it")
                     })
             BlockStateFilter(block, constraints.toMap)

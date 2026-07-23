@@ -2,7 +2,7 @@ package mrtjp.projectred.fabrication
 
 import mrtjp.core.vec.Point
 
-import scala.collection.mutable.{ListBuffer, Map => MMap}
+import scala.collection.mutable.{ListBuffer, Map as MMap}
 
 trait ISETile
 
@@ -10,25 +10,25 @@ trait ISEWireTile extends ISETile
 {
     def buildWireNet(r:Int):IWireNet
 
-    def cacheStateRegisters(linker:ISELinker)
+    def cacheStateRegisters(linker:ISELinker): Unit 
 }
 
 trait ISEGateTile extends ISETile
 {
     def buildImplicitWireNet(r:Int):IWireNet
 
-    def allocateOrFindRegisters(linker:ISELinker)
+    def allocateOrFindRegisters(linker:ISELinker): Unit 
 
-    def declareOperations(linker:ISELinker)
+    def declareOperations(linker:ISELinker): Unit 
 }
 
 trait IWireNet
 {
     val points:scala.collection.mutable.Seq[(Point, Int)]
 
-    def allocateRegisters(linker:ISELinker)
+    def allocateRegisters(linker:ISELinker): Unit 
 
-    def declareOperations(linker:ISELinker)
+    def declareOperations(linker:ISELinker): Unit 
 
     def getInputRegister(p:Point, r:Int):Int
 
@@ -42,19 +42,19 @@ trait ISETileMap
 
 trait ISEStatLogger
 {
-    def clear()
+    def clear(): Unit 
 
-    def logInfo(message:String)
+    def logInfo(message:String): Unit 
 
-    def logWarning(points:Seq[Point], message:String)
+    def logWarning(points:Seq[Point], message:String): Unit 
 
-    def logError(points:Seq[Point], message:String)
+    def logError(points:Seq[Point], message:String): Unit 
 
-    def logRuntimeFlag(flag:Int, registers:Seq[Int], gates:Seq[Int])
+    def logRuntimeFlag(flag:Int, registers:Seq[Int], gates:Seq[Int]): Unit 
 
-    def logRegAlloc(id:Int, points:Set[Point])
+    def logRegAlloc(id:Int, points:Set[Point]): Unit 
 
-    def logGateAlloc(id:Int, points:Set[Point])
+    def logGateAlloc(id:Int, points:Set[Point]): Unit 
 }
 
 trait ISELinker
@@ -82,7 +82,7 @@ trait ISELinker
       * @param id A previously allocated register ID
       * @param r The register to put in the slot
       */
-    def addRegister(id:Int, r:ISERegister)
+    def addRegister(id:Int, r:ISERegister): Unit 
 
     /**
       * Sets the ID to the given gate
@@ -91,7 +91,7 @@ trait ISELinker
       * @param drivingRegs Registers responsible for driving the gate
       * @param drivenRegs Registers that will be driven by the gate
       */
-    def addGate(id:Int, g:ISEGate, drivingRegs:Seq[Int], drivenRegs:Seq[Int])
+    def addGate(id:Int, g:ISEGate, drivingRegs:Seq[Int], drivenRegs:Seq[Int]): Unit 
 
     /**
       * Callback used by tiles during the linking process. Used to locate a
@@ -138,7 +138,7 @@ object ISELinker
 
 private class SELinker(logger:ISEStatLogger) extends ISELinker
 {
-    import SEIntegratedCircuit._
+    import SEIntegratedCircuit.*
 
     private var registers = Array[ISERegister]() //The registers currently in the circuit, indexed by ID
     private var gates = Array[ISEGate]() //The gates in the circuit indexed by ID
@@ -182,25 +182,25 @@ private class SELinker(logger:ISEStatLogger) extends ISELinker
         id
     }
 
-    override def addRegister(id:Int, r:ISERegister)
+    override def addRegister(id:Int, r:ISERegister): Unit =
     {
-        while (registers.length <= id)
+        while registers.length <= id do
             registers :+= null
         registers(id) = r
     }
 
-    override def addGate(id:Int, g:ISEGate, drivingRegs:Seq[Int], drivenRegs:Seq[Int])
+    override def addGate(id:Int, g:ISEGate, drivingRegs:Seq[Int], drivenRegs:Seq[Int]): Unit =
     {
-        while (gates.length <= id)
+        while gates.length <= id do
             gates :+= null
         gates(id) = g
 
-        for (regID <- drivingRegs) {
+        for regID <- drivingRegs do {
             val others = regDependents.getOrElse(regID, Seq.empty)
             regDependents += regID -> (others :+ id)
         }
 
-        for (regID <- drivenRegs) {
+        for regID <- drivenRegs do {
             val others = regDependencies.getOrElse(regID, Seq.empty)
             regDependencies += regID -> (others :+ id)
         }
@@ -256,16 +256,16 @@ private object SELinker
     def linkFromMap(map:ISETileMap, logger:ISEStatLogger):SEIntegratedCircuit =
     {
         val linker = new SELinker(logger)
-        import linker._
+        import linker.*
 
         val startTime = System.currentTimeMillis()
 
         logger.logInfo("Adding SFRs...")
         //Add all SFRs
-        import SEIntegratedCircuit._
-        for (r <- 0 until 4) for (i <- 0 until 16)
+        import SEIntegratedCircuit.*
+        for r <- 0 until 4 do for i <- 0 until 16 do
             addRegister(REG_IN(r, i), new StandardRegister[Byte](0))
-        for (r <- 0 until 4) for (i <- 0 until 16)
+        for r <- 0 until 4 do for i <- 0 until 16 do
             addRegister(REG_OUT(r, i), new StandardRegister[Byte](0))
         addRegister(REG_SYSTIME, new StandardRegister[Long](0L))
         addRegister(REG_ZERO, new ConstantRegister[Byte](0))
@@ -282,13 +282,13 @@ private object SELinker
 
         logger.logInfo("Creating wirenets...")
         // Register all wire networks
-        for ((p, w) <- allWires) { //Start with normal wire nets. Ask each wire to assemble a network.
-            for (r <- 0 until 4) {
-                if (!wireNetMap.contains((p, r))) {
+        for (p, w) <- allWires do { //Start with normal wire nets. Ask each wire to assemble a network.
+            for r <- 0 until 4 do {
+                if !wireNetMap.contains((p, r)) then {
                     val net = w.buildWireNet(r) //Assemble it...
-                    if (net != null) {
+                    if net != null then {
                         wireNets += net //Store it...
-                        for ((p, r) <- net.points)
+                        for (p, r) <- net.points do
                             wireNetMap += (p, r) -> net //And map it...
                     }
 
@@ -306,13 +306,13 @@ private object SELinker
         }
 
         logger.logInfo("Creating implicit wirenets...")
-        for ((p, g) <- allGates) { //Then add implicit nets. These are wires between adjacent gates.
-            for (r <- 0 until 4) {
+        for (p, g) <- allGates do { //Then add implicit nets. These are wires between adjacent gates.
+            for r <- 0 until 4 do {
                 val p2 = p.offset(r)
                 val pSet = Set(p, p2)
-                if (!implicitWireNetMap.contains(pSet)) {
+                if !implicitWireNetMap.contains(pSet) then {
                     val net = g.buildImplicitWireNet(r)
-                    if (net != null) {
+                    if net != null then {
                         implicitWireNets += net
                         implicitWireNetMap += pSet -> net
                         logger.logInfo(s"Added implicit wirenet for $p -> $p2")
@@ -323,22 +323,22 @@ private object SELinker
 
         logger.logInfo("Allocating wirenet registers...")
         // Add required registers from all parts
-        for (net <- wireNets ++ implicitWireNets)
+        for net <- wireNets ++ implicitWireNets do
             net.allocateRegisters(linker) //from wires
-        for ((p, w) <- allWires)
+        for (p, w) <- allWires do
             w.cacheStateRegisters(linker) //tell wires about the registers
 
         logger.logInfo("Allocating gate registers...")
-        for ((_, g) <- allGates)
+        for (_, g) <- allGates do
             g.allocateOrFindRegisters(linker) //from gates
 
         logger.logInfo("Declaring operations for wires...")
         // Add all gate operations
-        for (net <- wireNets ++ implicitWireNets)
+        for net <- wireNets ++ implicitWireNets do
             net.declareOperations(linker) //from wires
 
         logger.logInfo("Declaring operations for gates...")
-        for ((_, g) <- allGates)
+        for (_, g) <- allGates do
             g.declareOperations(linker) //from gates
 
         logger.logInfo("Creating IC...")

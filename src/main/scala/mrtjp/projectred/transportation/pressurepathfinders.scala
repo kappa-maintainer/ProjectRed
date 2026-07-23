@@ -31,7 +31,7 @@ object PressurePathFinder
     private var shortestDist = Integer.MAX_VALUE
     private var shortestBDist = Integer.MAX_VALUE
 
-    def clear()
+    def clear(): Unit =
     {
         pipe = null
         item = null
@@ -43,10 +43,10 @@ object PressurePathFinder
         shortestBDist = Integer.MAX_VALUE
     }
 
-    def start()
+    def start(): Unit =
     {
         val q = Queue.newBuilder[Node]
-        for (s <- 0 until 6 if (searchDirs&1<<s) != 0 && pipe.maskConnects(s)) q += Node(pipe.pos, s)
+        for s <- 0 until 6 if (searchDirs&1<<s) != 0 && pipe.maskConnects(s) do q += Node(pipe.pos, s)
         iterate(q.result(), Set(Node(pipe.pos)))
     }
 
@@ -57,23 +57,23 @@ object PressurePathFinder
         case Seq(next, rest@_*) => getTile(next.pos) match
         {
             case dev:TPressureDevice =>
-                if (dev.canAcceptInput(item, next.dir^1)) setInvPath(next)
-                else if (dev.canAcceptBacklog(item, next.dir^1)) setBacklog(next)
+                if dev.canAcceptInput(item, next.dir^1) then setInvPath(next)
+                else if dev.canAcceptBacklog(item, next.dir^1) then setBacklog(next)
                 iterate(rest, closed+next)
 
             case inv:IInventory =>
-                if (InvWrapper.wrapInternal(inv).setSlotsFromSide(next.dir^1).hasSpaceForItem(item)) setInvPath(next)
+                if InvWrapper.wrapInternal(inv).setSlotsFromSide(next.dir^1).hasSpaceForItem(item) then setInvPath(next)
                 iterate(rest, closed+next)
 
             case tmp:TileMultipart => tmp.partMap(6) match
             {
                 case p:TPressureTube =>
                     val upNext = Vector.newBuilder[Node]
-                    for (s <- 0 until 6) if (s != (next.dir^1) && p.maskConnects(s))
+                    for s <- 0 until 6 do if s != (next.dir^1) && p.maskConnects(s) then
                     {
                         val route = next --> (s, p.getPathWeight, p.pathFilter(next.dir^1, s))
-                        if (route.flagRouteTo && route.allowColor(colour) && route.allowItem(item))
-                            if (!closed(route) && !open.contains(route)) upNext += route
+                        if route.flagRouteTo && route.allowColor(colour) && route.allowItem(item) then
+                            if !closed(route) && !open.contains(route) then upNext += route
                     }
                     iterate(rest++upNext.result(), closed+next)
 
@@ -81,8 +81,8 @@ object PressurePathFinder
             }
             //This will always be hit as all tiles are cap providers.
             case tmp:ICapabilityProvider =>
-                if(tmp.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.VALUES(next.dir^1)))
-                    if (InvWrapper.wrap(pipe.world, next.pos, EnumFacing.VALUES(next.dir^1)).hasSpaceForItem(item)) setInvPath(next)
+                if tmp.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.VALUES(next.dir^1)) then
+                    if InvWrapper.wrap(pipe.world, next.pos, EnumFacing.VALUES(next.dir^1)).hasSpaceForItem(item) then setInvPath(next)
                 iterate(rest, closed+next)
             //Theoretically this will never be hit anymore, as all tiles are cap providers.
             case _ => iterate(rest, closed+next)
@@ -90,24 +90,24 @@ object PressurePathFinder
         case _ =>
     }
 
-    private def setInvPath(n:Node)
+    private def setInvPath(n:Node): Unit =
     {
-        if (n.dist < shortestDist)
+        if n.dist < shortestDist then
         {
             shortestDist = n.dist
             invDirs = 0
         }
-        if (n.dist == shortestDist) invDirs |= 1<<n.hop
+        if n.dist == shortestDist then invDirs |= 1<<n.hop
     }
 
-    private def setBacklog(n:Node)
+    private def setBacklog(n:Node): Unit =
     {
-        if (n.dist < shortestBDist)
+        if n.dist < shortestBDist then
         {
             shortestBDist = n.dist
             backlogDirs = 0
         }
-        if (n.dist == shortestBDist) backlogDirs |= 1<<n.hop
+        if n.dist == shortestBDist then backlogDirs |= 1<<n.hop
     }
 
     private def getTile(pos:BlockPos) = pipe.world.getTileEntity(pos)

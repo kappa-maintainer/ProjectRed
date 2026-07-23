@@ -34,29 +34,29 @@ object BundledCommons
 {
     def signalsEqual(signal1:Array[Byte], signal2:Array[Byte]):Boolean =
     {
-        if (signal1 == null) return isSignalZero(signal2)
-        if (signal2 == null) return isSignalZero(signal1)
+        if signal1 == null then return isSignalZero(signal2)
+        if signal2 == null then return isSignalZero(signal1)
         signal1.sameElements(signal2)
     }
 
     def isSignalZero(signal:Array[Byte]):Boolean =
     {
-        if (signal == null) return true
-        for (i <- 0 until 16) if (signal(i) != 0) return false
+        if signal == null then return true
+        for i <- 0 until 16 do if signal(i) != 0 then return false
         true
     }
 
     def isSignalZero(signal:Array[Byte], mask:Int):Boolean =
     {
-        if (signal == null) return true
-        for (i <- 0 until 16) if ((mask&1<<i) != 0 && signal(i) != 0) return false
+        if signal == null then return true
+        for i <- 0 until 16 do if (mask&1<<i) != 0 && signal(i) != 0 then return false
         true
     }
 
     def dropSignalsLessThan(inThis:Array[Byte], fromThat:Array[Byte]) =
     {
         var dropped = false
-        for (i <- 0 until 16) if ((fromThat(i)&0xFF) < (inThis(i)&0xFF))
+        for i <- 0 until 16 do if (fromThat(i)&0xFF) < (inThis(i)&0xFF) then
         {
             inThis(i) = 0.asInstanceOf[Byte]
             dropped = true
@@ -64,62 +64,62 @@ object BundledCommons
         dropped
     }
 
-    def applyChangeMask(from:Array[Byte], to:Array[Byte], mask:Int)
+    def applyChangeMask(from:Array[Byte], to:Array[Byte], mask:Int): Unit =
     {
-        for (i <- 0 until 16) if ((mask&1<<i) == 0) to(i) = from(i)
+        for i <- 0 until 16 do if (mask&1<<i) == 0 then to(i) = from(i)
     }
 
     def raiseSignal(ofThis:Array[Byte], fromThat:Array[Byte]):Array[Byte] =
     {
-        val sig1 = if (ofThis == null) new Array[Byte](16) else ofThis
-        if (fromThat == null) return ofThis
-        for (i <- 0 until 16) if ((sig1(i)&0xFF) < (fromThat(i)&0xFF)) sig1(i) = fromThat(i)
+        val sig1 = if ofThis == null then new Array[Byte](16) else ofThis
+        if fromThat == null then return ofThis
+        for i <- 0 until 16 do if (sig1(i)&0xFF) < (fromThat(i)&0xFF) then sig1(i) = fromThat(i)
         sig1
     }
 
-    def copySignal(signal:Array[Byte]) = if (signal == null) null else signal.clone()
+    def copySignal(signal:Array[Byte]) = if signal == null then null else signal.clone()
 
-    def saveSignal(tag:NBTTagCompound, key:String, signal:Array[Byte])
+    def saveSignal(tag:NBTTagCompound, key:String, signal:Array[Byte]): Unit =
     {
-        if (signal != null) tag.setByteArray(key, signal)
+        if signal != null then tag.setByteArray(key, signal)
     }
 
     def loadSignal(tag:NBTTagCompound, key:String) =
     {
-        if (tag.hasKey(key)) tag.getByteArray(key) else null
+        if tag.hasKey(key) then tag.getByteArray(key) else null
     }
 
     def packDigital(signal:Array[Byte]):Int =
     {
-        if (signal == null) return 0
+        if signal == null then return 0
         var packed = 0
-        for (i <- 0 until 16) if (signal(i) != 0) packed |= 1<<i
+        for i <- 0 until 16 do if signal(i) != 0 then packed |= 1<<i
         packed
     }
 
     def unpackDigital(signal:Array[Byte], packed:Int):Array[Byte] =
     {
-        if (packed == 0) return null
-        val sig = if (signal == null) new Array[Byte](16) else signal
-        for (i <- 0 until 16) sig(i) = (if ((packed&1<<i) == 0) 0 else 255).asInstanceOf[Byte]
+        if packed == 0 then return null
+        val sig = if signal == null then new Array[Byte](16) else signal
+        for i <- 0 until 16 do sig(i) = (if (packed&1<<i) == 0 then 0 else 255).asInstanceOf[Byte]
         sig
     }
 
     def mostSignificantBit(mask:Int):Int =
     {
-        if (mask <= 0) return 0
+        if mask <= 0 then return 0
         var idx = 0
         var m2 = mask>>1
-        while (m2 != 0){m2 >>= 1; idx += 1}
+        while m2 != 0 do {m2 >>= 1; idx += 1}
         idx
     }
 
     def signalToString(signal:Array[Byte]) =
-        if (isSignalZero(signal)) "off"
+        if isSignalZero(signal) then "off"
         else
         {
             var s = "["
-            for (i <- 0 until 16) s += signal(i)
+            for i <- 0 until 16 do s += signal(i)
             s += "]"
             s
         }

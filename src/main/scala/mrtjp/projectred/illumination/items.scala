@@ -1,6 +1,6 @@
 package mrtjp.projectred.illumination
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.vec.Vector3
 import codechicken.multipart.{TItemMultiPart, TMultiPart}
@@ -23,11 +23,11 @@ class ItemBaseLight(factory:LightFactory, val inverted:Boolean) extends ItemCore
     override def newPart(stack:ItemStack, player:EntityPlayer, w:World, pos:BlockPos, side:Int, vhit:Vector3):TMultiPart =
     {
         val bc = pos.offset(EnumFacing.values()(side^1))
-        if (!factory.canFloat && !BaseLightPart.canPlaceLight(w, bc, side)) return null
+        if !factory.canFloat && !BaseLightPart.canPlaceLight(w, bc, side) then return null
 
         val light = factory.createPart
 
-        if (light != null)
+        if light != null then
             light.preparePlacement(side^1, stack.getItemDamage, inverted)
 
         light
@@ -35,10 +35,10 @@ class ItemBaseLight(factory:LightFactory, val inverted:Boolean) extends ItemCore
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
 
-    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab))
-            for (i <- 0 until 16) list.add(new ItemStack(this, 1, i))
+        if isInCreativeTab(tab) then
+            for i <- 0 until 16 do list.add(new ItemStack(this, 1, i))
     }
 }
 
@@ -53,11 +53,11 @@ abstract class ItemPartButtonCommons extends ItemCore with TItemMultiPart
     override def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3):TMultiPart =
     {
         val pos2 = pos.offset(EnumFacing.values()(side^1))
-        if (!world.isSideSolid(pos2, EnumFacing.values()(side))) return null
+        if !world.isSideSolid(pos2, EnumFacing.values()(side)) then return null
 
 
         val b = getNewInst
-        if (b != null)
+        if b != null then
             b.setStateOnPlacement(world, pos, EnumFacing.values()(side), vhit.vec3(), player, item)
         b
     }
@@ -66,8 +66,8 @@ abstract class ItemPartButtonCommons extends ItemCore with TItemMultiPart
 
     override def getSubItems(tab:CreativeTabs, subItems:NonNullList[ItemStack]) =
     {
-        if (isInCreativeTab(tab))
-            for (i <- 0 until 16) subItems.add(new ItemStack(this, 1, i))
+        if isInCreativeTab(tab) then
+            for i <- 0 until 16 do subItems.add(new ItemStack(this, 1, i))
     }
 
     override def getPlacementSound(item:ItemStack):SoundType = SoundType.GLASS

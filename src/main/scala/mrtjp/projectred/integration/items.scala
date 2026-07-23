@@ -5,13 +5,13 @@
  */
 package mrtjp.projectred.integration
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.render.CCRenderState
 import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.util.TransformUtils
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.multipart.{MultiPartRegistry, TItemMultiPart, TMultiPart}
 import mrtjp.core.item.{ItemCore, ItemDefinition}
 import mrtjp.projectred.ProjectRedIntegration
@@ -37,24 +37,24 @@ class ItemPartGate extends ItemCore with TItemMultiPart
     def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3):TMultiPart =
     {
         val onPos = pos.offset(EnumFacing.values()(side^1))
-        if (!PRLib.canPlaceGateOnSide(world, onPos, side)) return null
+        if !PRLib.canPlaceGateOnSide(world, onPos, side) then return null
 
         val gtype = GateDefinition(item.getItemDamage)
-        if (!gtype.implemented) return null
+        if !gtype.implemented then return null
 
         val gate = MultiPartRegistry.loadPart(gtype.partname, null).asInstanceOf[GatePart]
-        if (gate != null) gate.preparePlacement(player, pos, side, item.getItemDamage)
+        if gate != null then gate.preparePlacement(player, pos, side, item.getItemDamage)
         gate
     }
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
 
     @SideOnly(Side.CLIENT)
-    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab))
-            for (g <- GateDefinition.values)
-                if (g.implemented) list.add(g.makeStack)
+        if isInCreativeTab(tab) then
+            for g <- GateDefinition.values do
+                if g.implemented then list.add(g.makeStack)
     }
 
 //    override def registerIcons(reg:IIconRegister)
@@ -66,7 +66,7 @@ class ItemPartGate extends ItemCore with TItemMultiPart
 //    override def getSpriteNumber = 0
 //
 
-    override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, tooltip:JList[String], advanced:ITooltipFlag): Unit =
     {
         infoBuilderFunc(stack, tooltip)
     }
@@ -132,13 +132,13 @@ object GateItemRenderer extends IItemRenderer
     override def isGui3d = true
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
-    override def renderItem(item:ItemStack, transformType: TransformType)
+    override def renderItem(item:ItemStack, transformType: TransformType): Unit =
     {
         val meta = item.getItemDamage
-        if (!GateDefinition.values.isDefinedAt(meta) ||
-                !GateDefinition(meta).implemented) return
+        if !GateDefinition.values.isDefinedAt(meta) ||
+                !GateDefinition(meta).implemented then return
 
-        import net.minecraft.client.renderer.GlStateManager._
+        import net.minecraft.client.renderer.GlStateManager.*
 
         enableBlend()
         blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)

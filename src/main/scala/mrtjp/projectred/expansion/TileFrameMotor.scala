@@ -10,7 +10,7 @@ import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
 import codechicken.multipart.{IRedstoneConnector, RedstoneInteractions}
 import mrtjp.projectred.ProjectRedExpansion
-import mrtjp.projectred.api._
+import mrtjp.projectred.api.*
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
@@ -28,14 +28,14 @@ trait TMotorTile extends TileMachine with TPoweredMachine with IFrame with IReds
 
     private var moveDesc:IMovementDescriptor = null
 
-    abstract override def save(tag:NBTTagCompound)
+    abstract override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setBoolean("ch", isCharged)
         tag.setBoolean("pow", isPowered)
     }
 
-    abstract override def load(tag:NBTTagCompound)
+    abstract override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         isCharged = tag.getBoolean("ch")
@@ -43,13 +43,13 @@ trait TMotorTile extends TileMachine with TPoweredMachine with IFrame with IReds
         oldC = isCharged
     }
 
-    abstract override def writeDesc(out:MCDataOutput)
+    abstract override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(isCharged)
     }
 
-    abstract override def readDesc(in:MCDataInput)
+    abstract override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         isCharged = in.readBoolean()
@@ -64,43 +64,43 @@ trait TMotorTile extends TileMachine with TPoweredMachine with IFrame with IReds
         case _ => super.read(in, key)
     }
 
-    def sendStateUpdate()
+    def sendStateUpdate(): Unit =
     {
         sendWriteStream(writeStream(2).writeBoolean(isCharged).writeBoolean(isMoving))
     }
 
-    override def setDescriptor(desc:IMovementDescriptor){ moveDesc = desc }
+    override def setDescriptor(desc:IMovementDescriptor): Unit ={ moveDesc = desc }
 
-    override def onMovementStarted()
+    override def onMovementStarted(): Unit =
     {
         isMoving = true
         sendStateUpdate()
     }
 
-    override def onMovementFinished()
+    override def onMovementFinished(): Unit =
     {
         isMoving = false
         sendStateUpdate()
     }
 
-    abstract override def onNeighborBlockChange()
+    abstract override def onNeighborBlockChange(): Unit =
     {
         val oldPow = isPowered
 
         isPowered = false
-        import scala.util.control.Breaks._
-        breakable { for (s <- 0 until 6) {
-            if (RedstoneInteractions.getPowerTo(getWorld, getPos, s, 0x1F) > 0) {
+        import scala.util.control.Breaks.*
+        breakable { for s <- 0 until 6 do {
+            if RedstoneInteractions.getPowerTo(getWorld, getPos, s, 0x1F) > 0 then {
                 isPowered = true
                 break()
             }
         }}
 
-        if (!oldPow && isPowered && !isMoving && cond.canWork) {
+        if !oldPow && isPowered && !isMoving && cond.canWork then {
             val moveBlockPos = getPos.offset(EnumFacing.values()(side^1))
-            if (!getWorld.isAirBlock(moveBlockPos)) {
-                if (!ProjectRedAPI.relocationAPI.isMoving(getWorld, moveBlockPos) &&
-                        !ProjectRedAPI.relocationAPI.isMoving(getWorld, getPos))
+            if !getWorld.isAirBlock(moveBlockPos) then {
+                if !ProjectRedAPI.relocationAPI.isMoving(getWorld, moveBlockPos) &&
+                        !ProjectRedAPI.relocationAPI.isMoving(getWorld, getPos) then
                 {
                     val blocks = ProjectRedAPI.relocationAPI.getStickResolver
                             .getStructure(getWorld, moveBlockPos, getPos)
@@ -121,35 +121,35 @@ trait TMotorTile extends TileMachine with TPoweredMachine with IFrame with IReds
 
     def getMoveDir:Int
 
-    def drawPower(size:Int)
+    def drawPower(size:Int): Unit 
 
-    abstract override def updateServer()
+    abstract override def updateServer(): Unit =
     {
         super.updateServer()
-        if (isMoving) drawPower(moveDesc.getSize)
-        if (getWorld.getTotalWorldTime%10 == 0) updateRendersIfNeeded()
+        if isMoving then drawPower(moveDesc.getSize)
+        if getWorld.getTotalWorldTime%10 == 0 then updateRendersIfNeeded()
     }
 
     private var oldC = false
-    def updateRendersIfNeeded()
+    def updateRendersIfNeeded(): Unit =
     {
         isCharged = cond.canWork
-        if (oldC != isCharged)
+        if oldC != isCharged then
             sendStateUpdate()
 
         oldC = isCharged
     }
 
-    override def getConnectionMask(side:Int) = if ((side^1) == this.side) 0 else 0x1F
+    override def getConnectionMask(side:Int) = if (side^1) == this.side then 0 else 0x1F
     override def weakPowerLevel(side:Int, mask:Int) = 0
 
-    override def hasCapability(capability: Capability[_], facing: EnumFacing): Boolean = {
-        if (capability == IRelocationAPI.FRAME_CAPABILITY) return true
+    override def hasCapability(capability: Capability[?], facing: EnumFacing): Boolean = {
+        if capability == IRelocationAPI.FRAME_CAPABILITY then return true
         super.hasCapability(capability, facing)
     }
 
     override def getCapability[T](capability: Capability[T], facing: EnumFacing): T = {
-        if (capability == IRelocationAPI.FRAME_CAPABILITY) return this.asInstanceOf[T]
+        if capability == IRelocationAPI.FRAME_CAPABILITY then return this.asInstanceOf[T]
         super.getCapability(capability, facing)
     }
 }
@@ -170,22 +170,22 @@ class TileFrameMotor extends TileMachine with TMotorTile
 
 object RenderFrameMotor extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var side2a:TextureAtlasSprite = _
-    var side2b:TextureAtlasSprite = _
-    var side2c:TextureAtlasSprite = _
-    var side4:TextureAtlasSprite = _
-    var side5:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2a:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2b:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2c:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side4:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side5:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
-    var iconT3:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
+    var iconT3:UVTransformation = scala.compiletime.uninitialized
 
 
     override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos) = world.getTileEntity(pos) match {
@@ -205,8 +205,8 @@ object RenderFrameMotor extends SimpleBlockRenderer
         val isWorking = state.getValue(UNLISTED_WORKING_PROPERTY)
         val isCharged = state.getValue(UNLISTED_CHARGED_PROPERTY)
         Triple.of(side, rotation,
-            if (isWorking && isCharged) iconT3
-            else if (isCharged) iconT2
+            if isWorking && isCharged then iconT3
+            else if isCharged then iconT2
             else iconT1)
     }
 
@@ -214,7 +214,7 @@ object RenderFrameMotor extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/motor/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/motor/top"))

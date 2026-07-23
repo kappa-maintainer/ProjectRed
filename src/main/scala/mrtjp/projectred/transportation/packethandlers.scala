@@ -37,14 +37,14 @@ object TransportationCPH extends TransportationPH with IClientPacketHandler
         case _ =>
     }
 
-    private def receiveRequestList(packet:PacketCustom, mc:Minecraft)
+    private def receiveRequestList(packet:PacketCustom, mc:Minecraft): Unit =
     {
-        if (mc.currentScreen.isInstanceOf[GuiRequester]) {
+        if mc.currentScreen.isInstanceOf[GuiRequester] then {
             val gui = mc.currentScreen.asInstanceOf[GuiRequester]
             val size = packet.readInt
             var map2 = Map[ItemKey, Int]()
 
-            for (i <- 0 until size) {
+            for i <- 0 until size do {
                 val stack = packet.readItemStack()
                 map2 += ItemKey.get(stack) -> stack.getCount
             }
@@ -53,10 +53,10 @@ object TransportationCPH extends TransportationPH with IClientPacketHandler
         }
     }
 
-    private def openRequestGui(packet:PacketCustom, mc:Minecraft)
+    private def openRequestGui(packet:PacketCustom, mc:Minecraft): Unit =
     {
         val p = BlockMultipart.getPart(mc.player.world, packet.readPos(), 6)
-        if (p.isInstanceOf[IRouterContainer]) mc.displayGuiScreen(new GuiRequester(p.asInstanceOf[IRouterContainer]))
+        if p.isInstanceOf[IRouterContainer] then mc.displayGuiScreen(new GuiRequester(p.asInstanceOf[IRouterContainer]))
     }
 }
 
@@ -72,12 +72,12 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
         case _ =>
     }
 
-    private def handleFirewallAction(packet:PacketCustom, sender:EntityPlayerMP)
+    private def handleFirewallAction(packet:PacketCustom, sender:EntityPlayerMP): Unit =
     {
         val bc = packet.readPos()
         val action = packet.readByte()
         val t = BlockMultipart.getPart(sender.world, bc, 6)
-        if (t.isInstanceOf[RoutedFirewallPipe])
+        if t.isInstanceOf[RoutedFirewallPipe] then
         {
             val p = t.asInstanceOf[RoutedFirewallPipe]
             action match
@@ -102,23 +102,23 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
 //        }
 //    }
 
-    private def handleRequestListRefresh(packet:PacketCustom, sender:EntityPlayerMP)
+    private def handleRequestListRefresh(packet:PacketCustom, sender:EntityPlayerMP): Unit =
     {
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
-        if (t.isInstanceOf[IRouterContainer])
+        if t.isInstanceOf[IRouterContainer] then
             sendRequestList(t.asInstanceOf[IRouterContainer], sender, packet.readBoolean, packet.readBoolean)
     }
 
-    private def handleRequestAction(packet:PacketCustom, sender:EntityPlayerMP)
+    private def handleRequestAction(packet:PacketCustom, sender:EntityPlayerMP): Unit =
     {
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
-        if (t.isInstanceOf[IRouterContainer]) {
+        if t.isInstanceOf[IRouterContainer] then {
             val ident = packet.readString
             //do things
         }
     }
 
-    private def sendRequestList(requester:IRouterContainer, player:EntityPlayerMP, collectBroadcast:Boolean, collectCrafts:Boolean)
+    private def sendRequestList(requester:IRouterContainer, player:EntityPlayerMP, collectBroadcast:Boolean, collectCrafts:Boolean): Unit =
     {
         CollectionPathFinder.clear()
         CollectionPathFinder.start = requester
@@ -130,26 +130,26 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
         val packet2 = new PacketCustom(channel, gui_Request_list)
         packet2.writeInt(map.size)
 
-        for ((k,v) <- map) {
-            val s = if (v == 0) 1 else v //TODO find way to mark craft items.
+        for (k,v) <- map do {
+            val s = if v == 0 then 1 else v //TODO find way to mark craft items.
             packet2.writeItemStack(k.makeStack(s))
         }
 
         packet2.compress().sendToPlayer(player)
     }
 
-    private def handleRequestSubmit(packet:PacketCustom, sender:EntityPlayerMP)
+    private def handleRequestSubmit(packet:PacketCustom, sender:EntityPlayerMP): Unit =
     {
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
-        if (t.isInstanceOf[IRouterContainer]) {
-            import mrtjp.projectred.transportation.RequestFlags._
+        if t.isInstanceOf[IRouterContainer] then {
+            import mrtjp.projectred.transportation.RequestFlags.*
             var opt = RequestFlags.ValueSet.newBuilder
             val pull = packet.readBoolean
             val craft = packet.readBoolean
             val partial = packet.readBoolean
-            if (pull) opt += PULL
-            if (craft) opt += CRAFT
-            if (partial) opt += PARTIAL
+            if pull then opt += PULL
+            if craft then opt += CRAFT
+            if partial then opt += PARTIAL
 
             val r = new RequestConsole(opt.result()).setDestination(t.asInstanceOf[IRouterContainer])
             val s = ItemKeyStack.get(packet.readItemStack())
@@ -158,7 +158,7 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
 
             r.startRequest()
 
-            if (r.requested > 0)
+            if r.requested > 0 then
             {
                 sender.sendMessage(new TextComponentString("Successfully requested "+r.requested+" of "+s.key.getName+"."))
                 RouteFX2.spawnType1(RouteFX2.color_request, t.asInstanceOf[IRouterContainer].getPipe)
@@ -166,20 +166,20 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
             else
             {
                 sender.sendMessage(new TextComponentString("Could not request "+s.stackSize+" of "+s.key.getName+". Missing:"))
-                for ((k,v) <- r.getMissing) sender.sendMessage(new TextComponentString(v+" of "+k.getName))
+                for (k,v) <- r.getMissing do sender.sendMessage(new TextComponentString(v+" of "+k.getName))
             }
 
             sendRequestList(t.asInstanceOf[IRouterContainer], sender, pull, craft)
         }
     }
 
-    private def setChipNBT(packet:PacketCustom, player:EntityPlayerMP)
+    private def setChipNBT(packet:PacketCustom, player:EntityPlayerMP): Unit =
     {
         val slot = packet.readUByte()
         val stack = packet.readItemStack()
-        if (stack.getItem == ProjectRedTransportation.itemRoutingChip) {
+        if stack.getItem == ProjectRedTransportation.itemRoutingChip then {
             val playerStack = player.inventory.getStackInSlot(slot)
-            if (playerStack.getItem == ProjectRedTransportation.itemRoutingChip) {
+            if playerStack.getItem == ProjectRedTransportation.itemRoutingChip then {
 
                 val chip = ItemRoutingChip.loadChipFromItemStack(stack)
                 ItemRoutingChip.saveChipToItemStack(playerStack, chip)

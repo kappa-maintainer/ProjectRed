@@ -13,43 +13,43 @@ class ChipExtractor extends RoutingChip with TChipFilter with TChipOrientation
 
     private def itemsToExtract = 64
 
-    override def update()
+    override def update(): Unit =
     {
         super.update()
 
         remainingDelay -= 1
-        if (remainingDelay > 0) return
+        if remainingDelay > 0 then return
         remainingDelay = operationDelay
 
         val real = invProvider.getInventory(extractSide)
-        if (real == null) return
+        if real == null then return
 
         val inv = real
         val filt = applyFilter(InvWrapper.wrapInternal(filter))
 
         val available = inv.getAllItemStacks
-        for ((k,v) <- available) {
+        for (k,v) <- available do {
             val stackKey = k
             val stackSize = v
 
-            if (stackKey != null && filt.hasItem(stackKey) != filterExclude) {
+            if stackKey != null && filt.hasItem(stackKey) != filterExclude then {
                 var exclusions = BitSet.empty
                 var s = router.getLogisticPath(stackKey, exclusions, true)
-                if (s != null) {
+                if s != null then {
                     var leftInRun = itemsToExtract
-                    while (s != null) {
+                    while s != null do {
                         var toExtract = math.min(leftInRun, stackSize)
                         toExtract = math.min(toExtract, stackKey.getMaxStackSize)
                         toExtract = math.min(toExtract, s.itemCount)
-                        if (toExtract <= 0) return
+                        if toExtract <= 0 then return
 
                         val extracted = inv.extractItem(stackKey, toExtract)
-                        if (extracted <= 0) return
+                        if extracted <= 0 then return
 
                         router.queueStackToSend(stackKey, extracted, s)
 
                         leftInRun -= extracted
-                        if (leftInRun <= 0) return
+                        if leftInRun <= 0 then return
 
                         exclusions += s.responder
                         s = router.getLogisticPath(stackKey, exclusions, true)
@@ -59,7 +59,7 @@ class ChipExtractor extends RoutingChip with TChipFilter with TChipOrientation
         }
     }
 
-    override def infoCollection(list:ListBuffer[String])
+    override def infoCollection(list:ListBuffer[String]): Unit =
     {
         super.infoCollection(list)
         addOrientInfo(list)

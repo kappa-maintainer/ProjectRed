@@ -6,11 +6,11 @@
 package mrtjp.projectred.integration
 
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.multipart.{BlockMultipart, TMultiPart}
 import mrtjp.projectred.api.IConnectable
-import mrtjp.projectred.core._
-import mrtjp.projectred.transmission._
+import mrtjp.projectred.core.*
+import mrtjp.projectred.transmission.*
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
@@ -24,25 +24,25 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
     override def getSignal = getLogicArray.getSignal(toInternalMask(propagationMask))
     override def setSignal(signal:Int) = getLogicArray.setSignal(toInternalMask(propagationMask), signal)
 
-    override def updateAndPropagate(prev:TMultiPart, mode:Int)
+    override def updateAndPropagate(prev:TMultiPart, mode:Int): Unit =
     {
         val rd = sideDiff(prev)
         var uMask = 0
-        for (r <- 0 until 4) if ((rd&1<<r) != 0)
+        for r <- 0 until 4 do if (rd&1<<r) != 0 then
         {
             val pMask = getLogicArray.propogationMask(toInternal(r))
-            if (pMask > 0 && (pMask&uMask) != pMask)
+            if pMask > 0 && (pMask&uMask) != pMask then
             {
                 propagationMask = toAbsoluteMask(pMask)
                 super.updateAndPropagate(prev, mode)
                 uMask |= pMask
             }
         }
-        if (uMask == 0) WirePropagator.addNeighborChange(pos)
+        if uMask == 0 then WirePropagator.addNeighborChange(pos)
         propagationMask = 0xF
     }
 
-    override def propagateOther(mode:Int)
+    override def propagateOther(mode:Int): Unit =
     {
         val nonConn = ~(connMap|connMap>>4|connMap>>8)&0xF
         notifyExternals(nonConn&propagationMask)
@@ -50,16 +50,16 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
 
     def sideDiff(p:TMultiPart):Int =
     {
-        if (!p.isInstanceOf[TFaceOrient] || p.tile == null) return 0xF
+        if !p.isInstanceOf[TFaceOrient] || p.tile == null then return 0xF
         val part = p.asInstanceOf[TFaceOrient]
         val here = pos
         val there = new MutableBlockPos(part.pos)
 
-        if (here == there && (side&6) != (part.side&6)) return 1<<Rotation.rotationTo(side, part.side)
+        if here == there && (side&6) != (part.side&6) then return 1<<Rotation.rotationTo(side, part.side)
 
-        if (side != part.side) there.move(EnumFacing.byIndex(side^1)) //bring corner up to same plane
+        if side != part.side then there.move(EnumFacing.byIndex(side^1)) //bring corner up to same plane
 
-        import codechicken.lib.vec.Rotation._
+        import codechicken.lib.vec.Rotation.*
         (here.getX-there.getX, here.getY-there.getY, here.getZ-there.getZ) match
         {
             case ( 0, 1, 0) => 1<<rotationTo(side, 0)
@@ -75,18 +75,18 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
     override def calculateSignal:Int =
     {
         val ipmask = toInternalMask(propagationMask)
-        if (getLogicArray.overrideSignal(ipmask))
+        if getLogicArray.overrideSignal(ipmask) then
             return getLogicArray.calculateSignal(ipmask)
 
         WirePropagator.setDustProvidePower(false)
         WirePropagator.redwiresProvidePower = false
         var s = 0
-        def raise(sig:Int){ if (sig > s) s = sig }
+        def raise(sig:Int): Unit ={ if sig > s then s = sig }
 
-        for (r <- 0 until 4) if ((propagationMask&1<<r) != 0)
-            if (maskConnectsCorner(r)) raise(calcCornerSignal(r))
-            else if (maskConnectsStraight(r)) raise(calcStraightSignal(r))
-            else if (maskConnectsInside(r)) raise(calcInternalSignal(r))
+        for r <- 0 until 4 do if (propagationMask&1<<r) != 0 then
+            if maskConnectsCorner(r) then raise(calcCornerSignal(r))
+            else if maskConnectsStraight(r) then raise(calcStraightSignal(r))
+            else if maskConnectsInside(r) then raise(calcInternalSignal(r))
             else raise(calcMaxSignal(r, false, true))
 
         WirePropagator.setDustProvidePower(true)
@@ -94,13 +94,13 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
         s
     }
 
-    abstract override def onChange()
+    abstract override def onChange(): Unit =
     {
         super.onChange()
         WirePropagator.propagateTo(this, IWirePart.RISING)
     }
 
-    override def onSignalUpdate()
+    override def onSignalUpdate(): Unit =
     {
         tile.markDirty()
         super.onChange()
@@ -117,48 +117,48 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
     {
         val ir = toInternal(r)
         val pmask = getLogicArray.propogationMask(ir)
-        if (pmask != 0) getLogicArray.getSignal(pmask)
+        if pmask != 0 then getLogicArray.getSignal(pmask)
         else getLogicRS.getOutput(this, ir)*17
     }
 
     abstract override def canConnectRedstone(side:Int):Boolean =
     {
-        if (super.canConnectRedstone(side)) return true
-        if ((side&6) == (this.side&6)) return false
+        if super.canConnectRedstone(side) then return true
+        if (side&6) == (this.side&6) then return false
         getLogicArray.canConnectRedwire(this, toInternal(absoluteRot(side)))
     }
 
     def rsLevel(i:Int):Int =
-        if (WirePropagator.redwiresProvidePower) (i+16)/17
+        if WirePropagator.redwiresProvidePower then (i+16)/17
         else 0
 
     abstract override def weakPowerLevel(side:Int):Int =
     {
-        if ((side&6) == (this.side&6)) return 0
+        if (side&6) == (this.side&6) then return 0
         val ir = toInternal(absoluteRot(side))
-        if ((getLogicArray.redwireMask(shape)&1<<ir) != 0)
+        if (getLogicArray.redwireMask(shape)&1<<ir) != 0 then
             return rsLevel(getLogicArray.getSignal(getLogicArray.propogationMask(ir)))
         super.weakPowerLevel(side)
     }
 
     override def diminishOnSide(r:Int) = (getLogicArray.redwireMask(shape)&1<<toInternal(r)) != 0
 
-    abstract override def rotate()
+    abstract override def rotate(): Unit =
     {
         val r = rotation
         setRotation((r+1)%4)
         val b = tile.canReplacePart(this, this)
         setRotation(r)
-        if (b) super.rotate()
+        if b then super.rotate()
     }
 
-    abstract override def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int)
+    abstract override def preparePlacement(player:EntityPlayer, pos:BlockPos, side:Int, meta:Int): Unit =
     {
         super.preparePlacement(player, pos, side, meta)
-        if (getLogicArray.canCross) {
+        if getLogicArray.canCross then {
             val npart = BlockMultipart.getPart(player.world, pos, this.side^1)
             npart match {
-                case apart:TArrayGatePart => if (apart.subID == subID && (apart.rotation&1) == (rotation&1))
+                case apart:TArrayGatePart => if apart.subID == subID && (apart.rotation&1) == (rotation&1) then
                     setRotation((rotation+1)%4)
                 case _ =>
             }
@@ -168,7 +168,7 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
     abstract override def occlusionTest(npart:TMultiPart) = npart match
     {
         case apart:TArrayGatePart if apart.getLogicArray.canCross =>
-            if (apart.subID == subID && apart.side == (side^1) && (apart.rotation&1) != (rotation&1)) true
+            if apart.subID == subID && apart.side == (side^1) && (apart.rotation&1) != (rotation&1) then true
             else super.occlusionTest(npart)
         case _ => super.occlusionTest(npart)
     }
@@ -179,7 +179,7 @@ object IGateWireRenderConnect
     def getConnsAtHeight(gate:GatePart, h:Double) =
     {
         var conn = 0
-        for (r <- 0 until 4) if (getConnHeight(gate, r) == h) conn |= 1<<r
+        for r <- 0 until 4 do if getConnHeight(gate, r) == h then conn |= 1<<r
         gate.toInternalMask(conn)
     }
 
@@ -189,7 +189,7 @@ object IGateWireRenderConnect
         {
             case logic:IGateWireRenderConnect =>
                 val ir = g.toInternal(gate.rotFromStraight(r))
-                if ((logic.renderConnectMask&1<<ir) != 0) logic.getHeight(ir)
+                if (logic.renderConnectMask&1<<ir) != 0 then logic.getHeight(ir)
                 else -1.0D
             case _ => -1.0D
         }
@@ -219,14 +219,14 @@ trait TArrayGateLogic[T <: TArrayGatePart] extends RedstoneGateLogic[T]
     def propogationMask(r:Int):Int
 
     def getSignal(mask:Int):Int
-    def setSignal(mask:Int, signal:Int)
+    def setSignal(mask:Int, signal:Int): Unit 
 
     def overrideSignal(mask:Int) = false
     def calculateSignal(mask:Int) = 0
 
     def canCross = false
 
-    def onSignalUpdate()
+    def onSignalUpdate(): Unit 
 }
 
 class ArrayGatePart extends RedstoneGatePart with TComplexGatePart with TArrayGatePart
@@ -235,9 +235,9 @@ class ArrayGatePart extends RedstoneGatePart with TComplexGatePart with TArrayGa
 
     override def getLogic[T] = logic.asInstanceOf[T]
 
-    override def assertLogic()
+    override def assertLogic(): Unit =
     {
-        if (logic == null) logic = ArrayGateLogic.create(this, subID)
+        if logic == null then logic = ArrayGateLogic.create(this, subID)
     }
 
     override def getType = GateDefinition.typeArrayGate
@@ -251,7 +251,7 @@ object ArrayGatePart
     oBoxes(0)(0) = new Cuboid6(1/8D, 0, 0, 7/8D, 6/8D, 1)
     oBoxes(0)(1) = new Cuboid6(0, 0, 1/8D, 1, 6/8D, 7/8D)
     cBoxes(0) = new Cuboid6(0, 0, 0, 1, 6/8D, 1)
-    for (s <- 1 until 6)
+    for s <- 1 until 6 do
     {
         val t = Rotation.sideRotations(s).at(Vector3.center)
         oBoxes(s)(0) = oBoxes(0)(0).copy.apply(t)
@@ -281,41 +281,41 @@ abstract class ArrayGateLogicCrossing(gate:ArrayGatePart) extends ArrayGateLogic
     var signal2:Byte = 0
 
     override def redwireMask(shape:Int) = 0xF
-    override def propogationMask(r:Int) = if (r%2 == 0) 0x5 else 0xA
+    override def propogationMask(r:Int) = if r%2 == 0 then 0x5 else 0xA
     override def inputMask(shape:Int) = 0xF
     override def outputMask(shape:Int) = 0xF
 
     override def renderConnectMask = 0xA
     override def getHeight(r:Int) = 10.0D
 
-    override def getSignal(mask:Int) = (if (mask == 0x5) signal1 else signal2)&0xFF
-    override def setSignal(mask:Int, signal:Int)
+    override def getSignal(mask:Int) = (if mask == 0x5 then signal1 else signal2)&0xFF
+    override def setSignal(mask:Int, signal:Int): Unit =
     {
-        if (mask == 0x5) signal1 = signal.toByte else signal2 = signal.toByte
+        if mask == 0x5 then signal1 = signal.toByte else signal2 = signal.toByte
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("s1", signal1)
         tag.setByte("s2", signal2)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         signal1 = tag.getByte("s1")
         signal2 = tag.getByte("s2")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(signal1)
         packet.writeByte(signal2)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         signal1 = packet.readByte()
@@ -327,34 +327,34 @@ abstract class ArrayGateLogicCrossing(gate:ArrayGatePart) extends ArrayGateLogic
         case 11 =>
             signal1 = packet.readByte()
             signal2 = packet.readByte()
-            if (Configurator.staticGates) gate.tile.markRender()
+            if Configurator.staticGates then gate.tile.markRender()
         case _ =>
     }
 
-    def sendSignalUpdate(){ gate.getWriteStreamOf(11).writeByte(signal1).writeByte(signal2) }
+    def sendSignalUpdate(): Unit ={ gate.getWriteStreamOf(11).writeByte(signal1).writeByte(signal2) }
 
-    override def onChange(gate:ArrayGatePart)
+    override def onChange(gate:ArrayGatePart): Unit =
     {
         val oldSignal = (gate.state&1) != 0
         val newSignal = signal1 != 0
 
-        if (oldSignal != newSignal)
+        if oldSignal != newSignal then
         {
-            gate.setState(gate.state&2|(if (newSignal) 1 else 0))
+            gate.setState(gate.state&2|(if newSignal then 1 else 0))
             gate.onInputChange()
             gate.scheduleTick(2)
         }
     }
 
-    override def scheduledTick(gate:ArrayGatePart)
+    override def scheduledTick(gate:ArrayGatePart): Unit =
     {
         val input = (gate.state&1) != 0
         val oldOutput = (gate.state&2) != 0
         val newOutput = !input
 
-        if (oldOutput != newOutput)
+        if oldOutput != newOutput then
         {
-            gate.setState(gate.state&1|(if (newOutput) 2 else 0))
+            gate.setState(gate.state&1|(if newOutput then 2 else 0))
             gate.onOutputChange(0)
             gate.onChange()
         }
@@ -363,9 +363,9 @@ abstract class ArrayGateLogicCrossing(gate:ArrayGatePart) extends ArrayGateLogic
     override def getOcclusions(gate:ArrayGatePart) = ArrayGatePart.oBoxes(gate.side)
     override def getBounds(gate:ArrayGatePart) = ArrayGatePart.cBoxes(gate.side)
 
-    override def onSignalUpdate(){ sendSignalUpdate() }
+    override def onSignalUpdate(): Unit ={ sendSignalUpdate() }
 
-    override def overrideSignal(mask:Int) = if (mask == 0xA) powerUp else false
+    override def overrideSignal(mask:Int) = if mask == 0xA then powerUp else false
 
     override def calculateSignal(mask:Int) = 255
 
@@ -396,30 +396,30 @@ trait TArrayCellTopOnly extends ArrayGateLogic
     var signal:Byte = 0
 
     override def redwireMask(shape:Int) = 0xA
-    override def propogationMask(r:Int) = if (r%2 == 1) 0xA else 0
+    override def propogationMask(r:Int) = if r%2 == 1 then 0xA else 0
 
-    override def getSignal(mask:Int) = if (mask == 0xA) signal&0xFF else 0
-    override def setSignal(mask:Int, sig:Int){ if (mask == 0xA) signal = sig.toByte }
+    override def getSignal(mask:Int) = if mask == 0xA then signal&0xFF else 0
+    override def setSignal(mask:Int, sig:Int): Unit ={ if mask == 0xA then signal = sig.toByte }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("signal", signal)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         signal = tag.getByte("signal")
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         super.writeDesc(packet)
         packet.writeByte(signal)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         super.readDesc(packet)
         signal = packet.readByte()
@@ -429,13 +429,13 @@ trait TArrayCellTopOnly extends ArrayGateLogic
     {
         case 11 =>
             signal = packet.readByte()
-            if (Configurator.staticGates) gate.tile.markRender()
+            if Configurator.staticGates then gate.tile.markRender()
         case _ =>
     }
 
-    def sendSignalUpdate(){ gate.getWriteStreamOf(11).writeByte(signal) }
+    def sendSignalUpdate(): Unit ={ gate.getWriteStreamOf(11).writeByte(signal) }
 
-    override def onSignalUpdate(){ sendSignalUpdate() }
+    override def onSignalUpdate(): Unit ={ sendSignalUpdate() }
 }
 
 class ANDCell(gate:ArrayGatePart) extends ArrayGateLogic(gate) with TArrayCellTopOnly with TSimpleRSGateLogic[ArrayGatePart] with IGateWireRenderConnect
@@ -446,7 +446,7 @@ class ANDCell(gate:ArrayGatePart) extends ArrayGateLogic(gate) with TArrayCellTo
     override def renderConnectMask = 0xA
     override def getHeight(r:Int) = 10.0D
 
-    override def calcOutput(gate:ArrayGatePart, input:Int) = if (input == 4 && signal != 0) 1 else 0
+    override def calcOutput(gate:ArrayGatePart, input:Int) = if input == 4 && signal != 0 then 1 else 0
 
     override def getOcclusions(gate:ArrayGatePart) = ArrayGatePart.oBoxes(gate.side)
     override def getBounds(gate:ArrayGatePart) = ArrayGatePart.cBoxes(gate.side)
@@ -458,6 +458,6 @@ class StackingLatch(gate:ArrayGatePart) extends ArrayGateLogic(gate) with TArray
     override def outputMask(shape:Int) = 1
 
     override def calcOutput(gate:ArrayGatePart, input:Int) =
-        if (signal == 0) gate.state>>4
-        else if ((input&4) == 0) 0 else 1
+        if signal == 0 then gate.state>>4
+        else if (input&4) == 0 then 0 else 1
 }

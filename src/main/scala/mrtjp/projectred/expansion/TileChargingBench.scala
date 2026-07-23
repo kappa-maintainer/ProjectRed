@@ -11,7 +11,7 @@ import codechicken.lib.gui.GuiDraw
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.gui.{GuiLib, Slot3, _}
+import mrtjp.core.gui.{GuiLib, Slot3, *}
 import mrtjp.core.inventory.{InvWrapper, TInventory, TInventoryCapablilityTile}
 import mrtjp.core.item.ItemKey
 import mrtjp.core.vec.Point
@@ -38,7 +38,7 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
 
     private var slotRoundRobin = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setInteger("storage", powerStorage)
@@ -46,7 +46,7 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
         saveInv(tag)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         powerStorage = tag.getInteger("storage")
@@ -56,13 +56,13 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
         loadInv(tag)
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(isCharged)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         isCharged = in.readBoolean()
@@ -76,7 +76,7 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
         case _ => super.read(in, key)
     }
 
-    def sendIsCharged()
+    def sendIsCharged(): Unit =
     {
         writeStream(5).writeBoolean(isCharged).sendToChunk(this)
     }
@@ -86,7 +86,7 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
     override def getName = "charging_bench"
 
     override def getDisplayName = super.getDisplayName
-    import net.minecraft.util.EnumFacing._
+    import net.minecraft.util.EnumFacing.*
     override def canExtractItem(slot:Int, stack:ItemStack, side:EnumFacing) = true
     override def canInsertItem(slot:Int, stack:ItemStack, side:EnumFacing) = side == UP
     override def getSlotsForFace(side:EnumFacing) = side match
@@ -115,11 +115,11 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
     def getDrawCeil = 600
     def getChargeSpeed = 15
 
-    override def updateServer()
+    override def updateServer(): Unit =
     {
         super.updateServer()
 
-        if (cond.charge > getDrawCeil && powerStorage < getMaxStorage)
+        if cond.charge > getDrawCeil && powerStorage < getMaxStorage then
         {
             var n = math.min(cond.charge-getDrawCeil, getDrawSpeed)/10
             n = math.min(n, getMaxStorage-powerStorage)
@@ -127,22 +127,22 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
             powerStorage += n
         }
 
-        for (i <- 0 until 8) if (powerStorage > 0)
+        for i <- 0 until 8 do if powerStorage > 0 then
             tryChargeSlot((slotRoundRobin+i)%8)
         slotRoundRobin = (slotRoundRobin+1)%8
 
-        if (world.getTotalWorldTime%10 == 0) updateRendersIfNeeded()
+        if world.getTotalWorldTime%10 == 0 then updateRendersIfNeeded()
     }
 
-    def tryChargeSlot(i:Int)
+    def tryChargeSlot(i:Int): Unit =
     {
         val stack = getStackInSlot(i)
-        if (!stack.isEmpty) stack.getItem match
+        if !stack.isEmpty then stack.getItem match
         {
             case ic:IChargable =>
                 val toAdd = math.min(powerStorage, getChargeSpeed)
                 val (newStack, added) = ic.addPower(stack, toAdd)
-                if (ic.isFullyCharged(newStack) && dropStackDown(newStack))
+                if ic.isFullyCharged(newStack) && dropStackDown(newStack) then
                     setInventorySlotContents(i, ItemStack.EMPTY)
                 else setInventorySlotContents(i, newStack)
                 powerStorage -= added
@@ -159,10 +159,10 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
 
     def containsUncharged:Boolean =
     {
-        for (i <- 0 until 8)
+        for i <- 0 until 8 do
         {
             val stack = getStackInSlot(i)
-            if (!stack.isEmpty) stack.getItem match
+            if !stack.isEmpty then stack.getItem match
             {
                 case ic:IChargable if !ic.isFullyCharged(stack) => return true
                 case _ =>
@@ -172,14 +172,14 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
     }
 
     private var oldIC = false
-    def updateRendersIfNeeded()
+    def updateRendersIfNeeded(): Unit =
     {
         isCharged = cond.canWork
-        if (oldIC != isCharged) sendIsCharged()
+        if oldIC != isCharged then sendIsCharged()
         oldIC = isCharged
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
         dropInvContents(world, getPos)
@@ -190,12 +190,12 @@ class ContainerChargingBench(p:EntityPlayer, tile:TileChargingBench) extends Con
 {
     {
         var id = 0
-        for ((x, y) <- GuiLib.createSlotGrid(88, 17, 4, 2, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(88, 17, 4, 2, 0, 0) do
         {
             addSlotToContainer(new Slot3(tile, id, x, y))
             id += 1
         }
-        for ((x, y) <- GuiLib.createSlotGrid(88, 57, 4, 2, 0, 0))
+        for (x, y) <- GuiLib.createSlotGrid(88, 57, 4, 2, 0, 0) do
         {
             addSlotToContainer(new Slot3(tile, id, x, y))
             id += 1
@@ -204,13 +204,13 @@ class ContainerChargingBench(p:EntityPlayer, tile:TileChargingBench) extends Con
     }
 
     private var st = -1
-    override def detectAndSendChanges()
+    override def detectAndSendChanges(): Unit =
     {
         super.detectAndSendChanges()
-        import scala.jdk.CollectionConverters._
-        for (i <- listeners.asScala)
+        import scala.jdk.CollectionConverters.*
+        for i <- listeners.asScala do
         {
-            if (st != tile.powerStorage) i
+            if st != tile.powerStorage then i
                 .sendWindowProperty(this, 3, tile.powerStorage)
         }
         st = tile.powerStorage
@@ -224,13 +224,13 @@ class ContainerChargingBench(p:EntityPlayer, tile:TileChargingBench) extends Con
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
     {
-        if (0 until 8 contains from) { //from input slots
-            if (tryMergeItemStack(stack, 25, 52, false)) return true //to player inv
-            if (tryMergeItemStack(stack, 16, 25, false)) return true //then to hotbar
+        if 0 until 8 contains from then { //from input slots
+            if tryMergeItemStack(stack, 25, 52, false) then return true //to player inv
+            if tryMergeItemStack(stack, 16, 25, false) then return true //then to hotbar
         }
-        else if (8 until 16 contains from) { //from output slots
-            if (tryMergeItemStack(stack, 16, 25, true)) return true //to hotbar inversed
-            if (tryMergeItemStack(stack, 25, 52, true)) return true //then to player inv inversed
+        else if 8 until 16 contains from then { //from output slots
+            if tryMergeItemStack(stack, 16, 25, true) then return true //to hotbar inversed
+            if tryMergeItemStack(stack, 25, 52, true) then return true //then to player inv inversed
         }
 
         stack.getItem match { //from player inv
@@ -242,23 +242,23 @@ class ContainerChargingBench(p:EntityPlayer, tile:TileChargingBench) extends Con
 
 class GuiChargingBench(tile:TileChargingBench, c:ContainerChargingBench) extends NodeGui(c, 176, 183)
 {
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         TextureUtils.changeTexture(GuiChargingBench.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, size.width, size.height)
 
-        if (tile.cond.canWork)
+        if tile.cond.canWork then
             GuiDraw.drawTexturedModalRect(14, 17, 176, 1, 7, 9)
         GuiLib.drawVerticalTank(14, 27, 176, 10, 7, 48, tile.cond.getChargeScaled(48))
 
-        if (tile.powerStorage == tile.getMaxStorage)
+        if tile.powerStorage == tile.getMaxStorage then
             GuiDraw.drawTexturedModalRect(41, 17, 184, 1, 14, 9)
         GuiLib.drawVerticalTank(41, 27, 184, 10, 14, 48, tile.getStorageScaled(48))
 
-        if (tile.cond.charge > tile.getDrawCeil && tile.powerStorage < tile.getMaxStorage)
+        if tile.cond.charge > tile.getDrawCeil && tile.powerStorage < tile.getMaxStorage then
             GuiDraw.drawTexturedModalRect(26, 48, 199, 0, 10, 8)
 
-        if (tile.containsUncharged && tile.powerStorage > 0)
+        if tile.containsUncharged && tile.powerStorage > 0 then
             GuiDraw.drawTexturedModalRect(63, 29, 210, 0, 17, 10)
 
         GuiDraw.drawString("Charging Bench", 8, 6, EnumColour.GRAY.argb, false)
@@ -284,10 +284,10 @@ object GuiChargingBench extends TGuiFactory
 
 object RenderChargingBench extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
     import org.apache.commons.lang3.tuple.Triple
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
 
     var bottom:TextureAtlasSprite = null
     var top1:TextureAtlasSprite = null
@@ -305,7 +305,7 @@ object RenderChargingBench extends SimpleBlockRenderer
 
     override def getWorldTransforms(state: IExtendedBlockState) = {
         val charged:JBool = state.getValue(UNLISTED_CHARGED_PROPERTY)
-        Triple.of(0, 0, if(charged) iconT2 else iconT1)
+        Triple.of(0, 0, if charged then iconT2 else iconT1)
     }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
@@ -319,7 +319,7 @@ object RenderChargingBench extends SimpleBlockRenderer
         case _ => side1
     }
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/charger/bottom"))
         top1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/charger/top1"))

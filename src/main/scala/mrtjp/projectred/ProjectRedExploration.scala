@@ -1,7 +1,7 @@
 package mrtjp.projectred
 
 import mrtjp.core.world.SimpleGenHandler
-import mrtjp.projectred.exploration._
+import mrtjp.projectred.exploration.*
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.init.Blocks
 import net.minecraft.item.Item.ToolMaterial
@@ -14,62 +14,62 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 object ProjectRedExploration
 {
     /** Blocks **/
-    var blockOres:BlockOre = _
-    var blockDecorativeStone:BlockDecorativeStone = _
-    var blockDecorativeWall:BlockDecorativeWall = _
-    var blockBarrel:BlockBarrel = _
+    var blockOres:BlockOre = scala.compiletime.uninitialized
+    var blockDecorativeStone:BlockDecorativeStone = scala.compiletime.uninitialized
+    var blockDecorativeWall:BlockDecorativeWall = scala.compiletime.uninitialized
+    var blockBarrel:BlockBarrel = scala.compiletime.uninitialized
 
     /** Materials **/
-    var toolMaterialRuby:ToolMaterial = _
-    var toolMaterialSapphire:ToolMaterial = _
-    var toolMaterialPeridot:ToolMaterial = _
-    var armorMatrialRuby:ArmorMaterial = _
-    var armorMatrialSapphire:ArmorMaterial = _
-    var armorMatrialPeridot:ArmorMaterial = _
+    var toolMaterialRuby:ToolMaterial = scala.compiletime.uninitialized
+    var toolMaterialSapphire:ToolMaterial = scala.compiletime.uninitialized
+    var toolMaterialPeridot:ToolMaterial = scala.compiletime.uninitialized
+    var armorMatrialRuby:ArmorMaterial = scala.compiletime.uninitialized
+    var armorMatrialSapphire:ArmorMaterial = scala.compiletime.uninitialized
+    var armorMatrialPeridot:ArmorMaterial = scala.compiletime.uninitialized
 
     /** Items **/
-    var itemWoolGin:ItemWoolGin = _
-    var itemBackpack:ItemBackpack = _
-    var itemAthame:ItemAthame = _
-    var itemRubyAxe:ItemGemAxe = _
-    var itemSapphireAxe:ItemGemAxe = _
-    var itemPeridotAxe:ItemGemAxe = _
-    var itemRubyHoe:ItemGemHoe = _
-    var itemSapphireHoe:ItemGemHoe = _
-    var itemPeridotHoe:ItemGemHoe = _
-    var itemRubyPickaxe:ItemGemPickaxe = _
-    var itemSapphirePickaxe:ItemGemPickaxe = _
-    var itemPeridotPickaxe:ItemGemPickaxe = _
-    var itemRubyShovel:ItemGemShovel = _
-    var itemSapphireShovel:ItemGemShovel = _
-    var itemPeridotShovel:ItemGemShovel = _
-    var itemRubySword:ItemGemSword = _
-    var itemSapphireSword:ItemGemSword = _
-    var itemPeridotSword:ItemGemSword = _
-    var itemGoldSaw:ItemGemSaw = _
-    var itemRubySaw:ItemGemSaw = _
-    var itemSapphireSaw:ItemGemSaw = _
-    var itemPeridotSaw:ItemGemSaw = _
-    var itemWoodSickle:ItemGemSickle = _
-    var itemStoneSickle:ItemGemSickle = _
-    var itemIronSickle:ItemGemSickle = _
-    var itemGoldSickle:ItemGemSickle = _
-    var itemRubySickle:ItemGemSickle = _
-    var itemSapphireSickle:ItemGemSickle = _
-    var itemPeridotSickle:ItemGemSickle = _
-    var itemDiamondSickle:ItemGemSickle = _
-    var itemRubyHelmet:ItemGemArmor = _
-    var itemRubyChestplate:ItemGemArmor = _
-    var itemRubyLeggings:ItemGemArmor = _
-    var itemRubyBoots:ItemGemArmor = _
-    var itemSapphireHelmet:ItemGemArmor = _
-    var itemSapphireChestplate:ItemGemArmor = _
-    var itemSapphireLeggings:ItemGemArmor = _
-    var itemSapphireBoots:ItemGemArmor = _
-    var itemPeridotHelmet:ItemGemArmor = _
-    var itemPeridotChestplate:ItemGemArmor = _
-    var itemPeridotLeggings:ItemGemArmor = _
-    var itemPeridotBoots:ItemGemArmor = _
+    var itemWoolGin:ItemWoolGin = scala.compiletime.uninitialized
+    var itemBackpack:ItemBackpack = scala.compiletime.uninitialized
+    var itemAthame:ItemAthame = scala.compiletime.uninitialized
+    var itemRubyAxe:ItemGemAxe = scala.compiletime.uninitialized
+    var itemSapphireAxe:ItemGemAxe = scala.compiletime.uninitialized
+    var itemPeridotAxe:ItemGemAxe = scala.compiletime.uninitialized
+    var itemRubyHoe:ItemGemHoe = scala.compiletime.uninitialized
+    var itemSapphireHoe:ItemGemHoe = scala.compiletime.uninitialized
+    var itemPeridotHoe:ItemGemHoe = scala.compiletime.uninitialized
+    var itemRubyPickaxe:ItemGemPickaxe = scala.compiletime.uninitialized
+    var itemSapphirePickaxe:ItemGemPickaxe = scala.compiletime.uninitialized
+    var itemPeridotPickaxe:ItemGemPickaxe = scala.compiletime.uninitialized
+    var itemRubyShovel:ItemGemShovel = scala.compiletime.uninitialized
+    var itemSapphireShovel:ItemGemShovel = scala.compiletime.uninitialized
+    var itemPeridotShovel:ItemGemShovel = scala.compiletime.uninitialized
+    var itemRubySword:ItemGemSword = scala.compiletime.uninitialized
+    var itemSapphireSword:ItemGemSword = scala.compiletime.uninitialized
+    var itemPeridotSword:ItemGemSword = scala.compiletime.uninitialized
+    var itemGoldSaw:ItemGemSaw = scala.compiletime.uninitialized
+    var itemRubySaw:ItemGemSaw = scala.compiletime.uninitialized
+    var itemSapphireSaw:ItemGemSaw = scala.compiletime.uninitialized
+    var itemPeridotSaw:ItemGemSaw = scala.compiletime.uninitialized
+    var itemWoodSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemStoneSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemIronSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemGoldSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemRubySickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemSapphireSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemPeridotSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemDiamondSickle:ItemGemSickle = scala.compiletime.uninitialized
+    var itemRubyHelmet:ItemGemArmor = scala.compiletime.uninitialized
+    var itemRubyChestplate:ItemGemArmor = scala.compiletime.uninitialized
+    var itemRubyLeggings:ItemGemArmor = scala.compiletime.uninitialized
+    var itemRubyBoots:ItemGemArmor = scala.compiletime.uninitialized
+    var itemSapphireHelmet:ItemGemArmor = scala.compiletime.uninitialized
+    var itemSapphireChestplate:ItemGemArmor = scala.compiletime.uninitialized
+    var itemSapphireLeggings:ItemGemArmor = scala.compiletime.uninitialized
+    var itemSapphireBoots:ItemGemArmor = scala.compiletime.uninitialized
+    var itemPeridotHelmet:ItemGemArmor = scala.compiletime.uninitialized
+    var itemPeridotChestplate:ItemGemArmor = scala.compiletime.uninitialized
+    var itemPeridotLeggings:ItemGemArmor = scala.compiletime.uninitialized
+    var itemPeridotBoots:ItemGemArmor = scala.compiletime.uninitialized
 
     val tabExploration:CreativeTabs = new CreativeTabs("projectred.exploration")
     {

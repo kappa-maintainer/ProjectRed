@@ -1,7 +1,7 @@
 package mrtjp.projectred
 
 import codechicken.lib.model.bakery.sub.SubBlockBakery
-import mrtjp.projectred.expansion._
+import mrtjp.projectred.expansion.*
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.fml.common.Mod
@@ -11,22 +11,22 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 object ProjectRedExpansion
 {
     /** Blocks **/
-    var machine1:BlockMachine = _ //machines
-    var machine2:BlockMachine = _ //devices
+    var machine1:BlockMachine = scala.compiletime.uninitialized //machines
+    var machine2:BlockMachine = scala.compiletime.uninitialized //devices
 
     /** Items **/
-    var itemEmptybattery:ItemEmptyBattery = _
-    var itemBattery:ItemBattery = _
-    var itemJetpack:ItemJetpack = _
-    var itemScrewdriver:ItemElectricScrewdriver = _
-    var itemInfusedEnderPearl:ItemInfusedEnderPearl = _
-    var itemPlan:ItemPlan = _
+    var itemEmptybattery:ItemEmptyBattery = scala.compiletime.uninitialized
+    var itemBattery:ItemBattery = scala.compiletime.uninitialized
+    var itemJetpack:ItemJetpack = scala.compiletime.uninitialized
+    var itemScrewdriver:ItemElectricScrewdriver = scala.compiletime.uninitialized
+    var itemInfusedEnderPearl:ItemInfusedEnderPearl = scala.compiletime.uninitialized
+    var itemPlan:ItemPlan = scala.compiletime.uninitialized
 
     /** Enchantments **/
-    var enchantmentElectricEfficiency:EnchantmentElectricEfficiency = _
+    var enchantmentElectricEfficiency:EnchantmentElectricEfficiency = scala.compiletime.uninitialized
 
     /** Parts **/
-    var itemSolar:ItemSolarPanel = _
+    var itemSolar:ItemSolarPanel = scala.compiletime.uninitialized
 
     val tabExpansion: CreativeTabs = new CreativeTabs("projectred.expansion") {
         override def createIcon = new ItemStack(machine2)

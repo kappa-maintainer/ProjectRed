@@ -8,8 +8,8 @@ object Priorities extends Enum
     override type EnumVal = Priority
     type NetworkPriority = EnumVal
 
-    val passiveDef = { path:StartEndPath => path.allowRouting}
-    val activeDef = { path:StartEndPath => path.allowBroadcast || path.allowCrafting}
+    val passiveDef = { (path:StartEndPath) => path.allowRouting}
+    val activeDef = { (path:StartEndPath) => path.allowBroadcast || path.allowCrafting}
 
     val WANDERING = new Priority("Wandering", 0.02f, 0.05f, EnumColour.RED.ordinal, passiveDef)
     val DEFAULT = new Priority("Default", 0.05f, 0.10f, EnumColour.ORANGE.ordinal, passiveDef)

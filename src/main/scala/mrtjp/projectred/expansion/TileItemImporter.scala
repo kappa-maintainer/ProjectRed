@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.expansion
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.model.bakery.SimpleBlockRenderer
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
@@ -14,7 +14,7 @@ import codechicken.multipart.IRedstoneConnector
 import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.item.ItemKey
 import mrtjp.projectred.ProjectRedExpansion
-import mrtjp.projectred.expansion.TileItemImporter._
+import mrtjp.projectred.expansion.TileItemImporter.*
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -25,7 +25,7 @@ import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.property.IExtendedBlockState
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class TileItemImporter extends TileMachine with TPressureActiveDevice with IRedstoneConnector
 {
@@ -41,9 +41,9 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
     override def canAcceptBacklog(item:ItemKey, side:Int) = side == this.side
     override def canConnectSide(side:Int) = (side&6) == (this.side&6)
 
-    override def onActivate()
+    override def onActivate(): Unit =
     {
-        if (importInv() || importEntities())
+        if importInv() || importEntities() then
             return
     }
 
@@ -53,14 +53,14 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
     {
         val s = EnumFacing.VALUES(side)
         val inv = InvWrapper.wrap(world, getPos.offset(s.getOpposite), s)
-        if (inv == null) return false
+        if inv == null then return false
         val list = inv.getAllItemStacks
-        for ((k, v) <- list) if (canImport(k))
+        for (k, v) <- list do if canImport(k) then
         {
             val toExtract = math.min(k.getMaxStackSize, getExtractAmount)
             val extracted = inv.extractItem(k, toExtract)
 
-            if (extracted > 0)
+            if extracted > 0 then
             {
                 itemStorage.add(k.makeStack(extracted))
                 active = true
@@ -79,26 +79,26 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
         suckEntities(sbounds(side))
     }
 
-    override def onEntityCollision(ent:Entity)
+    override def onEntityCollision(ent:Entity): Unit =
     {
-        if (!world.isRemote && !powered && itemStorage.isEmpty)
+        if !world.isRemote && !powered && itemStorage.isEmpty then
             suckEntities(ibounds(side))
     }
 
     def suckEntities(box:Cuboid6):Boolean =
     {
-        if (!canSuckEntities) return false
+        if !canSuckEntities then return false
 
         val elist = world.getEntitiesWithinAABB(classOf[EntityItem],
             box.copy.add(new Vector3(x, y, z)).aabb)
         var added = false
-        for (ei <- elist.asScala) if (!ei.isDead && ei.getItem.getCount > 0 && canImport(ItemKey.get(ei.getItem)))
+        for ei <- elist.asScala do if !ei.isDead && ei.getItem.getCount > 0 && canImport(ItemKey.get(ei.getItem)) then
         {
             itemStorage.add(ei.getItem)
             world.removeEntity(ei)
             added = true
         }
-        if (added)
+        if added then
         {
             active = true
             sendStateUpdate()
@@ -118,7 +118,7 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
 
     def canImport(key:ItemKey) = true
 
-    override def getConnectionMask(side:Int) = if ((side^1) == this.side) 0 else 0x1F
+    override def getConnectionMask(side:Int) = if (side^1) == this.side then 0 else 0x1F
     override def weakPowerLevel(side:Int, mask:Int) = 0
 }
 
@@ -132,7 +132,7 @@ object TileItemImporter
     {
         val b = new Array[Cuboid6](6)
         b(0) = box
-        for (s <- 1 until 6)
+        for s <- 1 until 6 do
             b(s) = b(0).copy.apply(Rotation.sideRotations(s).at(Vector3.center))
         b
     }
@@ -140,19 +140,19 @@ object TileItemImporter
 
 object RenderItemImporter extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
     import org.apache.commons.lang3.tuple.Triple
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
 
-    var bottom:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var top1:TextureAtlasSprite = _
-    var side2:TextureAtlasSprite = _
-    var top2:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top2:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state: IExtendedBlockState, world: IBlockAccess, pos: BlockPos): IExtendedBlockState = world.getTileEntity(pos) match {
         case t: TActiveDevice => {
@@ -170,14 +170,14 @@ object RenderItemImporter extends SimpleBlockRenderer
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val active = state.getValue(UNLISTED_ACTIVE_PROPERTY).asInstanceOf[Boolean]
         val powered = state.getValue(UNLISTED_POWERED_PROPERTY).asInstanceOf[Boolean]
-        Triple.of(side, rotation, if (active || powered) iconT2 else iconT1)
+        Triple.of(side, rotation, if active || powered then iconT2 else iconT1)
     }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = false
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/importer/bottom"))
         top1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/importer/top1"))

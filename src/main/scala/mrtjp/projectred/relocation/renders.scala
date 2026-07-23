@@ -12,10 +12,10 @@ import codechicken.lib.vec.Vector3
 import mrtjp.core.math.MathLib
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.Minecraft
-import net.minecraft.client.Minecraft.{getMinecraft => mc}
-import net.minecraft.client.renderer.GlStateManager._
-import net.minecraft.client.renderer.Tessellator.{getInstance => tes}
-import net.minecraft.client.renderer._
+import net.minecraft.client.Minecraft.{getMinecraft as mc}
+import net.minecraft.client.renderer.GlStateManager.*
+import net.minecraft.client.renderer.Tessellator.{getInstance as tes}
+import net.minecraft.client.renderer.*
 import net.minecraft.client.renderer.color.BlockColors
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.tileentity.{TileEntityRendererDispatcher, TileEntitySpecialRenderer}
@@ -24,12 +24,12 @@ import net.minecraft.client.resources.IResourceManager
 import net.minecraft.crash.{CrashReport, CrashReportCategory}
 import net.minecraft.init.Blocks
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.biome.Biome
 import net.minecraft.world.{EnumSkyBlock, IBlockAccess, World, WorldType}
 import net.minecraftforge.client.{ForgeHooksClient, MinecraftForgeClient}
-import org.lwjgl.opengl.GL11._
+import org.lwjgl.opengl.GL11.*
 
 import scala.math
 
@@ -40,14 +40,14 @@ object MovingRenderer
 
     private var initialized = false
 
-    private var oldWorld:World = _
-    private var movingWorld:MovingWorld = _
+    private var oldWorld:World = scala.compiletime.uninitialized
+    private var movingWorld:MovingWorld = scala.compiletime.uninitialized
 
     private var frame = 0.0f
 
-    def init()
+    def init(): Unit =
     {
-        if (!initialized) {
+        if !initialized then {
             // Wraps for block renderering
             val parentDispatcher = mc.getBlockRendererDispatcher
             val newDispatcher = new MovingBlockRenderDispatcher(parentDispatcher, mc.getBlockColors)
@@ -63,18 +63,18 @@ object MovingRenderer
         }
     }
 
-    private def renderBlocks(currentPos: BlockPos, moveDir: EnumFacing, renderOffset: Vector3, startOfRow: BlockPos, endOfRow: BlockPos)
+    private def renderBlocks(currentPos: BlockPos, moveDir: EnumFacing, renderOffset: Vector3, startOfRow: BlockPos, endOfRow: BlockPos): Unit =
     {
         val block = mc.world.getBlockState(currentPos)
-        if (block.getBlock.isAir(block, mc.world, currentPos)) return
-        if (block.getRenderType == EnumBlockRenderType.INVISIBLE) return
+        if block.getBlock.isAir(block, mc.world, currentPos) then return
+        if block.getRenderType == EnumBlockRenderType.INVISIBLE then return
 
         movingWorld.locate(currentPos, moveDir, startOfRow, endOfRow)
 
         val oldOcclusion = mc.gameSettings.ambientOcclusion
 
         val engine = TileEntityRendererDispatcher.instance.renderEngine
-        if (engine != null) engine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
+        if engine != null then engine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE)
         mc.entityRenderer.enableLightmap()
 
         RenderHelper.enableStandardItemLighting()
@@ -87,12 +87,12 @@ object MovingRenderer
         RenderHelper.disableStandardItemLighting()
         blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         GlStateManager.enableBlend()
-        GlStateManager.shadeModel(if (Minecraft.isAmbientOcclusionEnabled) GL_SMOOTH else GL_FLAT)
+        GlStateManager.shadeModel(if Minecraft.isAmbientOcclusionEnabled then GL_SMOOTH else GL_FLAT)
 
         val prevRenderLayer = MinecraftForgeClient.getRenderLayer
 
-        for (layer <- BlockRenderLayer.values()) {
-            if (block.getBlock.canRenderInLayer(block, layer)) {
+        for layer <- BlockRenderLayer.values() do {
+            if block.getBlock.canRenderInLayer(block, layer) then {
 
                 ForgeHooksClient.setRenderLayer(layer)
 
@@ -120,10 +120,10 @@ object MovingRenderer
         mc.gameSettings.ambientOcclusion = oldOcclusion
     }
 
-    def renderTiles(pos:BlockPos, renderOffset:Vector3, partialTicks:Float)
+    def renderTiles(pos:BlockPos, renderOffset:Vector3, partialTicks:Float): Unit =
     {
         val te = mc.world.getTileEntity(pos)
-        if (te == null) return
+        if te == null then return
 
         allowQueuedBlockRender = true
         RenderHelper.enableStandardItemLighting()
@@ -133,7 +133,7 @@ object MovingRenderer
             -TileEntityRendererDispatcher.staticPlayerY + MathLib.clamp(-1F, 1F, renderOffset.y.toFloat),
             -TileEntityRendererDispatcher.staticPlayerZ + MathLib.clamp(-1F, 1F, renderOffset.z.toFloat))
 
-        for (pass <- 0 to 1) if (te.shouldRenderInPass(pass)) {
+        for pass <- 0 to 1 do if te.shouldRenderInPass(pass) then {
             net.minecraftforge.client.ForgeHooksClient.setRenderPass(pass)
             TileEntityRendererDispatcher.instance.render(te, trans.x, trans.y, trans.z, partialTicks)
         }
@@ -144,33 +144,33 @@ object MovingRenderer
         allowQueuedBlockRender = false
     }
 
-    def onPreRenderTick(time:Float)
+    def onPreRenderTick(time:Float): Unit =
     {
         isRendering = true
         frame = time
     }
 
-    def onRenderWorldEvent()
+    def onRenderWorldEvent(): Unit =
     {
-        if (!MovementManager.isValidWorld(mc.world)) return
+        if !MovementManager.isValidWorld(mc.world) then return
 
-        if (oldWorld != mc.world) {
+        if oldWorld != mc.world then {
             oldWorld = mc.world
             movingWorld = new MovingWorld(mc.world)
         }
 
-        for (s <- MovementManager.getWorldStructs(mc.world).structs) {
+        for s <- MovementManager.getWorldStructs(mc.world).structs do {
             val offset = renderOffset(s, frame)
 
-            for (r <- s.rows) for (b <- r.preMoveBlocks)
+            for r <- s.rows do for b <- r.preMoveBlocks do
                 renderBlocks(b, s.moveDir, offset, r.allBlocks.head, r.allBlocks.last)
 
-            for (r <- s.rows) for (b <- r.preMoveBlocks)
+            for r <- s.rows do for b <- r.preMoveBlocks do
                 renderTiles(b, offset, frame)
         }
     }
 
-    def onPostRenderTick()
+    def onPostRenderTick(): Unit =
     {
         isRendering = false
     }
@@ -181,17 +181,17 @@ object MovingRenderer
 
 class MovingWorld(val parentWorld:World) extends IBlockAccess
 {
-    var currentPos:BlockPos = _
-    var newPos:BlockPos = _
-    var moveDir:EnumFacing = _
+    var currentPos:BlockPos = scala.compiletime.uninitialized
+    var newPos:BlockPos = scala.compiletime.uninitialized
+    var moveDir:EnumFacing = scala.compiletime.uninitialized
 
-    var firstBlockInRow:BlockPos = _
-    var lastBlockInRow:BlockPos = _
+    var firstBlockInRow:BlockPos = scala.compiletime.uninitialized
+    var lastBlockInRow:BlockPos = scala.compiletime.uninitialized
 
     var disableOffset = false
     var isCalculatingLight = false
 
-    def locate(pos:BlockPos, dir:EnumFacing, first:BlockPos, last:BlockPos)
+    def locate(pos:BlockPos, dir:EnumFacing, first:BlockPos, last:BlockPos): Unit =
     {
         currentPos = pos
         newPos = pos.offset(dir)
@@ -201,7 +201,7 @@ class MovingWorld(val parentWorld:World) extends IBlockAccess
         lastBlockInRow = last
     }
 
-    def transformPos(pos:BlockPos):BlockPos = if (disableOffset) pos else pos.offset(moveDir)
+    def transformPos(pos:BlockPos):BlockPos = if disableOffset then pos else pos.offset(moveDir)
 
     override def getCombinedLight(pos:BlockPos, lightValue:Int):Int =
     {
@@ -214,10 +214,10 @@ class MovingWorld(val parentWorld:World) extends IBlockAccess
         var lightS1 = parentWorld.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos)
         var lightB1 = math.max(lightValue, parentWorld.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos))
 
-        if (lightS0 == 0 && lightB0 == 0) {
+        if lightS0 == 0 && lightB0 == 0 then {
             lightS0 = lightS1
             lightB0 = lightB1
-        } else if (lightS1 == 0 && lightB1 == 0) {
+        } else if lightS1 == 0 && lightB1 == 0 then {
             lightS1 = lightS0
             lightB1 = lightB0
         }
@@ -234,7 +234,7 @@ class MovingWorld(val parentWorld:World) extends IBlockAccess
 
     override def getTileEntity(pos:BlockPos):TileEntity =
     {
-        if (!isCalculatingLight)
+        if !isCalculatingLight then
             return parentWorld.getTileEntity(pos)
 
         parentWorld.getTileEntity(transformPos(pos))
@@ -242,12 +242,12 @@ class MovingWorld(val parentWorld:World) extends IBlockAccess
 
     override def getBlockState(pos:BlockPos):IBlockState =
     {
-        if (!isCalculatingLight)
+        if !isCalculatingLight then
             return parentWorld.getBlockState(pos)
 
         val offsetPos = transformPos(pos)
 
-        if (offsetPos == firstBlockInRow)
+        if offsetPos == firstBlockInRow then
             return Blocks.AIR.getDefaultState
 
         parentWorld.getBlockState(offsetPos)
@@ -266,23 +266,23 @@ class MovingBlockRenderDispatcher(val parentDispatcher:BlockRendererDispatcher, 
     override def renderBlock(state:IBlockState, pos:BlockPos, blockAccess:IBlockAccess, bufferBuilderIn:BufferBuilder):Boolean =
     {
         //World can be null when exiting the game, but before client render threads have stopped.
-        if(mc.world == null) return false
+        if mc.world == null then return false
 
         val isMoving = MovementManager.isMoving(mc.world, pos)
 
-        if (!MovingRenderer.allowQueuedBlockRender && isMoving) return false
+        if !MovingRenderer.allowQueuedBlockRender && isMoving then return false
 
         val isAdjacentMoving = MovementManager.isAdjacentToMoving(mc.world, pos)
-        if (!isAdjacentMoving)
+        if !isAdjacentMoving then
             return parentDispatcher.renderBlock(state, pos, blockAccess, bufferBuilderIn)
 
         try {
             val enumblockrendertype = state.getRenderType
-            if (enumblockrendertype == EnumBlockRenderType.INVISIBLE) return false
+            if enumblockrendertype == EnumBlockRenderType.INVISIBLE then return false
 
             var state2:IBlockState = state
 
-            if (blockAccess.getWorldType != WorldType.DEBUG_ALL_BLOCK_STATES)
+            if blockAccess.getWorldType != WorldType.DEBUG_ALL_BLOCK_STATES then
                 try
                     state2 = state.getActualState(blockAccess, pos)
                 catch {
@@ -307,15 +307,15 @@ class MovingBlockRenderDispatcher(val parentDispatcher:BlockRendererDispatcher, 
         }
     }
 
-    override def renderBlockDamage(state:IBlockState, pos:BlockPos, texture:TextureAtlasSprite, blockAccess:IBlockAccess) {
+    override def renderBlockDamage(state:IBlockState, pos:BlockPos, texture:TextureAtlasSprite, blockAccess:IBlockAccess): Unit = {
         parentDispatcher.renderBlockDamage(state, pos, texture, blockAccess)
     }
 
-    override def renderBlockBrightness(state:IBlockState, brightness:Float) {
+    override def renderBlockBrightness(state:IBlockState, brightness:Float): Unit = {
         parentDispatcher.renderBlockBrightness(state, brightness)
     }
 
-    override def onResourceManagerReload(resourceManager:IResourceManager) {
+    override def onResourceManagerReload(resourceManager:IResourceManager): Unit = {
         parentDispatcher.onResourceManagerReload(resourceManager)
     }
 
@@ -324,16 +324,16 @@ class MovingBlockRenderDispatcher(val parentDispatcher:BlockRendererDispatcher, 
     override def getBlockModelShapes = parentDispatcher.getBlockModelShapes
 }
 
-class WrappedTileMap(parentMap:util.Map[Class[_ <: TileEntity], TileEntitySpecialRenderer[_ <: TileEntity]])
-        extends util.Map[Class[_ <: TileEntity], TileEntitySpecialRenderer[_ <: TileEntity]]
+class WrappedTileMap(parentMap:util.Map[Class[? <: TileEntity], TileEntitySpecialRenderer[? <: TileEntity]])
+        extends util.Map[Class[? <: TileEntity], TileEntitySpecialRenderer[? <: TileEntity]]
 {
-    type MapType = Map[Class[_ <: TileEntity], TileEntitySpecialRenderer[_ <: TileEntity]]
+    type MapType = Map[Class[? <: TileEntity], TileEntitySpecialRenderer[? <: TileEntity]]
 
     override def values() = parentMap.values
     override def containsValue(value:scala.Any) = parentMap.containsValue(value)
     override def remove(key:scala.Any) = parentMap.remove(key)
-    override def put(key:Class[_ <: TileEntity], value:TileEntitySpecialRenderer[_ <: TileEntity]) = parentMap.put(key, value)
-    override def putAll(m:util.Map[_ <: Class[_ <: TileEntity], _ <: TileEntitySpecialRenderer[_ <: TileEntity]]) { parentMap.putAll(m) }
+    override def put(key:Class[? <: TileEntity], value:TileEntitySpecialRenderer[? <: TileEntity]) = parentMap.put(key, value)
+    override def putAll(m:util.Map[? <: Class[? <: TileEntity], ? <: TileEntitySpecialRenderer[? <: TileEntity]]): Unit = { parentMap.putAll(m) }
 
     override def keySet() = parentMap.keySet
     override def entrySet() = parentMap.entrySet
@@ -344,7 +344,7 @@ class WrappedTileMap(parentMap:util.Map[Class[_ <: TileEntity], TileEntitySpecia
 
     override def get(key:scala.Any) = {
         val tesr = parentMap.get(key).asInstanceOf[TileEntitySpecialRenderer[TileEntity]]
-        if (tesr != null && MovementManager.isValidWorld(mc.world) && MovementManager.getWorldStructs(mc.world).structs.nonEmpty)
+        if tesr != null && MovementManager.isValidWorld(mc.world) && MovementManager.getWorldStructs(mc.world).structs.nonEmpty then
             new WrappedTESR(tesr)
         else
             tesr
@@ -353,15 +353,15 @@ class WrappedTileMap(parentMap:util.Map[Class[_ <: TileEntity], TileEntitySpecia
 
 class WrappedTESR(parentTesr:TileEntitySpecialRenderer[TileEntity]) extends TileEntitySpecialRenderer[TileEntity]
 {
-    override def render(te:TileEntity, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float)
+    override def render(te:TileEntity, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float): Unit =
     {
-        if (MovingRenderer.allowQueuedBlockRender || te == null || !MovementManager.isValidWorld(te.getWorld) || !MovementManager.isMoving(te.getWorld, te.getPos))
+        if MovingRenderer.allowQueuedBlockRender || te == null || !MovementManager.isValidWorld(te.getWorld) || !MovementManager.isMoving(te.getWorld, te.getPos) then
             parentTesr.render(te, x, y, z, partialTicks, destroyStage, alpha)
     }
 
-    override def renderTileEntityFast(te:TileEntity, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, partial:Float, buffer:BufferBuilder)
+    override def renderTileEntityFast(te:TileEntity, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, partial:Float, buffer:BufferBuilder): Unit =
     {
-        if (MovingRenderer.allowQueuedBlockRender || te == null || !MovementManager.isValidWorld(te.getWorld) || !MovementManager.isMoving(te.getWorld, te.getPos))
+        if MovingRenderer.allowQueuedBlockRender || te == null || !MovementManager.isValidWorld(te.getWorld) || !MovementManager.isMoving(te.getWorld, te.getPos) then
             parentTesr.renderTileEntityFast(te, x, y, z, partialTicks, destroyStage, partial, buffer)
     }
 

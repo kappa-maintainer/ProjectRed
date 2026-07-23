@@ -13,7 +13,7 @@ import codechicken.lib.render.item.IItemRenderer
 import codechicken.lib.render.{CCModel, CCRenderState}
 import codechicken.lib.texture.TextureUtils.IIconRegister
 import codechicken.lib.util.TransformUtils
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
 import codechicken.microblock.FaceMicroFactory
 import codechicken.multipart.{MultiPartRegistry, TItemMultiPart, TMultiPart}
@@ -35,7 +35,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoadMachine with ITickable
 {
@@ -44,13 +44,13 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
         override def capacitance = 4.0
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         cond.save(tag)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         cond.load(tag)
@@ -75,12 +75,12 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
         case _ => false
     }
 
-    override def update()
+    override def update(): Unit =
     {
-        if (!world.isRemote)
+        if !world.isRemote then
         {
             cond.update()
-            if (cond.voltage() < 100.0)
+            if cond.voltage() < 100.0 then
             {
                 val I = 2.5*heightMultiplier*timeOfDayMultiplier*sideMultiplier*rainMultiplier*visibilityMultiplier
                 cond.applyCurrent(I)
@@ -93,7 +93,7 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
     def timeOfDayMultiplier =
     {
         val t = world.getWorldTime%24000
-        if (t > 12000) 0.0
+        if t > 12000 then 0.0
         else 0.50+0.50*math.sin(math.Pi*t/12000.0)
     }
 
@@ -108,15 +108,15 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
     def rainMultiplier = 1.0-world.rainingStrength
 
     def visibilityMultiplier =
-        if (tile.partMap(1) != null) 0.0
-        else if (world.canSeeSky(pos)) 1.0
-        else if (world.canSeeSky(pos.up()) && !world.getBlockState(pos.up).getMaterial.isOpaque) 0.7
+        if tile.partMap(1) != null then 0.0
+        else if world.canSeeSky(pos) then 1.0
+        else if world.canSeeSky(pos.up()) && !world.getBlockState(pos.up).getMaterial.isOpaque then 0.7
         else 0.0
 
     @SideOnly(Side.CLIENT)
     override def renderStatic(position:Vector3, layer:BlockRenderLayer, ccrs: CCRenderState) =
     {
-        if (layer == BlockRenderLayer.SOLID)
+        if layer == BlockRenderLayer.SOLID then
         {
             ccrs.setBrightness(world, pos)
             RenderSolarPanel.render(ccrs, side, position)
@@ -127,7 +127,7 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
 
     @SideOnly(Side.CLIENT)
     override def getBrokenIcon(side:Int) =
-        if (side == 1) RenderSolarPanel.top else RenderSolarPanel.side
+        if side == 1 then RenderSolarPanel.top else RenderSolarPanel.side
 
     @SideOnly(Side.CLIENT)
     override def getBreakingIcon(hit: CuboidRayTraceResult): TextureAtlasSprite = null
@@ -141,7 +141,7 @@ object SolarPanelPart
 
     oBoxes(0)(0) = new Cuboid6(1 / 8D, 0, 0, 7 / 8D, 1 / 8D, 1)
     oBoxes(0)(1) = new Cuboid6(0, 0, 1 / 8D, 1, 1 / 8D, 7 / 8D)
-    for (s <- 1 until 6)
+    for s <- 1 until 6 do
     {
         val t = Rotation.sideRotations(s).at(Vector3.center)
         oBoxes(s)(0) = oBoxes(0)(0).copy.apply(t)
@@ -156,10 +156,10 @@ class ItemSolarPanel extends ItemCore with TItemMultiPart
     override def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3):TMultiPart =
     {
         val onPos = pos.offset(EnumFacing.VALUES(side^1))
-        if (!PRLib.canPlaceGateOnSide(world, onPos, side)) return null
+        if !PRLib.canPlaceGateOnSide(world, onPos, side) then return null
 
         val solar = MultiPartRegistry.loadPart(SolarPanelPart.typeID, null).asInstanceOf[SolarPanelPart]
-        if (solar != null) solar.preparePlacement(player, pos, side, item.getItemDamage)
+        if solar != null then solar.preparePlacement(player, pos, side, item.getItemDamage)
         solar
     }
 
@@ -168,20 +168,20 @@ class ItemSolarPanel extends ItemCore with TItemMultiPart
 
 object RenderSolarPanel extends IItemRenderer with IIconRegister
 {
-    var side:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var bottom:TextureAtlasSprite = _
+    var side:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT:UVTransformation = _
+    var iconT:UVTransformation = scala.compiletime.uninitialized
 
     val models =
     {
         val array = new Array[CCModel](6)
         val m = CCModel.quadModel(24)
         m.generateBlock(0,  new Cuboid6(0, 0, 0, 1, 2/16D, 1).expand(-0.0005), 0)
-        for (s <- 0 until 6)
+        for s <- 0 until 6 do
         {
-            val m2 = m.copy.apply(Rotation.sideRotations(s) at Vector3.center)
+            val m2 = m.copy.apply(Rotation.sideRotations(s) `at` Vector3.center)
             m2.computeNormals()
             m2.shrinkUVs(0.0005)
             m2.computeLighting(LightModel.standardLightModel)
@@ -190,12 +190,12 @@ object RenderSolarPanel extends IItemRenderer with IIconRegister
         array
     }
 
-    def render(ccrs:CCRenderState, side:Int, pos:Vector3)
+    def render(ccrs:CCRenderState, side:Int, pos:Vector3): Unit =
     {
         models(side).render(ccrs, iconT, pos.translation)
     }
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         side = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/solar/side"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/solar/top"))

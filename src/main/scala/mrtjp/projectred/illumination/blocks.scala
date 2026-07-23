@@ -1,7 +1,7 @@
 package mrtjp.projectred.illumination
 
-import java.lang.{Boolean => JBool, Integer => JInt}
-import java.util.{Random, List => JList}
+import java.lang.{Boolean as JBool, Integer as JInt}
+import java.util.{Random, List as JList}
 
 import codechicken.lib.block.property.unlisted.{UnlistedBooleanProperty, UnlistedIntegerProperty}
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
@@ -13,7 +13,7 @@ import codechicken.lib.util.TransformUtils
 import codechicken.lib.vec.uv.IconTransformation
 import codechicken.lib.vec.{Cuboid6, RedundantTransformation}
 import codechicken.multipart.{BlockMultipart, IRedstoneConnectorBlock}
-import mrtjp.core.block._
+import mrtjp.core.block.*
 import mrtjp.projectred.ProjectRedIllumination
 import mrtjp.projectred.core.RenderHalo
 import net.minecraft.block.material.Material
@@ -29,7 +29,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.property.IExtendedBlockState
@@ -51,9 +51,9 @@ class BlockLamp extends MultiTileBlock(Material.REDSTONE_LIGHT) with IRedstoneCo
     override def isFullBlock(state:IBlockState) = true
 
     @SideOnly(Side.CLIENT)
-    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubBlocks(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        for (i <- 0 until 32)
+        for i <- 0 until 32 do
             list.add(new ItemStack(ProjectRedIllumination.blockLamp, 1, i))
     }
 
@@ -100,17 +100,17 @@ object LampBakery extends SimpleBlockRenderer
     override def getWorldTransforms(state: IExtendedBlockState) = {
         val isOn = state.getValue(BlockProperties.UNLISTED_ON_PROPERTY)
         val colour = state.getValue(BlockProperties.UNLISTED_COLOUR_PROPERTY)
-        val t = new IconTransformation((if (isOn) LampRenderer.iconsOn else LampRenderer.iconsOff)(colour))
+        val t = new IconTransformation((if isOn then LampRenderer.iconsOn else LampRenderer.iconsOff)(colour))
         Triple.of(0, 0, t)
     }
 
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0,
-        new IconTransformation(if (stack.getItemDamage > 15) LampRenderer.iconsOn(stack.getItemDamage%16) else LampRenderer.iconsOff(stack.getItemDamage)))
+        new IconTransformation(if stack.getItemDamage > 15 then LampRenderer.iconsOn(stack.getItemDamage%16) else LampRenderer.iconsOff(stack.getItemDamage)))
 
     override def shouldCull(): Boolean = true
 
-    override def registerIcons(textureMap: TextureMap) {
-        for (i <- 0 until 16) {
+    override def registerIcons(textureMap: TextureMap): Unit = {
+        for i <- 0 until 16 do {
             LampRenderer.iconsOn(i) = textureMap.registerSprite(new ResourceLocation("projectred:blocks/lighting/lampon/"+i))
             LampRenderer.iconsOff(i) = textureMap.registerSprite(new ResourceLocation("projectred:blocks/lighting/lampoff/"+i))
         }
@@ -126,11 +126,11 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
     override def isGui3d = true
     override def getTransforms = TransformUtils.DEFAULT_BLOCK
 
-    override def renderItem(item:ItemStack, transformType: TransformType)
+    override def renderItem(item:ItemStack, transformType: TransformType): Unit =
     {
-        import scala.jdk.CollectionConverters._
+        import scala.jdk.CollectionConverters.*
         val meta = item.getItemDamage
-        val icon = new IconTransformation(if (meta > 15) LampRenderer.iconsOn(meta%16) else LampRenderer.iconsOff(meta))
+        val icon = new IconTransformation(if meta > 15 then LampRenderer.iconsOn(meta%16) else LampRenderer.iconsOff(meta))
 
         //This here is basically a hack as the item model is bound to this IIR.
         val ccrs = CCRenderState.instance()
@@ -142,19 +142,19 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
         val model = ModelBakery.getCachedItemModel(item)
 
         renderQuads(model.getQuads(null, null, 0))
-        for (face <- EnumFacing.VALUES) {
+        for face <- EnumFacing.VALUES do {
             renderQuads(model.getQuads(null, face, 0))
         }
 
         def renderQuads(quads: JList[BakedQuad]) = {
-            for (quad:BakedQuad <- quads.asScala) {
+            for quad:BakedQuad <- quads.asScala do {
                 ccrs.getBuffer.addVertexData(quad.getVertexData)
             }
         }
 
         ccrs.draw()
 
-        if (meta > 15) {
+        if meta > 15 then {
             RenderHalo.prepareRenderState()
             RenderHalo.renderHalo(lBounds, meta%16, new RedundantTransformation)
             RenderHalo.restoreRenderState()
@@ -163,9 +163,9 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
 
     private val lBounds = Cuboid6.full.copy.expand(0.05D)
 
-    override def render(tile:TileLamp, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float)
+    override def render(tile:TileLamp, x:Double, y:Double, z:Double, partialTicks:Float, destroyStage:Int, alpha:Float): Unit =
     {
-        if (tile.isOn)
+        if tile.isOn then
             RenderHalo.addLight(tile.getPos, tile.getColor, lBounds)
     }
 
@@ -176,9 +176,9 @@ class TileLamp extends MTBlockTile with ILight
     var powered = false
     var shape:Byte = 0
 
-    def setShape(colour:Int, inverted:Boolean)
+    def setShape(colour:Int, inverted:Boolean): Unit =
     {
-        shape = (colour&0xF | (if (inverted) 1 else 0) << 4).toByte
+        shape = (colour&0xF | (if inverted then 1 else 0) << 4).toByte
     }
 
     def getColor = shape&0xF
@@ -188,21 +188,21 @@ class TileLamp extends MTBlockTile with ILight
 
     override def getBlock = ProjectRedIllumination.blockLamp
 
-    override def getPickBlock = new ItemStack(getBlock, 1, getColor+(if(getInverted) 16 else 0))
+    override def getPickBlock = new ItemStack(getBlock, 1, getColor+(if getInverted then 16 else 0))
 
-    override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack)
+    override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack): Unit =
     {
         setShape(stack.getItemDamage%16, stack.getItemDamage > 15)
         //scheduleTick(2)
         updateState(true)
     }
 
-    override def getLightValue = if (getInverted != powered)
+    override def getLightValue = if getInverted != powered then
         IlluminationProxy.getLightValue(getColor, 15) else 0
 
-    override def onNeighborBlockChange()
+    override def onNeighborBlockChange(): Unit =
     {
-        if (!world.isRemote) updateState(false)//scheduleTick(2)
+        if !world.isRemote then updateState(false)//scheduleTick(2)
     }
 
     def checkPower =
@@ -211,50 +211,50 @@ class TileLamp extends MTBlockTile with ILight
             world.getStrongPower(pos) != 0
     }
 
-    def updateState(forceRender:Boolean)
+    def updateState(forceRender:Boolean): Unit =
     {
         var updated = false
-        if (!world.isRemote) {
+        if !world.isRemote then {
             val old = powered
             powered = checkPower
-            if (old != powered) {
+            if old != powered then {
                 updated = true
                 updateRender()
             }
         }
-        if (forceRender && !updated) updateRender()
+        if forceRender && !updated then updateRender()
     }
 
-    def updateRender()
+    def updateRender(): Unit =
     {
-        if (!world.isRemote) markDescUpdate()
+        if !world.isRemote then markDescUpdate()
         markLight()
         markRender()
     }
 
-    override def onScheduledTick()
+    override def onScheduledTick(): Unit =
     {
         updateState(false)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setByte("sh", shape)
         tag.setBoolean("pow", powered)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         shape = tag.getByte("sh")
         powered = tag.getBoolean("pow")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         out.writeByte(shape).writeBoolean(powered)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         shape = in.readByte()
         powered = in.readBoolean()
@@ -278,7 +278,7 @@ class BlockAirousLight extends BlockCore(Material.AIR)
     override def isFullCube(state:IBlockState) = false
 
     @SideOnly(Side.CLIENT)
-    override def randomDisplayTick(state:IBlockState, world:World, pos:BlockPos, rand:Random)
+    override def randomDisplayTick(state:IBlockState, world:World, pos:BlockPos, rand:Random): Unit =
     {
         //TODO get this working
 //        if (rand.nextInt(10) > 0) return
@@ -330,21 +330,21 @@ class TileAirousLight extends TileEntity with ITickable
     private var color = -1
     private var delay = 100
 
-    override def update()
+    override def update(): Unit =
     {
-        if (!world.isRemote) {
-            if ({delay -= 1; delay} > 0) return
+        if !world.isRemote then {
+            if {delay -= 1; delay} > 0 then return
             delay = world.rand.nextInt(100)
 
             val light = getLight
-            if (light == null || !light.isOn || light.getColor != color)
+            if light == null || !light.isOn || light.getColor != color then
                 world.setBlockToAir(pos)
         }
     }
 
     private def getLight:ILight =
     {
-        if (sourcePartID > -1) {
+        if sourcePartID > -1 then {
             BlockMultipart.getPart(world, sourcePos, sourcePartID) match {
                 case light:ILight => return light
                 case _ =>
@@ -363,7 +363,7 @@ class TileAirousLight extends TileEntity with ITickable
         sourcePartID = partID
     }
 
-    override def readFromNBT(tag:NBTTagCompound)
+    override def readFromNBT(tag:NBTTagCompound): Unit =
     {
         super.readFromNBT(tag)
         val x = tag.getInteger("sX")

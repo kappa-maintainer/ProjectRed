@@ -15,30 +15,30 @@ trait TActiveLostStack extends RoutingChip
 
     def getMaxRequestAttempts:Int
 
-    def addLostItem(stack:ItemKeyStack)
+    def addLostItem(stack:ItemKeyStack): Unit =
     {
         lost :+= LostObj(stack.key, stack.stackSize)
     }
 
-    def requestLostItems()
+    def requestLostItems(): Unit =
     {
-        if (lost.isEmpty) return
+        if lost.isEmpty then return
 
         val obj = lost.head
         val LostObj(key, amount) = obj
 
         val toRequest = math.min(amount, router.getActiveFreeSpace(key))
 
-        val requested = if (toRequest <= 0) 0 else
+        val requested = if toRequest <= 0 then 0 else
         {
             val req = new RequestConsole(RequestFlags.full).setDestination(router)
             req.makeRequest(ItemKeyStack.get(key, toRequest)).requested
         }
 
-        if (requested <= 0 && toRequest > 0)
+        if requested <= 0 && toRequest > 0 then
         {
             obj.requestAttempts += 1
-            if (obj.requestAttempts > getMaxRequestAttempts)
+            if obj.requestAttempts > getMaxRequestAttempts then
             {
                 lost = lost.tail
                 itemLostUnrecoverable(key, toRequest)
@@ -48,12 +48,12 @@ trait TActiveLostStack extends RoutingChip
         else
         {
             obj.amount -= requested
-            if (obj.amount <= 0)
+            if obj.amount <= 0 then
                 lost = lost.tail
         }
     }
 
-    def itemLostUnrecoverable(item:ItemKey, amount:Int)
+    def itemLostUnrecoverable(item:ItemKey, amount:Int): Unit 
 }
 
 class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with TChipMatchMatrix with TActiveBroadcastStack with TActiveLostStack
@@ -78,19 +78,19 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
     override def extractItem(item:ItemKey, amount:Int) =
     {
         val real = invProvider.getInventory
-        if (real != null)
+        if real != null then
             real.extractItem(item, amount)
         else 0
     }
 
-    override def itemLostUnrecoverable(item:ItemKey, amount:Int)
+    override def itemLostUnrecoverable(item:ItemKey, amount:Int): Unit =
     {
         val required = getAmountForIngredient(item).toDouble
-        if (required > 0)
+        if required > 0 then
         {
             val failed = (amount/required).ceil.toInt
             var i = 0
-            while (i < failed && hasOrders)
+            while i < failed && hasOrders do
             {
                 val BroadcastObject(s, r) = popAll()
                 r.postNetworkEvent(TrackedPayloadCancelledEvent(s.key, s.stackSize, router))
@@ -112,13 +112,13 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
         case _ =>
     }
 
-    override def update()
+    override def update(): Unit =
     {
         remainingDelay -= 1
-        if (remainingDelay <= 0)
+        if remainingDelay <= 0 then
         {
             remainingDelay = operationDelay
-            if (hasOrders)
+            if hasOrders then
             {
                 RouteFX2.spawnType1(RouteFX2.color_checkInv, router.getPipe)
                 doExtractOperation()
@@ -127,29 +127,29 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
         }
 
         remainingDelay2 -= 1
-        if (remainingDelay2 <= 0)
+        if remainingDelay2 <= 0 then
         {
             remainingDelay2 = operationDelay2
             requestLostItems()
         }
     }
 
-    def doExcessExtractOperation()
+    def doExcessExtractOperation(): Unit =
     {
-        if (hasOrders) return
+        if hasOrders then return
 
         var stacksRemaining = getStacksToExtract
         var itemsRemaining = getItemsToExtract
 
         val it = excess.result.iterator
 
-        import scala.util.control.Breaks._
-        while (it.hasNext && stacksRemaining > 0 && itemsRemaining > 0) breakable
-        {
+        import scala.util.control.Breaks.*
+        while it.hasNext && stacksRemaining > 0 && itemsRemaining > 0 do breakable
+          {
             val (item, amount) = it.next()
 
             val real = invProvider.getInventory
-            if (real == null)
+            if real == null then
             {
                 excess.remove(item, amount)
                 break()
@@ -160,13 +160,13 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
             toExtract = math.min(toExtract, item.getMaxStackSize)
 
             val removed = extractItem(item, toExtract)
-            if (removed <= 0 && timeOutOnFailedExtract)
+            if removed <= 0 && timeOutOnFailedExtract then
             {
                 excess.remove(item, amount)
                 break()
             }
 
-            if (removed > 0)
+            if removed > 0 then
             {
                 router.queueStackToSend(item, removed, Priorities.WANDERING, -1)
                 excess.remove(item, removed)
@@ -179,9 +179,9 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
 
     override def getBroadcastPriority = preference
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
-        while (hasOrders)
+        while hasOrders do
         {
             val BroadcastObject(s, r) = popAll()
 //            r.itemLost(s)
@@ -189,40 +189,40 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
         }
     }
 
-    override def requestPromise(request:RequestBranchNode, existingPromises:Int)
+    override def requestPromise(request:RequestBranchNode, existingPromises:Int): Unit =
     {
-        if (excess.isEmpty) return
+        if excess.isEmpty then return
         val itemEq = request.getRequestedPackage
 
         val craftedItem = getCraftedItem
-        if (craftedItem == null || !itemEq.matches(craftedItem.key)) return
+        if craftedItem == null || !itemEq.matches(craftedItem.key) then return
 
         val remaining = excess(itemEq.key)-existingPromises
-        if (remaining <= 0) return
+        if remaining <= 0 then return
 
         request.addPromise(new DeliveryPromise(craftedItem.key,
             math.min(remaining, request.getMissingCount), router, true, true))
     }
 
-    override def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer)
+    override def deliverPromise(promise:DeliveryPromise, requester:IRouterContainer): Unit =
     {
         val craftedItem = getCraftedItem
-        if (craftedItem == null || craftedItem.key != promise.item) return
+        if craftedItem == null || craftedItem.key != promise.item then return
 
-        if (promise.isExcess) excess.remove(promise.item, promise.size)
+        if promise.isExcess then excess.remove(promise.item, promise.size)
         addOrder(ItemKeyStack.get(promise.item, promise.size), requester, Priorities.ACTIVEC)
     }
 
     override def requestCraftPromise(request:RequestBranchNode) =
     {
         val result = getCraftedItem
-        if (result != null && request.getRequestedPackage.matches(result.key))
+        if result != null && request.getRequestedPackage.matches(result.key) then
         {
             val promise = new CraftingPromise(result, router, preference)
-            for (i <- 0 until 9)
+            for i <- 0 until 9 do
             {
                 val stack = matrix.getStackInSlot(i)
-                if (!stack.isEmpty)
+                if !stack.isEmpty then
                     promise.addIngredient(ItemKeyStack.get(stack), createEqualityFor(i), getCrafterForSlot(i))
             }
             promise
@@ -233,36 +233,36 @@ class ChipCrafting extends RoutingChip with TChipCrafter with TChipPriority with
     def getCrafterForSlot(i:Int):IRouterContainer =
     {
         val s = extMatrix.getStackInSlot(i)
-        if (!s.isEmpty && ItemRoutingChip.hasChipInside(s))
+        if !s.isEmpty && ItemRoutingChip.hasChipInside(s) then
         {
             val c = ItemRoutingChip.loadChipFromItemStack(s).asInstanceOf[TChipCrafterExtension]
 
             val routers = ChipCraftingExtension.getRoutersForExtension(c.id)
-            if (routers.size == 1)
+            if routers.size == 1 then
             {
                 val r = RouterServices.getRouter(RouterServices.getIPforUUID(routers.head))
-                if (r != null && r.isLoaded && r.isInNetwork(router.getRouter.getIPAddress)) return r.getContainer
+                if r != null && r.isLoaded && r.isInNetwork(router.getRouter.getIPAddress) then return r.getContainer
             }
         }
         router
     }
 
-    override def registerExcess(promise:DeliveryPromise)
+    override def registerExcess(promise:DeliveryPromise): Unit =
     {
-        if (getCraftedItem.key == promise.item)
+        if getCraftedItem.key == promise.item then
             excess += promise.item -> promise.size
     }
 
     override def getCraftedItem =
     {
         val s = matrix.getStackInSlot(9)
-        if (!s.isEmpty) ItemKeyStack.get(s)
+        if !s.isEmpty then ItemKeyStack.get(s)
         else null
     }
 
     override def getProcessingItems = getTotalDeliveryCount
 
-    override def infoCollection(list:ListBuffer[String])
+    override def infoCollection(list:ListBuffer[String]): Unit =
     {
         super.infoCollection(list)
         addMatrixInfo(list)

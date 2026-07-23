@@ -9,19 +9,19 @@ import java.util.UUID
 
 import mrtjp.core.item.{ItemKey, ItemKeyStack}
 
-import scala.collection.mutable.{ListBuffer, HashMap => MHashMap, MultiMap => MMultiMap, Set => MSet}
+import scala.collection.mutable.{ListBuffer, HashMap as MHashMap, MultiMap as MMultiMap, Set as MSet}
 
 object ChipCraftingExtension
 {
     //Router UUID -> Set[Extension UUID]
     var map = new MHashMap[UUID, MSet[UUID]] with MMultiMap[UUID, UUID]
 
-    def registerRouter(router:UUID, ext:UUID)
+    def registerRouter(router:UUID, ext:UUID): Unit =
     {
         map.addBinding(router, ext)
     }
 
-    def removeRouter(router:UUID, ext:UUID)
+    def removeRouter(router:UUID, ext:UUID): Unit =
     {
         map.removeBinding(router, ext)
     }
@@ -40,12 +40,12 @@ class ChipCraftingExtension extends RoutingChip with TChipCrafterExtension with 
 
     override def getMaxRequestAttempts = 8
 
-    override def itemLostUnrecoverable(item:ItemKey, amount:Int){}
+    override def itemLostUnrecoverable(item:ItemKey, amount:Int): Unit ={}
 
-    override def update()
+    override def update(): Unit =
     {
         remainingDelay -= 1
-        if (remainingDelay <= 0)
+        if remainingDelay <= 0 then
         {
             remainingDelay = operationDelay
             requestLostItems()
@@ -65,17 +65,17 @@ class ChipCraftingExtension extends RoutingChip with TChipCrafterExtension with 
         case _ =>
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         ChipCraftingExtension.registerRouter(router.getRouter.getID, id)
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         ChipCraftingExtension.removeRouter(router.getRouter.getID, id)
     }
 
-    override def infoCollection(list:ListBuffer[String])
+    override def infoCollection(list:ListBuffer[String]): Unit =
     {
         super.infoCollection(list)
         addExtIDInfo(list)

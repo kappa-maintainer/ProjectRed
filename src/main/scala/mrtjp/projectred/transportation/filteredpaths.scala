@@ -27,7 +27,7 @@ class StartEndPath(val start:Router, val end:Router, val hopDir:Int, val distanc
     override def compare(that:StartEndPath) =
     {
         var c = distance-that.distance
-        if (c == 0) c = end.getIPAddress-that.end.getIPAddress
+        if c == 0 then c = end.getIPAddress-that.end.getIPAddress
         c
     }
 
@@ -77,7 +77,7 @@ class PathFilter
     var colorExclude = true
     var colors = 0
     def filterContainsColor(c:Int) = (colors&1<<c) != 0
-    def allowColor(c:Int) = if (0 until 16 contains c)
+    def allowColor(c:Int) = if 0 until 16 contains c then
         filterContainsColor(c) != colorExclude else true
 
     override def equals(other:Any) = other match

@@ -8,11 +8,11 @@ package mrtjp.projectred.relocation
 import codechicken.lib.raytracer.{CuboidRayTraceResult, IndexedCuboid6}
 import codechicken.lib.render.CCRenderState
 import codechicken.lib.texture.TextureUtils
-import codechicken.lib.vec.Rotation._
-import codechicken.lib.vec.Vector3._
+import codechicken.lib.vec.Rotation.*
+import codechicken.lib.vec.Vector3.*
 import codechicken.lib.vec.{Cuboid6, Vector3}
 import codechicken.microblock.CommonMicroblock
-import codechicken.multipart._
+import codechicken.multipart.*
 import codechicken.multipart.api.IPartConverter
 import codechicken.multipart.handler.MultipartProxy
 import mrtjp.core.world.WorldLib
@@ -22,12 +22,12 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.util.math.{BlockPos, RayTraceResult, Vec3d}
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOcclusionPart with TIconHitEffectsPart// with ICapabilityProvider
 {
@@ -69,16 +69,16 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
     def sideOcclusionMask =
     {
         var mask = 0
-        for (s <- 0 until 6) if (sideOcclusionTest(s)) mask |= 1<<s
+        for s <- 0 until 6 do if sideOcclusionTest(s) then mask |= 1<<s
         mask
     }
 
     override def occlusionTest(npart:TMultiPart): Boolean =
     {
-        if (npart.isInstanceOf[FramePart]) return false
+        if npart.isInstanceOf[FramePart] then return false
 
         //modified normal occlusion test that also tests collision boxes
-        if (FramePart.sideOccludeTest != -1)
+        if FramePart.sideOccludeTest != -1 then
         {
             var boxes = Seq[Cuboid6]()
             npart match {
@@ -141,7 +141,7 @@ object FramePart
     {
         val i = 4/16D
         val th = 1/16D
-        for(s <- 0 until 6)
+        for s <- 0 until 6 do
             aBounds(s) = new Cuboid6(i, 0, i, 1-i, th, 1-i)
                     .apply(sideRotations(s).at(center))
     }
@@ -162,7 +162,7 @@ object FMPTileHandler extends ITileMover
         case _ => false
     }
 
-    override def move(w:World, pos:BlockPos, dir:EnumFacing) {
+    override def move(w:World, pos:BlockPos, dir:EnumFacing): Unit = {
         WorldLib.uncheckedGetTileEntity(w, pos) match {
             case t:TileMultipart =>
                 t.invalidate()

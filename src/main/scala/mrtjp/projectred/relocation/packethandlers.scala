@@ -6,7 +6,7 @@
 package mrtjp.projectred.relocation
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
-import java.util.{LinkedList => JLinkedList}
+import java.util.{LinkedList as JLinkedList}
 
 import codechicken.lib.data.MCDataOutputWrapper
 import codechicken.lib.packet.ICustomPacketHandler.{IClientPacketHandler, IServerPacketHandler}
@@ -21,8 +21,8 @@ import net.minecraft.util.text.TextComponentString
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 
-import scala.jdk.CollectionConverters._
-import scala.collection.mutable.{HashMap => MHashMap, Map => MMap, MultiMap => MMultiMap, Set => MSet}
+import scala.jdk.CollectionConverters.*
+import scala.collection.mutable.{HashMap as MHashMap, Map as MMap, MultiMap as MMultiMap, Set as MSet}
 
 /**
   * Tweaked version of Chickenbones' compressed end-of-tick tile data stream.
@@ -34,7 +34,7 @@ class RelocationPH
 
 object RelocationCPH extends RelocationPH with IClientPacketHandler
 {
-    def handlePacket(packet:PacketCustom, mc:Minecraft, netHandler:INetHandlerPlayClient)
+    def handlePacket(packet:PacketCustom, mc:Minecraft, netHandler:INetHandlerPlayClient): Unit =
     {
         try {
             packet.getType match {
@@ -48,16 +48,16 @@ object RelocationCPH extends RelocationPH with IClientPacketHandler
         }
     }
 
-    def handleChunkData(packet:PacketCustom, world:World)
+    def handleChunkData(packet:PacketCustom, world:World): Unit =
     {
         var i = packet.readUByte()
-        while (i != 255) {
+        while i != 255 do {
             MovementManager.read(world, packet, i)
             i = packet.readUByte()
         }
     }
 
-    def handleChunkDesc(packet:PacketCustom, world:World)
+    def handleChunkDesc(packet:PacketCustom, world:World): Unit =
     {
         MovementManager.readDesc(world, packet)
     }
@@ -72,37 +72,37 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
         override def getBytes = bout.toByteArray
     }
 
-    override def handlePacket(packetCustom:PacketCustom, entityPlayerMP:EntityPlayerMP, iNetHandlerPlayServer:INetHandlerPlayServer){}
+    override def handlePacket(packetCustom:PacketCustom, entityPlayerMP:EntityPlayerMP, iNetHandlerPlayServer:INetHandlerPlayServer): Unit ={}
 
     private val updateMap = MMap[World, MMap[Set[ChunkPos], MCByteStream]]()
     private val chunkWatchers = new MHashMap[Int, MSet[ChunkPos]] with MMultiMap[Int, ChunkPos]
     private val newWatchers = MMap[Int, JLinkedList[ChunkPos]]()
 
-    def onTickEnd()
+    def onTickEnd(): Unit =
     {
         val players = getServerPlayers
         sendData(players)
         sendDesc(players)
     }
 
-    def onWorldUnload(world:World)
+    def onWorldUnload(world:World): Unit =
     {
-        if (!world.isRemote) {
+        if !world.isRemote then {
             updateMap.remove(world)
-            if (chunkWatchers.nonEmpty) {
+            if chunkWatchers.nonEmpty then {
                 val players = getServerPlayers
-                for (p <- players) if (p.world.provider.getDimension == world.provider.getDimension)
+                for p <- players do if p.world.provider.getDimension == world.provider.getDimension then
                     chunkWatchers.remove(p.getEntityId)
             }
         }
     }
 
-    def onChunkWatch(p:EntityPlayer, c:ChunkPos)
+    def onChunkWatch(p:EntityPlayer, c:ChunkPos): Unit =
     {
         newWatchers.getOrElseUpdate(p.getEntityId, new JLinkedList).add(c)
     }
 
-    def onChunkUnWatch(p:EntityPlayer, c:ChunkPos)
+    def onChunkUnWatch(p:EntityPlayer, c:ChunkPos): Unit =
     {
         newWatchers.get(p.getEntityId) match {
             case Some(chunks) => chunks.remove(c)
@@ -114,33 +114,33 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
     private def getServerPlayers:Seq[EntityPlayerMP] =
         FMLCommonHandler.instance().getMinecraftServerInstance.getPlayerList.getPlayers.asScala.toSeq
 
-    private def sendData(players:Seq[EntityPlayerMP])
+    private def sendData(players:Seq[EntityPlayerMP]): Unit =
     {
-        for (p <- players if chunkWatchers.asJava.containsKey(p.getEntityId)) {
+        for p <- players if chunkWatchers.asJava.containsKey(p.getEntityId) do {
             updateMap.get(p.world) match {
                 case Some(m) if m.nonEmpty =>
                     val chunks = chunkWatchers(p.getEntityId)
                     val packet = new PacketCustom(channel, 2).compress()
                     var send = false
-                    for ((uchunks, stream) <- m if uchunks.exists(chunks.contains)) {
+                    for (uchunks, stream) <- m if uchunks.exists(chunks.contains) do {
                         send = true
                         packet.writeBytes(stream.getBytes)
                         packet.writeByte(255) //terminator
                     }
-                    if (send) packet.sendToPlayer(p)
+                    if send then packet.sendToPlayer(p)
                 case _ =>
             }
         }
         updateMap.foreach(_._2.clear())
     }
 
-    private def sendDesc(players:Seq[EntityPlayerMP])
+    private def sendDesc(players:Seq[EntityPlayerMP]): Unit =
     {
-        for (p <- players if newWatchers.asJava.containsKey(p.getEntityId)) {
+        for p <- players if newWatchers.asJava.containsKey(p.getEntityId) do {
             val watched = newWatchers(p.getEntityId)
             val pkt = getDescPacket(p.world, watched.asScala.toSet)
-            if (pkt != null) pkt.sendToPlayer(p)
-            for (c <- watched.asScala)
+            if pkt != null then pkt.sendToPlayer(p)
+            for c <- watched.asScala do
                 chunkWatchers.addBinding(p.getEntityId, c)
         }
         newWatchers.clear()
@@ -149,15 +149,15 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
     private def getDescPacket(world:World, chunks:Set[ChunkPos]):PacketCustom =
     {
         val packet = new PacketCustom(channel, 1)
-        if (MovementManager.writeDesc(world, chunks, packet)) packet else null
+        if MovementManager.writeDesc(world, chunks, packet) then packet else null
     }
 
-    def forceSendData()
+    def forceSendData(): Unit =
     {
         sendData(getServerPlayers)
     }
 
-    def forceSendDesc()
+    def forceSendDesc(): Unit =
     {
         sendDesc(getServerPlayers)
     }
@@ -165,7 +165,7 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
     def getStream(world:World, chunks:Set[ChunkPos], key:Int) =
     {
         updateMap.getOrElseUpdate(world, {
-                if (world.isRemote)
+                if world.isRemote then
                     throw new IllegalArgumentException("Cannot use RelocationSPH on a client world")
                 MMap()
             }).getOrElseUpdate(chunks, {

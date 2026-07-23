@@ -16,11 +16,11 @@ import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostIniti
 object ProjectRedFabrication
 {
     /** Blocks **/
-    var icBlock:BlockICMachine = _
+    var icBlock:BlockICMachine = scala.compiletime.uninitialized
 
     /** Items **/
-    var itemICBlueprint:ItemICBlueprint = _
-    var itemICChip:ItemICChip = _
+    var itemICBlueprint:ItemICBlueprint = scala.compiletime.uninitialized
+    var itemICChip:ItemICChip = scala.compiletime.uninitialized
 
     val icMachineBakery:SubBlockBakery = new SubBlockBakery
 

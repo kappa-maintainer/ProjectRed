@@ -14,7 +14,7 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
 {
     var filt = new SimpleInventory(16, "filt", 1)
     {
-        override def markDirty(){buildItemSet()}
+        override def markDirty(): Unit ={buildItemSet()}
     }
     var filtExclude = true
 
@@ -22,7 +22,7 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
     var allowBroadcast = true
     var allowCrafting = true
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         filt.saveInv(tag)
@@ -32,7 +32,7 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
         tag.setBoolean("craft", allowCrafting)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         filt.loadInv(tag)
@@ -43,12 +43,12 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
         allowCrafting = tag.getBoolean("craft")
     }
 
-    def sendOptUpdate()
+    def sendOptUpdate(): Unit =
     {
         writeInfo(getWriteStreamOf(7))
     }
 
-    private def writeInfo(out:MCDataOutput)
+    private def writeInfo(out:MCDataOutput): Unit =
     {
         out.writeBoolean(filtExclude).writeBoolean(allowRoute)
             .writeBoolean(allowBroadcast).writeBoolean(allowCrafting)
@@ -67,17 +67,17 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, item:ItemStack, hand:EnumHand):Boolean =
     {
-        if (super.activate(player, hit, item, hand)) return true
-        if (!player.isSneaking) {
+        if super.activate(player, hit, item, hand) then return true
+        if !player.isSneaking then {
             openGui(player)
             true
         }
         else false
     }
 
-    private def openGui(player:EntityPlayer)
+    private def openGui(player:EntityPlayer): Unit =
     {
-        if (world.isRemote) return
+        if world.isRemote then return
         GuiFirewallPipe.open(player, createContainer(player), p =>
         {
             p.writePos(pos)
@@ -89,20 +89,20 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
         new ContainerFirewallPipe(this, player)
 
     override def networkFilter =
-        (if (allowRoute) 0x1 else 0)|(if (allowBroadcast) 0x2 else 0)|(if (allowCrafting) 0x4 else 0)
+        (if allowRoute then 0x1 else 0)|(if allowBroadcast then 0x2 else 0)|(if allowCrafting then 0x4 else 0)
 
     override def itemsExclude = filtExclude
 
     override def filteredItems = itemset
 
     var itemset = Set[ItemKey]()
-    def buildItemSet()
+    def buildItemSet(): Unit =
     {
         itemset = Set[ItemKey]()
-        for (i <- 0 until filt.getSizeInventory)
+        for i <- 0 until filt.getSizeInventory do
         {
             val inslot = filt.getStackInSlot(i)
-            if (!inslot.isEmpty) itemset += ItemKey.get(inslot)
+            if !inslot.isEmpty then itemset += ItemKey.get(inslot)
         }
     }
 }
@@ -110,7 +110,7 @@ class RoutedFirewallPipe extends AbstractNetPipe with TNetworkPipe
 class ContainerFirewallPipe(pipe:RoutedFirewallPipe, player:EntityPlayer) extends NodeContainer
 {
     {
-        for (((x, y), i) <- GuiLib.createSlotGrid(26, 17, 4, 4, 0, 0).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createSlotGrid(26, 17, 4, 4, 0, 0).zipWithIndex do
         {
             val s = new Slot3(pipe.filt, i, x, y)
             s.phantomSlot = true
@@ -121,13 +121,13 @@ class ContainerFirewallPipe(pipe:RoutedFirewallPipe, player:EntityPlayer) extend
 
     override def doMerge(stack:ItemStack, from:Int):Boolean =
     {
-        if (16 to 24 contains from) //hotbar
+        if 16 to 24 contains from then //hotbar
         {
-            if (tryMergeItemStack(stack, 16, 25, false)) return true
+            if tryMergeItemStack(stack, 16, 25, false) then return true
         }
-        else if (25 to 52 contains from) //inv
+        else if 25 to 52 contains from then //inv
         {
-            if (tryMergeItemStack(stack, 25, 53, false)) return true
+            if tryMergeItemStack(stack, 25, 53, false) then return true
         }
         false
     }

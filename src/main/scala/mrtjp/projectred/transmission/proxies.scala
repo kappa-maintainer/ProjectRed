@@ -5,7 +5,7 @@ import codechicken.lib.texture.TextureUtils
 import codechicken.microblock.MicroMaterialRegistry
 import codechicken.multipart.api.IPartFactory
 import codechicken.multipart.{MultiPartRegistry, TMultiPart}
-import mrtjp.projectred.ProjectRedTransmission._
+import mrtjp.projectred.ProjectRedTransmission.*
 import mrtjp.projectred.core.IProxy
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
@@ -13,7 +13,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class TransmissionProxy_server extends IProxy with IPartFactory
 {
-    override def preinit()
+    override def preinit(): Unit =
     {
         itemPartWire = new ItemPartWire
         itemPartWire.setTranslationKey("projectred.transmission.wire")
@@ -23,7 +23,7 @@ class TransmissionProxy_server extends IProxy with IPartFactory
         itemPartFramedWire.setTranslationKey("projectred.transmission.wireFramed")
         ForgeRegistries.ITEMS.register(itemPartFramedWire.setRegistryName("framed_wire"))
 
-        import WireDef._
+        import WireDef.*
         MultiPartRegistry.registerParts(this, Array(
             typeRedAlloy, typeInsulated, typeBundled,
             typeFramedRedAlloy, typeFramedInsulated, typeFramedBundled,
@@ -33,9 +33,9 @@ class TransmissionProxy_server extends IProxy with IPartFactory
         WireDef.initOreDict()
     }
 
-    override def init(){}
+    override def init(): Unit ={}
 
-    override def postinit(){}
+    override def postinit(): Unit ={}
 
     override def createPart(name:ResourceLocation, client:Boolean):TMultiPart = name match
     {
@@ -54,7 +54,7 @@ class TransmissionProxy_server extends IProxy with IPartFactory
 class TransmissionProxy_client extends TransmissionProxy_server
 {
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
         ModelRegistryHelper.registerItemRenderer(itemPartWire, WireItemRenderer)

@@ -2,15 +2,15 @@ package mrtjp.projectred.core
 
 import codechicken.lib.colour.EnumColour
 import codechicken.lib.render.{BlockRenderer, CCRenderState}
-import codechicken.lib.vec._
+import codechicken.lib.vec.*
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GlStateManager._
+import net.minecraft.client.renderer.GlStateManager.*
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.client.event.RenderWorldLastEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
-import org.lwjgl.opengl.GL11._
+import org.lwjgl.opengl.GL11.*
 
 object RenderHalo
 {
@@ -28,19 +28,19 @@ object RenderHalo
         {
             val ra = renderDist
             val rb = o.renderDist
-            if (ra == rb) 0 else if (ra < rb) 1 else -1
+            if ra == rb then 0 else if ra < rb then 1 else -1
         }
     }
 
-    def addLight(pos:BlockPos, color:Int, box:Cuboid6)
+    def addLight(pos:BlockPos, color:Int, box:Cuboid6): Unit =
     {
         renderList :+= new LightCache(pos, color, box)
     }
 
     @SubscribeEvent
-    def onRenderWorldLast(event:RenderWorldLastEvent)
+    def onRenderWorldLast(event:RenderWorldLastEvent): Unit =
     {
-        if (renderList.isEmpty) return
+        if renderList.isEmpty then return
         val w = Minecraft.getMinecraft.world
         val entity = Minecraft.getMinecraft.getRenderViewEntity
         renderEntityPos.set(entity.posX, entity.posY+entity.getEyeHeight, entity.posZ)
@@ -57,10 +57,10 @@ object RenderHalo
         prepareRenderState()
 
         val it = renderList.iterator
-        val max = if (Configurator.lightHaloMax < 0) renderList.size else Configurator.lightHaloMax
+        val max = if Configurator.lightHaloMax < 0 then renderList.size else Configurator.lightHaloMax
 
         var i = 0
-        while (i < max && it.hasNext) {
+        while i < max && it.hasNext do {
             val cc = it.next()
             renderHalo(w, cc)
             i += 1
@@ -71,7 +71,7 @@ object RenderHalo
         popMatrix()
     }
 
-    def prepareRenderState()
+    def prepareRenderState(): Unit =
     {
         enableBlend()
         blendFunc(GL_SRC_ALPHA, GL_ONE)
@@ -85,7 +85,7 @@ object RenderHalo
         rs.startDrawing(GL_QUADS, DefaultVertexFormats.ITEM)
     }
 
-    def restoreRenderState()
+    def restoreRenderState(): Unit =
     {
         CCRenderState.instance().draw()
         depthMask(true)
@@ -97,7 +97,7 @@ object RenderHalo
         disableBlend()
     }
 
-    private def renderHalo(world:World, cc:LightCache)
+    private def renderHalo(world:World, cc:LightCache): Unit =
     {
         CCRenderState.instance().setBrightness(world, cc.pos)
         // Make sure to use camera coordinates for the halo transformation.
@@ -106,7 +106,7 @@ object RenderHalo
             new Translation(cc.pos.getX-entity.posX, cc.pos.getY-entity.posY, cc.pos.getZ-entity.posZ))
     }
 
-    def renderHalo(cuboid:Cuboid6, colour:Int, t:Transformation)
+    def renderHalo(cuboid:Cuboid6, colour:Int, t:Transformation): Unit =
     {
         val rs = CCRenderState.instance()
         rs.reset()

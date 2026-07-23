@@ -5,15 +5,15 @@
  */
 package mrtjp.projectred.relocation
 
-import java.util.{Set => JSet}
+import java.util.{Set as JSet}
 
-import mrtjp.projectred.api._
+import mrtjp.projectred.api.*
 import net.minecraft.util.EnumFacing
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 import scala.annotation.tailrec
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.immutable.Queue
 
 object APIImpl_Relocation extends IRelocationAPI
@@ -26,19 +26,19 @@ object APIImpl_Relocation extends IRelocationAPI
         MovingTileRegistry.registerTileMover(name, desc, handler)
     }
 
-    override def registerPreferredMover(key:String, value:String)
+    override def registerPreferredMover(key:String, value:String): Unit =
     {
         assert(isPreInit)
         MovingTileRegistry.preferredMovers :+= (key, value)
     }
 
-    override def registerMandatoryMover(key:String, value:String)
+    override def registerMandatoryMover(key:String, value:String): Unit =
     {
         assert(isPreInit)
         MovingTileRegistry.mandatoryMovers :+= (key, value)
     }
 
-    override def registerFrameInteraction(interaction:IFrameInteraction)
+    override def registerFrameInteraction(interaction:IFrameInteraction): Unit =
     {
         StickRegistry.interactionList :+= interaction
     }
@@ -53,9 +53,9 @@ object APIImpl_Relocation extends IRelocationAPI
 
 object StickResolver_Impl extends StickResolver
 {
-    private var world:World = _
-    private var start:BlockPos = _
-    private var excl:Set[BlockPos] = _
+    private var world:World = scala.compiletime.uninitialized
+    private var start:BlockPos = scala.compiletime.uninitialized
+    private var excl:Set[BlockPos] = scala.compiletime.uninitialized
 
     override def getStructure(w:World, pos:BlockPos, ex:BlockPos*):JSet[BlockPos] =
     {
@@ -75,9 +75,9 @@ object StickResolver_Impl extends StickResolver
         case Seq(next, rest@_*) =>
             val toCheck = Vector.newBuilder[BlockPos]
 
-            for (to <- resolveSticks(world, next)) {
-                if (!closed(to) && !open.contains(to) && !excl(to))
-                    if (!world.isAirBlock(to) && !ProjectRedAPI.relocationAPI.isMoving(world, to))
+            for to <- resolveSticks(world, next) do {
+                if !closed(to) && !open.contains(to) && !excl(to) then
+                    if !world.isAirBlock(to) && !ProjectRedAPI.relocationAPI.isMoving(world, to) then
                         toCheck += to
             }
 
@@ -87,22 +87,22 @@ object StickResolver_Impl extends StickResolver
     def resolveSticks(w:World, pos:BlockPos):Set[BlockPos] =
     {
         val f1 = StickRegistry.getFrame(w, pos)
-        if (f1 == null)
+        if f1 == null then
             return Set.empty[BlockPos]
 
         val b = Set.newBuilder[BlockPos]
 
-        for (s <- 0 until 6) {
+        for s <- 0 until 6 do {
             val side = EnumFacing.values()(s)
-            if (f1.stickOut(w, pos, side)) {
+            if f1.stickOut(w, pos, side) then {
                 val p2 = pos.offset(side)
                 val f2 = StickRegistry.getFrame(w, p2)
-                if (f2 == null || f2.stickIn(w, p2, side.getOpposite))
+                if f2 == null || f2.stickIn(w, p2, side.getOpposite) then
                     b += p2
             }
         }
 
-        for (stick <- f1.getAdditionalSticks.asScala)
+        for stick <- f1.getAdditionalSticks.asScala do
             b += stick
 
         b.result()

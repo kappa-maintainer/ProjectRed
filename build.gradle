@@ -146,8 +146,8 @@ tasks.withType(ScalaCompile).configureEach {
     scalaCompileOptions.additionalParameters = [
             '-release:25',
             /*'-Ytasty-reader', */
-            '-nowarn', 
-            '-source:3.0-migration',
+            /*'-nowarn', */
+            /*'-source:future-migration',*/
             /*'-rewrite'*/]
 }
 

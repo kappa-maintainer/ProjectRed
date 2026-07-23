@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.integration
 
-import java.lang.{Character => JChar}
+import java.lang.{Character as JChar}
 
 import codechicken.lib.model.ModelRegistryHelper
 import codechicken.lib.packet.PacketCustom
@@ -13,7 +13,7 @@ import codechicken.lib.texture.TextureUtils
 import codechicken.multipart.MultiPartRegistry
 import codechicken.multipart.api.IPartFactory
 import mrtjp.core.gui.GuiHandler
-import mrtjp.projectred.ProjectRedIntegration._
+import mrtjp.projectred.ProjectRedIntegration.*
 import mrtjp.projectred.core.IProxy
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.common.registry.ForgeRegistries
@@ -21,25 +21,25 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class IntegrationProxy_server extends IProxy with IPartFactory
 {
-    override def preinit()
+    override def preinit(): Unit =
     {
         itemPartGate = new ItemPartGate
         itemPartGate.setTranslationKey("projectred.integration.gate")
         ForgeRegistries.ITEMS.register(itemPartGate.setRegistryName("gate"))
 
-        import GateDefinition._
+        import GateDefinition.*
         MultiPartRegistry.registerParts(this, Array(
             typeSimpleGate, typeComplexGate, typeArrayGate,
             typeBundledGate, typeNeighborGate
         ))
     }
 
-    override def init()
+    override def init(): Unit =
     {
         PacketCustom.assignHandler(IntegrationSPH.channel, IntegrationSPH)
     }
 
-    override def postinit(){}
+    override def postinit(): Unit ={}
 
     override def createPart(name:ResourceLocation, client:Boolean) = name match
     {
@@ -58,7 +58,7 @@ class IntegrationProxy_client extends IntegrationProxy_server
     val counterGui = 11
 
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
 
@@ -67,7 +67,7 @@ class IntegrationProxy_client extends IntegrationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
 

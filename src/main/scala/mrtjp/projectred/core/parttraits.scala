@@ -6,7 +6,7 @@ import codechicken.multipart.{TFacePart, TMultiPart, TSlottedPart}
 
 trait TSwitchPacket extends TMultiPart
 {
-    override final def read(packet:MCDataInput)
+    override final def read(packet:MCDataInput): Unit =
     {
         read(packet, packet.readUByte())
     }
@@ -28,25 +28,25 @@ trait TFaceOrient extends TMultiPart with TFacePart
 
     def side = orientation>>2
 
-    def setSide(s:Int)
+    def setSide(s:Int): Unit =
     {
         val oldOrient = orientation
         orientation = (orientation&0x3|s<<2).toByte
-        if (oldOrient != orientation) onOrientationChanged(oldOrient)
+        if oldOrient != orientation then onOrientationChanged(oldOrient)
     }
 
     def rotation = orientation&0x3
 
-    def setRotation(r:Int)
+    def setRotation(r:Int): Unit =
     {
         val oldOrient = orientation
         orientation = (orientation&0xFC|r).toByte
-        if (oldOrient != orientation) onOrientationChanged(oldOrient)
+        if oldOrient != orientation then onOrientationChanged(oldOrient)
     }
 
     def rotationT = Rotation.sideOrientation(side, rotation).at(Vector3.center)
 
-    def onOrientationChanged(oldOrient:Int) {}
+    def onOrientationChanged(oldOrient:Int): Unit = {}
 
     // internal r from absRot
     def toInternal(absRot:Int) = (absRot+6-rotation)%4

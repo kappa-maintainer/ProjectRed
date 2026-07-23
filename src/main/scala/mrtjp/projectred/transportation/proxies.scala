@@ -7,7 +7,7 @@ import codechicken.microblock.MicroMaterialRegistry
 import codechicken.multipart.MultiPartRegistry
 import codechicken.multipart.api.IPartFactory
 import mrtjp.core.gui.GuiHandler
-import mrtjp.projectred.ProjectRedTransportation._
+import mrtjp.projectred.ProjectRedTransportation.*
 import mrtjp.projectred.core.{Configurator, IProxy}
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.util.ResourceLocation
@@ -22,7 +22,7 @@ class TransportationProxy_server extends IProxy with IPartFactory
     val guiIDFirewallPipe = 6
     val guiIDRoutingChips = 7
 
-    override def preinit()
+    override def preinit(): Unit =
     {
         itemPartPipe = new ItemPartPipe
         itemPartPipe.setTranslationKey("projectred.transportation.pipe")
@@ -40,18 +40,18 @@ class TransportationProxy_server extends IProxy with IPartFactory
         MinecraftForge.EVENT_BUS.register(ChipResetRecipe)
     }
 
-    override def init()
+    override def init(): Unit =
     {
     }
 
-    override def postinit()
+    override def postinit(): Unit =
     {
         PacketCustom.assignHandler(TransportationSPH.channel, TransportationSPH)
 
-        for (i <- 0 until Configurator.routerUpdateThreadCount) new TableUpdateThread(i)
+        for i <- 0 until Configurator.routerUpdateThreadCount do new TableUpdateThread(i)
     }
 
-    import mrtjp.projectred.transportation.PipeDefs._
+    import mrtjp.projectred.transportation.PipeDefs.*
     override def createPart(name:ResourceLocation, client:Boolean) = name match
     {
         case BASIC.partname => new BasicPipePart
@@ -70,13 +70,13 @@ class TransportationProxy_server extends IProxy with IPartFactory
 class TransportationProxy_client extends TransportationProxy_server
 {
     @SideOnly(Side.CLIENT)
-    override def preinit()
+    override def preinit(): Unit =
     {
         super.preinit()
 
         ModelRegistryHelper.registerItemRenderer(itemPartPipe, PipeItemRenderer)
 
-        for (i <- RoutingChipDefs.values)
+        for i <- RoutingChipDefs.values do
             i.setCustomModelResourceLocations()
 
         ModelLoader.setCustomModelResourceLocation(itemRouterUtility, 0,
@@ -85,7 +85,7 @@ class TransportationProxy_client extends TransportationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    override def init()
+    override def init(): Unit =
     {
         super.init()
         MicroMaterialRegistry.registerHighlightRenderer(PipeRSHighlightRenderer)
@@ -93,7 +93,7 @@ class TransportationProxy_client extends TransportationProxy_server
     }
 
     @SideOnly(Side.CLIENT)
-    override def postinit()
+    override def postinit(): Unit =
     {
         super.postinit()
         PacketCustom.assignHandler(TransportationCPH.channel, TransportationCPH)

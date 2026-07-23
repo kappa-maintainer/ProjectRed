@@ -12,12 +12,12 @@ import codechicken.lib.model.bakery.{IBakeryProvider, ModelBakery, SimpleBlockRe
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.vec.Rotation
 import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
-import mrtjp.core.block._
+import mrtjp.core.block.*
 import mrtjp.core.gui.NodeContainer
 import mrtjp.core.world.WorldLib
 import mrtjp.projectred.ProjectRedFabrication
 import mrtjp.projectred.api.IScrewdriver
-import mrtjp.projectred.fabrication.ItemICBlueprint._
+import mrtjp.projectred.fabrication.ItemICBlueprint.*
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.BlockStateContainer.Builder
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
@@ -31,7 +31,7 @@ import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.property.IExtendedBlockState
 
-import scala.collection.mutable.{Set => MSet}
+import scala.collection.mutable.{Set as MSet}
 
 class BlockICMachine(bakery:IBakery) extends MultiTileBlock(Material.ROCK) with IBakeryProvider
 {
@@ -60,30 +60,30 @@ abstract class TileICMachine extends MTBlockTile with TTileOrient
 {
     override def getBlock = ProjectRedFabrication.icBlock
 
-    override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack)
+    override def onBlockPlaced(side:Int, player:EntityPlayer, stack:ItemStack): Unit =
     {
         setSide(0)
-        setRotation(if (doesRotate) (Rotation.getSidedRotation(player, side)+2)%4 else 0)
+        setRotation(if doesRotate then (Rotation.getSidedRotation(player, side)+2)%4 else 0)
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(orientation)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         orientation = in.readByte
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setByte("rot", orientation)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         orientation = tag.getByte("rot")
     }
@@ -99,13 +99,13 @@ abstract class TileICMachine extends MTBlockTile with TTileOrient
     override def onBlockActivated(player:EntityPlayer, actside:Int):Boolean =
     {
         val held = player.getHeldItemMainhand
-        if (doesRotate && !held.isEmpty && held.getItem.isInstanceOf[IScrewdriver]
-                && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held))
+        if doesRotate && !held.isEmpty && held.getItem.isInstanceOf[IScrewdriver]
+                && held.getItem.asInstanceOf[IScrewdriver].canUse(player, held) then
         {
-            if (world.isRemote) return true
+            if world.isRemote then return true
             val old = rotation
-            do setRotation((rotation+1)%4) while (old != rotation && !isRotationAllowed(rotation))
-            if (old != rotation) sendOrientUpdate()
+            while { setRotation((rotation+1)%4) ; old != rotation && !isRotationAllowed(rotation)} do ()
+            if old != rotation then sendOrientUpdate()
             world.notifyNeighborsRespectDebug(getPos, getBlock, false)
             onBlockRotated()
             held.getItem.asInstanceOf[IScrewdriver].damageScrewdriver(player, held)
@@ -118,9 +118,9 @@ abstract class TileICMachine extends MTBlockTile with TTileOrient
 
     def isRotationAllowed(rot:Int) = true
 
-    def onBlockRotated(){}
+    def onBlockRotated(): Unit ={}
 
-    def sendOrientUpdate()
+    def sendOrientUpdate(): Unit =
     {
         writeStream(1).writeByte(orientation).sendToChunk(this)
     }
@@ -133,7 +133,7 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
     var hasBP = false
     var watchers = MSet[EntityPlayer]()
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         val ictag = new NBTTagCompound
@@ -142,20 +142,20 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
         tag.setBoolean("bp", hasBP)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         editor.load(tag.getCompoundTag("ictag"))
         hasBP = tag.getBoolean("bp")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeBoolean(hasBP)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         hasBP = in.readBoolean()
@@ -170,46 +170,46 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
         case 3 => readTileStream(in)
         case 4 => readICStream(in)
         case 5 =>
-            if (!hasBP) new ICTileMapEditor(null).readDesc(in)
+            if !hasBP then new ICTileMapEditor(null).readDesc(in)
             else {
                 editor.readDesc(in)
                 sendICDesc()
             }
         case 6 =>
             val name = in.readString()
-            if (hasBP) {
+            if hasBP then {
                 editor.tileMapContainer.name = name
                 sendICDesc()
             }
         case _ => super.read(in, key)
     }
 
-    private def sendHasBPUpdate()
+    private def sendHasBPUpdate(): Unit =
     {
         writeStream(1).writeBoolean(hasBP).sendToChunk(this)
     }
 
-    private def sendICDesc(){ sendICDesc(watchers.toSeq:_*) }
+    private def sendICDesc(): Unit ={ sendICDesc(watchers.toSeq*) }
 
-    private def sendICDesc(players:EntityPlayer*)
+    private def sendICDesc(players:EntityPlayer*): Unit =
     {
-        if (players.nonEmpty)
+        if players.nonEmpty then
         {
             val out = writeStream(2)
             editor.writeDesc(out)
-            for (p <- players)
+            for p <- players do
                 out.sendToPlayer(p)
         }
     }
 
-    def sendNewICToServer(ic:ICTileMapEditor)
+    def sendNewICToServer(ic:ICTileMapEditor): Unit =
     {
         val stream = writeStream(5)
         ic.writeDesc(stream)
         stream.sendToServer()
     }
 
-    def sendICNameToServer()
+    def sendICNameToServer(): Unit =
     {
         writeStream(6).writeString(editor.tileMapContainer.name).sendToServer()
     }
@@ -217,28 +217,28 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
     override def getIC = editor
     override def getEditorWorld = world
     override def isRemote = world.isRemote
-    override def markSave(){markDirty()}
+    override def markSave(): Unit ={markDirty()}
 
     override def createTileStream() = writeStream(3)
     override def createEditorStream() = writeStream(4)
-    override def sendTileStream(out:PacketCustom)
+    override def sendTileStream(out:PacketCustom): Unit =
     {
         watchers.foreach(out.sendToPlayer)
     }
-    override def sendEditorStream(out:PacketCustom)
+    override def sendEditorStream(out:PacketCustom): Unit =
     {
-        if (world.isRemote) out.sendToServer()
+        if world.isRemote then out.sendToServer()
         else watchers.foreach(out.sendToPlayer)
     }
 
-    override def updateServer()
+    override def updateServer(): Unit =
     {
         super.updateServer()
         flushICStream()
         flushTileStream()
         editor.tick()
     }
-    override def updateClient()
+    override def updateClient(): Unit =
     {
         super.updateClient()
         flushICStream() //ic stream is bi-directional
@@ -246,12 +246,12 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
 
     override def onBlockActivated(player:EntityPlayer, side:Int):Boolean =
     {
-        if (super.onBlockActivated(player, side)) return true
-        if (!world.isRemote) {
-            import ItemICBlueprint._
+        if super.onBlockActivated(player, side) then return true
+        if !world.isRemote then {
+            import ItemICBlueprint.*
             val held = player.getHeldItemMainhand
-            if (!hasBP && !held.isEmpty && held.getItem.isInstanceOf[ItemICBlueprint]) {
-                if (hasICInside(held)) {
+            if !hasBP && !held.isEmpty && held.getItem.isInstanceOf[ItemICBlueprint] then {
+                if hasICInside(held) then {
                     editor.clear()
                     loadTileMap(editor.tileMapContainer, held)
                     sendICDesc()
@@ -260,9 +260,9 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
                 hasBP = true
                 sendHasBPUpdate()
             }
-            else if (hasBP && player.isSneaking) {
+            else if hasBP && player.isSneaking then {
                 val stack = new ItemStack(ProjectRedFabrication.itemICBlueprint)
-                if (editor.nonEmpty) {
+                if editor.nonEmpty then {
                     saveTileMap(editor.tileMapContainer, stack)
                     saveFlags(stack, editor.simEngineContainer.logger)
                     editor.clear()
@@ -291,12 +291,12 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
         true
     }
 
-    override def onBlockRemoval()
+    override def onBlockRemoval(): Unit =
     {
         super.onBlockRemoval()
-        if (hasBP) {
+        if hasBP then {
             val stack = new ItemStack(ProjectRedFabrication.itemICBlueprint)
-            if (editor.nonEmpty) {
+            if editor.nonEmpty then {
                 saveTileMap(editor.tileMapContainer, stack)
                 saveFlags(stack, editor.simEngineContainer.logger)
             }
@@ -306,12 +306,12 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
 
     override def doesRotate = false
 
-    def playerStartWatch(p:EntityPlayer)
+    def playerStartWatch(p:EntityPlayer): Unit =
     {
         watchers += p
     }
 
-    def playerStopWatch(p:EntityPlayer)
+    def playerStopWatch(p:EntityPlayer): Unit =
     {
         watchers -= p
     }
@@ -319,21 +319,21 @@ class TileICWorkbench extends TileICMachine with TICTileEditorNetwork
 
 object RenderICWorkbench extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool}
+    import java.lang.{Boolean as JBool}
 
-    import BlockICMachine._
+    import BlockICMachine.*
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var side2:TextureAtlasSprite = _
-    var sidebp1:TextureAtlasSprite = _
-    var sidebp2:TextureAtlasSprite = _
-    var top:TextureAtlasSprite = _
-    var topBP:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2:TextureAtlasSprite = scala.compiletime.uninitialized
+    var sidebp1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var sidebp2:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top:TextureAtlasSprite = scala.compiletime.uninitialized
+    var topBP:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT:UVTransformation = _
-    var iconTBP:UVTransformation = _
+    var iconT:UVTransformation = scala.compiletime.uninitialized
+    var iconTBP:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state:IExtendedBlockState, world: IBlockAccess, pos:BlockPos):IExtendedBlockState = world.getTileEntity(pos) match {
         case t:TileICWorkbench =>
@@ -345,14 +345,14 @@ object RenderICWorkbench extends SimpleBlockRenderer
     override def getWorldTransforms(state:IExtendedBlockState) =
     {
         val hasBP = state.getValue(UNLISTED_HAS_BP_PROPERTY)
-        Triple.of(0, 0, if (hasBP) iconTBP else iconT)
+        Triple.of(0, 0, if hasBP then iconTBP else iconT)
     }
 
     override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconT)
 
     override def shouldCull() = true
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         def register(s:String) = reg.registerSprite(new ResourceLocation("projectred:blocks/fabrication/icworkbench/"+s))
 

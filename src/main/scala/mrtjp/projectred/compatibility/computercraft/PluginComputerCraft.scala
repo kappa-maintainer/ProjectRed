@@ -1,8 +1,8 @@
 package mrtjp.projectred.compatibility.computercraft
 
 import dan200.computercraft.api.redstone.IBundledRedstoneProvider
-import dan200.computercraft.api.{ComputerCraftAPI => CCAPI}
-import mrtjp.projectred.api.{IBundledTileInteraction, ProjectRedAPI => PRAPI}
+import dan200.computercraft.api.{ComputerCraftAPI as CCAPI}
+import mrtjp.projectred.api.{IBundledTileInteraction, ProjectRedAPI as PRAPI}
 import mrtjp.projectred.compatibility.IPRPlugin
 import mrtjp.projectred.core.Configurator
 import mrtjp.projectred.transmission.BundledCommons

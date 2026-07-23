@@ -29,29 +29,29 @@ abstract class RedstoneGateICTile extends GateICTile with IRedwireICGate
     private var gateState:Byte = 0
 
     def state = gateState&0xFF
-    def setState(s:Int){ gateState = s.toByte }
+    def setState(s:Int): Unit ={ gateState = s.toByte }
 
     def getLogicRS = getLogic[RedstoneGateTileLogic[RedstoneGateICTile]]
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         super.save(tag)
         tag.setByte("state", gateState)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         super.load(tag)
         gateState = tag.getByte("state")
     }
 
-    override def writeDesc(out:MCDataOutput)
+    override def writeDesc(out:MCDataOutput): Unit =
     {
         super.writeDesc(out)
         out.writeByte(gateState)
     }
 
-    override def readDesc(in:MCDataInput)
+    override def readDesc(in:MCDataInput): Unit =
     {
         super.readDesc(in)
         gateState = in.readByte()
@@ -63,7 +63,7 @@ abstract class RedstoneGateICTile extends GateICTile with IRedwireICGate
         case _ => super.read(in, key)
     }
 
-    def sendStateUpdate()
+    def sendStateUpdate(): Unit =
     {
         writeStreamOf(5).writeByte(gateState)
     }

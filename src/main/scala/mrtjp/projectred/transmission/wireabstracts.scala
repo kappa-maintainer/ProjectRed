@@ -7,11 +7,11 @@ import codechicken.lib.texture.TextureUtils
 import codechicken.lib.vec.{Cuboid6, Rotation, Vector3}
 import codechicken.microblock.handler.MicroblockProxy
 import codechicken.microblock.{ISidedHollowConnect, ItemMicroPart, MicroMaterialRegistry}
-import codechicken.multipart._
+import codechicken.multipart.*
 import mrtjp.projectred.ProjectRedCore
 import mrtjp.projectred.api.IConnectable
-import mrtjp.projectred.core._
-import IWirePart._
+import mrtjp.projectred.core.*
+import IWirePart.*
 import mrtjp.projectred.transmission.WireDef.WireDef
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.entity.player.EntityPlayer
@@ -20,18 +20,18 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{BlockRenderLayer, EnumFacing, EnumHand, SoundCategory}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagationCommons with TSwitchPacket with TNormalOcclusionPart with TFastRenderPart
 {
-    def preparePlacement(side:Int, meta:Int){}
+    def preparePlacement(side:Int, meta:Int): Unit ={}
 
-    override def onPartChanged(part:TMultiPart)
+    override def onPartChanged(part:TMultiPart): Unit =
     {
-        if (!world.isRemote) {
+        if !world.isRemote then {
             WirePropagator.logCalculation()
 
-            if (updateOutward()) {
+            if updateOutward() then {
                 onMaskChanged()
                 WirePropagator.propagateTo(this, FORCE)
             }
@@ -39,12 +39,12 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
         }
     }
 
-    override def onNeighborChanged()
+    override def onNeighborChanged(): Unit =
     {
-        if (!world.isRemote) {
-            if (dropIfCantStay()) return
+        if !world.isRemote then {
+            if dropIfCantStay() then return
             WirePropagator.logCalculation()
-            if (updateExternalConns()) {
+            if updateExternalConns() then {
                 onMaskChanged()
                 WirePropagator.propagateTo(this, FORCE)
             }
@@ -52,24 +52,24 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
         }
     }
 
-    override def onAdded()
+    override def onAdded(): Unit =
     {
         super.onAdded()
-        if (!world.isRemote) {
-            if (updateInward()) onMaskChanged()
+        if !world.isRemote then {
+            if updateInward() then onMaskChanged()
             WirePropagator.propagateTo(this, RISING)
         }
     }
 
-    override def onRemoved()
+    override def onRemoved(): Unit =
     {
         super.onRemoved()
-        if (!world.isRemote) notifyAllExternals()
+        if !world.isRemote then notifyAllExternals()
     }
 
-    def sendConnUpdate()
+    def sendConnUpdate(): Unit 
 
-    override def onMaskChanged()
+    override def onMaskChanged(): Unit =
     {
         sendConnUpdate()
     }
@@ -78,14 +78,14 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
 
     def dropIfCantStay() =
     {
-        if (!canStay) {
+        if !canStay then {
             drop()
             true
         }
         else false
     }
 
-    def drop()
+    def drop(): Unit =
     {
         TileMultipart.dropItem(getItem, world, Vector3.fromTileCenter(tile))
         tile.remPart(this)
@@ -101,7 +101,7 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
 
     override def pickItem(hit:CuboidRayTraceResult) = getItem
 
-    override def onSignalUpdate()
+    override def onSignalUpdate(): Unit =
     {
         tile.markDirty()
     }
@@ -115,7 +115,7 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, held:ItemStack, hand:EnumHand) =
     {
         //if (CommandDebug.WIRE_READING) debug(player) else
-        if (!held.isEmpty && held.getItem == ProjectRedCore.itemMultimeter) {
+        if !held.isEmpty && held.getItem == ProjectRedCore.itemMultimeter then {
             held.damageItem(1, player)
             player.swingArm(hand)
             test(player)
@@ -131,7 +131,7 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
     @SideOnly(Side.CLIENT)
     override def renderStatic(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState) =
     {
-        if (layer == getRenderLayer && useStaticRenderer) {
+        if layer == getRenderLayer && useStaticRenderer then {
             ccrs.setBrightness(world, this.pos)
             doStaticTessellation(pos, layer, ccrs)
             true
@@ -140,7 +140,7 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
     }
 
     @SideOnly(Side.CLIENT)
-    override def renderFast(ccrs:CCRenderState, pos:Vector3, pass:Int, frame:Float)
+    override def renderFast(ccrs:CCRenderState, pos:Vector3, pass:Int, frame:Float): Unit =
     {
         doFastTessellation(pos, frame, pass, ccrs)
     }
@@ -148,7 +148,7 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
     override def canRenderFast(pass: Int) = pass == 0 && !useStaticRenderer
 
     @SideOnly(Side.CLIENT)
-    override def renderBreaking(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState)
+    override def renderBreaking(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState): Unit =
     {
         ccrs.reset()
         doBreakTessellation(pos, texture, ccrs)
@@ -158,41 +158,41 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
     def getRenderLayer = BlockRenderLayer.SOLID
 
     @SideOnly(Side.CLIENT)
-    def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState)
+    def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState): Unit 
     @SideOnly(Side.CLIENT)
-    def doFastTessellation(pos:Vector3, frame:Float, pass:Int, ccrs:CCRenderState)
+    def doFastTessellation(pos:Vector3, frame:Float, pass:Int, ccrs:CCRenderState): Unit 
     @SideOnly(Side.CLIENT)
-    def doBreakTessellation(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState)
+    def doBreakTessellation(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState): Unit 
 
     def useStaticRenderer = Configurator.staticWires
 }
 
 abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectable with TFacePropagation
 {
-    override def preparePlacement(side:Int, meta:Int)
+    override def preparePlacement(side:Int, meta:Int): Unit =
     {
         setSide(side^1)
     }
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("connMap", connMap)
         tag.setByte("side", side.toByte)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         connMap = tag.getInteger("connMap")
         setSide(tag.getByte("side"))
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeInt(connMap)
         packet.writeByte(orientation)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         connMap = packet.readInt()
         orientation = packet.readByte()
@@ -202,11 +202,11 @@ abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectab
     {
         case 1 =>
             connMap = packet.readInt()
-            if (useStaticRenderer) tile.markRender()
+            if useStaticRenderer then tile.markRender()
         case _ => super.read(packet, key)
     }
 
-    override def sendConnUpdate()
+    override def sendConnUpdate(): Unit =
     {
         getWriteStreamOf(1).writeInt(connMap)
     }
@@ -221,13 +221,13 @@ abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectab
     override def setRenderFlag(part:IConnectable) = part match
     {
         case w:WirePart =>
-            if (w.getThickness == getThickness) side < w.side else w.getThickness > getThickness
+            if w.getThickness == getThickness then side < w.side else w.getThickness > getThickness
         case _ => true
     }
 
     override def discoverOpen(r:Int) =
     {
-        if (tile.partMap(PartMap.edgeBetween(side, absoluteDir(r))) != null) false
+        if tile.partMap(PartMap.edgeBetween(side, absoluteDir(r))) != null then false
         else getInternal(r) match {
             case w:WirePart => canConnectPart(w, r)
             case t:TMultiPart => false
@@ -248,17 +248,17 @@ abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectab
     override def solid(side:Int) = false
 
     @SideOnly(Side.CLIENT)
-    override def doBreakTessellation(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState)
+    override def doBreakTessellation(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState): Unit =
     {
         RenderWire.renderBreakingOverlay(texture, this, ccrs)
     }
     @SideOnly(Side.CLIENT)
-    override def doFastTessellation(pos:Vector3, frame:Float, pass:Int, ccrs:CCRenderState)
+    override def doFastTessellation(pos:Vector3, frame:Float, pass:Int, ccrs:CCRenderState): Unit =
     {
         RenderWire.render(this, pos, ccrs)
     }
     @SideOnly(Side.CLIENT)
-    override def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState)
+    override def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState): Unit =
     {
         RenderWire.render(this, pos, ccrs)
     }
@@ -269,33 +269,33 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
     var hasMaterial = false
     var material = 0
 
-    override def save(tag:NBTTagCompound)
+    override def save(tag:NBTTagCompound): Unit =
     {
         tag.setInteger("connMap", connMap)
         tag.setString("mat", MicroMaterialRegistry.materialName(material))
         tag.setBoolean("hasmat", hasMaterial)
     }
 
-    override def load(tag:NBTTagCompound)
+    override def load(tag:NBTTagCompound): Unit =
     {
         connMap = tag.getInteger("connMap")
         hasMaterial = tag.getBoolean("hasmat")
         material = MicroMaterialRegistry.materialID(tag.getString("mat"))
     }
 
-    override def writeDesc(packet:MCDataOutput)
+    override def writeDesc(packet:MCDataOutput): Unit =
     {
         packet.writeByte(clientConnMap)
         packet.writeBoolean(hasMaterial)
-        if (hasMaterial)
+        if hasMaterial then
             MicroMaterialRegistry.writeMaterialID(packet, material)
     }
 
-    override def readDesc(packet:MCDataInput)
+    override def readDesc(packet:MCDataInput): Unit =
     {
         connMap = packet.readUByte()
         hasMaterial = packet.readBoolean()
-        if (hasMaterial)
+        if hasMaterial then
             material = MicroMaterialRegistry.readMaterialID(packet)
     }
 
@@ -303,28 +303,28 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
     {
         case 1 =>
             connMap = packet.readUByte()
-            if (useStaticRenderer) tile.markRender()
+            if useStaticRenderer then tile.markRender()
         case 2 =>
             hasMaterial = true
             material = MicroMaterialRegistry.readMaterialID(packet)
-            if (useStaticRenderer) tile.markRender()
+            if useStaticRenderer then tile.markRender()
         case 3 =>
             hasMaterial = false
             material = 0
-            if (useStaticRenderer) tile.markRender()
+            if useStaticRenderer then tile.markRender()
         case _ =>
     }
 
     def clientConnMap = connMap&0x3F|connMap>>6&0x3F
 
-    override def sendConnUpdate()
+    override def sendConnUpdate(): Unit =
     {
         getWriteStreamOf(1).writeByte(clientConnMap)
     }
 
-    def sendMatUpdate()
+    def sendMatUpdate(): Unit =
     {
-        if (hasMaterial) MicroMaterialRegistry.writeMaterialID(getWriteStreamOf(2), material)
+        if hasMaterial then MicroMaterialRegistry.writeMaterialID(getWriteStreamOf(2), material)
         else getWriteStreamOf(3)
     }
 
@@ -345,7 +345,7 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) =
     {
-        if (hasMaterial) Math.min(1.25f/30f, MicroMaterialRegistry.getMaterial(material).getStrength(player))
+        if hasMaterial then Math.min(1.25f/30f, MicroMaterialRegistry.getMaterial(material).getStrength(player))
         else 1.25f/30f
     }
 
@@ -353,7 +353,7 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
 
     override def getDrops =
     {
-        if (hasMaterial) (super.getDrops.asScala ++ Iterable.single(ItemMicroPart.create(1, material))).asJava
+        if hasMaterial then (super.getDrops.asScala ++ Iterable.single(ItemMicroPart.create(1, material))).asJava
         else super.getDrops
     }
 
@@ -361,16 +361,16 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
 
     override def getOcclusionBoxes =
     {
-        import mrtjp.projectred.transmission.WireBoxes._
-        if (expandBounds >= 0) Seq(fOBounds(expandBounds)).asJava
+        import mrtjp.projectred.transmission.WireBoxes.*
+        if expandBounds >= 0 then Seq(fOBounds(expandBounds)).asJava
         else Seq(fOBounds(6)).asJava
     }
 
     override def getCollisionBoxes =
     {
-        import mrtjp.projectred.transmission.WireBoxes._
+        import mrtjp.projectred.transmission.WireBoxes.*
         var b = Seq.newBuilder[Cuboid6].+=(fOBounds(6))
-        for (s <- 0 until 6) if (maskConnects(s)) b += fOBounds(s)
+        for s <- 0 until 6 do if maskConnects(s) then b += fOBounds(s)
         b.result().asJava
     }
 
@@ -378,16 +378,16 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, held:ItemStack, hand:EnumHand):Boolean =
     {
-        def dropMaterial()
+        def dropMaterial(): Unit =
         {
-            if (hasMaterial && !player.capabilities.isCreativeMode)
+            if hasMaterial && !player.capabilities.isCreativeMode then
                 PRLib.dropTowardsPlayer(world, pos, ItemMicroPart.create(1, material), player)
         }
 
-        if (super.activate(player, hit, held, hand)) return true
+        if super.activate(player, hit, held, hand) then return true
 
-        if (held.isEmpty && player.isSneaking && hasMaterial) {
-            if (!world.isRemote) {
+        if held.isEmpty && player.isSneaking && hasMaterial then {
+            if !world.isRemote then {
                 dropMaterial()
                 hasMaterial = false
                 material = 0
@@ -396,12 +396,12 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
             return true
         }
 
-        if (!held.isEmpty && held.getItem == MicroblockProxy.itemMicro && held.getItemDamage == 1) {
+        if !held.isEmpty && held.getItem == MicroblockProxy.itemMicro && held.getItemDamage == 1 then {
             val newmatid = ItemMicroPart.getMaterialID(held)
-            if (!hasMaterial || newmatid != material) {
-                if(!world.isRemote) {
+            if !hasMaterial || newmatid != material then {
+                if !world.isRemote then {
                     val newmat = MicroMaterialRegistry.getMaterial(newmatid)
-                    if (newmat == null || newmat.isTransparent) return false
+                    if newmat == null || newmat.isTransparent then return false
                     else {
                         dropMaterial()
                         hasMaterial = true
@@ -410,7 +410,7 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
                             SoundCategory.BLOCKS, newmat.getSound.getVolume+1.0F/2.0F,
                             newmat.getSound.getPitch*0.8F)
                         sendMatUpdate()
-                        if (!player.capabilities.isCreativeMode) held.shrink(1)
+                        if !player.capabilities.isCreativeMode then held.shrink(1)
                     }
                 }
                 return true
@@ -424,17 +424,17 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
     override def getRenderLayer = BlockRenderLayer.CUTOUT
 
     @SideOnly(Side.CLIENT)
-    override def doBreakTessellation(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState)
+    override def doBreakTessellation(pos:Vector3, texture:TextureAtlasSprite, ccrs:CCRenderState): Unit =
     {
         RenderFramedWire.renderBreakingOverlay(texture, this, ccrs)
     }
     @SideOnly(Side.CLIENT)
-    override def doFastTessellation(pos:Vector3, frame:Float, pass:Int, ccrs:CCRenderState)
+    override def doFastTessellation(pos:Vector3, frame:Float, pass:Int, ccrs:CCRenderState): Unit =
     {
         RenderFramedWire.render(this, pos, ccrs)
     }
     @SideOnly(Side.CLIENT)
-    override def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState)
+    override def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState): Unit =
     {
         RenderFramedWire.render(this, pos, ccrs)
     }
@@ -445,10 +445,10 @@ object WireBoxes
     var sBounds = Array.ofDim[Cuboid6](3, 6)
     var oBounds = Array.ofDim[Cuboid6](3, 6)
 
-    for (t <- 0 until 3) {
+    for t <- 0 until 3 do {
         val selection = new Cuboid6(0, 0, 0, 1, (t+2)/16D, 1).expand(-0.005)
         val occlusion = new Cuboid6(2/8D, 0, 2/8D, 6/8D, (t+2)/16D, 6/8D)
-        for (s <- 0 until 6) {
+        for s <- 0 until 6 do {
             sBounds(t)(s) = selection.copy.apply(Rotation.sideRotations(s).at(Vector3.center))
             oBounds(t)(s) = occlusion.copy.apply(Rotation.sideRotations(s).at(Vector3.center))
         }
@@ -458,7 +458,7 @@ object WireBoxes
         val boxes = new Array[Cuboid6](7)
         val w = 2/8D
         boxes(6) = new Cuboid6(0.5-w, 0.5-w, 0.5-w, 0.5+w, 0.5+w, 0.5+w)
-        for (s <- 0 until 6)
+        for s <- 0 until 6 do
             boxes(s) = new Cuboid6(0.5-w, 0, 0.5-w, 0.5+w, 0.5-w, 0.5+w).apply(Rotation.sideRotations(s).at(Vector3.center))
         boxes
     }

@@ -4,11 +4,11 @@ import java.util
 
 import codechicken.lib.lighting.LightModel
 import codechicken.lib.math.MathHelper
-import codechicken.lib.render._
+import codechicken.lib.render.*
 import codechicken.lib.render.pipeline.{ColourMultiplier, IVertexOperation}
 import codechicken.lib.texture.TextureUtils.IIconRegister
-import codechicken.lib.vec._
-import codechicken.lib.vec.uv._
+import codechicken.lib.vec.*
+import codechicken.lib.vec.uv.*
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
@@ -55,31 +55,31 @@ object RenderWire extends IIconRegister
     def getOrGenerateModel(key:Int) =
     {
         var m = wireModels(key)
-        if (m == null) wireModels(key) =
+        if m == null then wireModels(key) =
             {m = WireModelGen.instance.generateModel(key, false); m}
         m
     }
     def getOrGenerateInvModel(thickness:Int) =
     {
         var m = invModels(thickness)
-        if (m == null) invModels(thickness) =
+        if m == null then invModels(thickness) =
             {m = WireModelGen.instance.generateInvModel(thickness); m}
         m
     }
 
-    def render(w:WirePart, pos:Vector3, ccrs:CCRenderState)
+    def render(w:WirePart, pos:Vector3, ccrs:CCRenderState): Unit =
     {
         getOrGenerateModel(modelKey(w)).render(ccrs,
             pos.translation(), new IconTransformation(w.getIcon),
             ColourMultiplier.instance(w.renderHue))
     }
 
-    def renderInv(thickness:Int, hue:Int, ccrs:CCRenderState, ops:IVertexOperation*)
+    def renderInv(thickness:Int, hue:Int, ccrs:CCRenderState, ops:IVertexOperation*): Unit =
     {
-        getOrGenerateInvModel(thickness).render(ccrs, ops :+ ColourMultiplier.instance(hue):_*)
+        getOrGenerateInvModel(thickness).render(ccrs, ops :+ ColourMultiplier.instance(hue)*)
     }
 
-    def renderBreakingOverlay(icon:TextureAtlasSprite, wire:WirePart, ccrs:CCRenderState)
+    def renderBreakingOverlay(icon:TextureAtlasSprite, wire:WirePart, ccrs:CCRenderState): Unit =
     {
         val key = modelKey(wire)
         val side = (key>>8)%6
@@ -92,23 +92,23 @@ object RenderWire extends IIconRegister
         val boxes = Vector.newBuilder[Cuboid6]
         boxes += new Cuboid6(0.5-w, 0, 0.5-w, 0.5+w, h, 0.5+w).apply(Rotation.sideRotations(side).at(Vector3.center)) //center
 
-        for (r <- 0 until 4)
+        for r <- 0 until 4 do
         {
             val length =
-                if (connCount == 0)
+                if connCount == 0 then
                 {
-                    if (r%2 == 1) 4
+                    if r%2 == 1 then 4
                     else 0
                 }
-                else if (connCount == 1)
+                else if connCount == 1 then
                 {
-                    if (connMask == (1<<(r+2)%4)) 4 //this side is opposite the one with a connection
-                    else if (connMask == (1<<r)) 8
+                    if connMask == (1<<(r+2)%4) then 4 //this side is opposite the one with a connection
+                    else if connMask == (1<<r) then 8
                     else 0
                 }
-                else if ((connMask&1<<r) != 0) 8 else 0
+                else if (connMask&1<<r) != 0 then 8 else 0
 
-            if (length > 0)
+            if length > 0 then
             {
                 val l = length/16D
                 boxes += new Cuboid6(0.5-w, 0, 0.5+w, 0.5+w, h, 0.5+l).apply(Rotation.sideOrientation(side, r).at(Vector3.center))
@@ -116,13 +116,13 @@ object RenderWire extends IIconRegister
         }
 
         ccrs.setPipeline(new Translation(wire.pos), new IconTransformation(icon))
-        for (box <- boxes.result()) BlockRenderer.renderCuboid(ccrs, box, 0)
+        for box <- boxes.result() do BlockRenderer.renderCuboid(ccrs, box, 0)
     }
 
     @SideOnly(Side.CLIENT)
-    override def registerIcons(map:TextureMap)
+    override def registerIcons(map:TextureMap): Unit =
     {
-        for (w <- WireDef.values) w.loadTextures(map)
+        for w <- WireDef.values do w.loadTextures(map)
     }
 }
 
@@ -130,7 +130,7 @@ class UVT(t:Transformation) extends UVTransformation
 {
     private val vec = new Vector3
 
-    def transform(uv:UV)
+    def transform(uv:UV): Unit =
     {
         vec.set(uv.u, 0, uv.v).apply(t)
         uv.set(vec.x, vec.z)
@@ -165,7 +165,7 @@ object WireModelGen
     def countConnections(mask:Int) =
     {
         var n = 0
-        for (r <- 0 until 4) if ((mask&1<<r) != 0) n+=1
+        for r <- 0 until 4 do if (mask&1<<r) != 0 then n+=1
         n
     }
 }
@@ -186,10 +186,10 @@ class WireModelGen
 
     private def numFaces:Int =
     {
-        if (inv) return 22
-        val conns = if (connCount < 2) 2 else connCount
+        if inv then return 22
+        val conns = if connCount < 2 then 2 else connCount
         var faces = conns*3+5
-        for (i <- 0 until 4) if ((mask>>i&0x11) == 1) faces += 1
+        for i <- 0 until 4 do if (mask>>i&0x11) == 1 then faces += 1
         faces
     }
 
@@ -210,19 +210,19 @@ class WireModelGen
         i = 0
 
         generateCenter()
-        for (r <- 0 until 4) generateSide(r)
+        for r <- 0 until 4 do generateSide(r)
         model.apply(Rotation.sideOrientation(side, 0).at(Vector3.center))
 
         finishModel()
         model
     }
 
-    private def generateCenter()
+    private def generateCenter(): Unit =
     {
         var tex = connCount match//0 = straight n/s, 1 = straight e/w, 2 = circle
         {
             case 0 => 1
-            case 1 => if ((connMask&5) != 0) 0 else 1 //if there is one connection, and it is north/south then north/south, otherwise east/west
+            case 1 => if (connMask&5) != 0 then 0 else 1 //if there is one connection, and it is north/south then north/south, otherwise east/west
             case _ if connMask == 5 => 0
             case _ if connMask == 10 => 1
             case _ => 2
@@ -234,37 +234,37 @@ class WireModelGen
             new Vertex5(0.5-w, h, 0.5-w, 8-tw, 16-tw)
         )
 
-        if (tex == 0 || tex == 1) tex = (tex+WireModelGen.reorientSide(side))%2
+        if tex == 0 || tex == 1 then tex = (tex+WireModelGen.reorientSide(side))%2
         var r = WireModelGen.reorientSide(side)
-        if (tex == 1) r += 3
-        if (r != 0)
+        if tex == 1 then r += 3
+        if r != 0 then
         {
             val uvt = new UVT(Rotation.quarterRotations(r%4).at(new Vector3(8, 0, 16)))
-            for (vert <- verts) vert.apply(uvt)
+            for vert <- verts do vert.apply(uvt)
         }
-        if (tex == 2) //circle (translate across to u = 24)
+        if tex == 2 then //circle (translate across to u = 24)
         {
             val uvt = new UVTranslation(16, 0)
-            for (vert <- verts) vert.apply(uvt)
+            for vert <- verts do vert.apply(uvt)
         }
-        if (inv) verts = withBottom(verts, 0, 4)
+        if inv then verts = withBottom(verts, 0, 4)
 
         i = addVerts(model, verts, i)
     }
 
-    private def generateSide(r:Int)
+    private def generateSide(r:Int): Unit =
     {
         val stype = (mask>>r)&0x11
 
-        val verts = if (inv) generateSideInv(r) else connCount match
+        val verts = if inv then generateSideInv(r) else connCount match
         {
-            case 0 => if (r%2 == 1) generateStub(r) else generateFlat(r)
+            case 0 => if r%2 == 1 then generateStub(r) else generateFlat(r)
             case 1 if connMask == (1<<(r+2)%4) => generateStub(r) //this side is opposite the one with a connection
             case _ => generateSideFromType(stype, r)
         }
 
         val t = Rotation.quarterRotations(r).at(Vector3.center)
-        for (vert <- verts) vert.apply(t)
+        for vert <- verts do vert.apply(t)
         i = addVerts(model, verts, i)
     }
 
@@ -307,7 +307,7 @@ class WireModelGen
     private def generateStub(r:Int):Array[Vertex5] =
     {
         val verts = generateExtension(4)
-        for (i <- 0 until 4) verts(i).vec.z -= 0.002 //pull the stub in a little so it doesn't z fight with framed cables
+        for i <- 0 until 4 do verts(i).vec.z -= 0.002 //pull the stub in a little so it doesn't z fight with framed cables
         reflectSide(verts, r)
         verts
     }
@@ -321,10 +321,10 @@ class WireModelGen
             new Vertex5(0.5-w, h, 0.5+w, 16-th, 16+tw)
         )
 
-        if (Rotation.rotateSide(side, r)%2 == 0) //red is on the negative side
+        if Rotation.rotateSide(side, r)%2 == 0 then //red is on the negative side
         {
             val uvt = new UVT(Rotation.quarterRotations(2).at(new Vector3(8, 0, 16)))
-            for (vert <- verts) vert.apply(uvt)
+            for vert <- verts do vert.apply(uvt)
         }
         verts
     }
@@ -341,7 +341,7 @@ class WireModelGen
     {
         var verts = generateExtension(8+th)
         //retexture cap
-        for (i <- 0 until 4) verts(i).apply(new UVTranslation(0, -th))
+        for i <- 0 until 4 do verts(i).apply(new UVTranslation(0, -th))
 
         //add end face extending around block
         verts = util.Arrays.copyOf(verts, 20)
@@ -366,7 +366,7 @@ class WireModelGen
 
         //offset side textures
         reflectSide(verts, r)
-        for (i <- 4 until 16) verts(i).apply(new UVTranslation(16, 0))
+        for i <- 4 until 16 do verts(i).apply(new UVTranslation(16, 0))
 
         verts
     }
@@ -382,16 +382,16 @@ class WireModelGen
         val i_verts = new Array[Vertex5](verts.length+count)
         val r = new Rotation(MathHelper.pi, 0, 0, 1).at(new Vector3(0.5, h/2, 0))
 
-        for (i <- 0 until count) i_verts(i) = verts(i+start).copy.apply(r)
+        for i <- 0 until count do i_verts(i) = verts(i+start).copy.apply(r)
         System.arraycopy(verts, 0, i_verts, count, verts.length)
 
         i_verts
     }
 
     private val sideReflect = new UVT(Rotation.quarterRotations(2).at(new Vector3(8, 0, 16)))
-    private def reflectSide(verts:Array[Vertex5], r:Int)
+    private def reflectSide(verts:Array[Vertex5], r:Int): Unit =
     {
-        if ((r+WireModelGen.reorientSide(side))%4 >= 2) for (vert <- verts) vert.apply(sideReflect)
+        if (r+WireModelGen.reorientSide(side))%4 >= 2 then for vert <- verts do vert.apply(sideReflect)
     }
 
     /**
@@ -399,11 +399,11 @@ class WireModelGen
      */
     private def addVerts(m:CCModel, verts:Array[Vertex5], k:Int) =
     {
-        for (i <- 0 until verts.length) m.verts(k+i) = verts(i)
+        for i <- 0 until verts.length do m.verts(k+i) = verts(i)
         k+verts.length
     }
 
-    private def finishModel()
+    private def finishModel(): Unit =
     {
         model.apply(new UVScale(1/32D))
         model.shrinkUVs(0.0005)

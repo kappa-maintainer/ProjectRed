@@ -1,12 +1,12 @@
 package mrtjp.projectred.transportation
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.vec.Vector3
 import codechicken.multipart.{MultiPartRegistry, TItemMultiPart}
 import com.mojang.realmsclient.gui.ChatFormatting
 import mrtjp.core.item.{ItemCore, ItemDefinition}
-import mrtjp.projectred.ProjectRedCore._
+import mrtjp.projectred.ProjectRedCore.*
 import mrtjp.projectred.ProjectRedTransportation
 import mrtjp.projectred.transportation.ChipType.ChipType
 import net.minecraft.block.SoundType
@@ -18,7 +18,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{Item, ItemStack}
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
@@ -37,15 +37,15 @@ class ItemPartPipe extends ItemCore with TItemMultiPart
     override def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3) =
     {
         val pdef = PipeDefs.fromMeta(item.getItemDamage)
-        val p = MultiPartRegistry.loadPart(pdef.partname, null:NBTTagCompound).asInstanceOf[PayloadPipePart[_]]
-        if (p != null) p.preparePlacement(side, item.getItemDamage)
+        val p = MultiPartRegistry.loadPart(pdef.partname, null:NBTTagCompound).asInstanceOf[PayloadPipePart[?]]
+        if p != null then p.preparePlacement(side, item.getItemDamage)
         p
     }
 
-    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab))
-            for (t <- PipeDefs.values) list.add(t.makeStack)
+        if isInCreativeTab(tab) then
+            for t <- PipeDefs.values do list.add(t.makeStack)
     }
 
     override def getPlacementSound(item:ItemStack) = SoundType.GLASS
@@ -70,17 +70,17 @@ object PipeDefs extends ItemDefinition
 
     /** Pressure Tubes 64+ **/
 
-    val PRESSURETUBE = new PipeVal(64, new ResourceLocation("projectred-transporation:pressure_tube"), Seq("pressuretube")++(0 to 15 map{"colour/colour_"+_}):_*)
+    val PRESSURETUBE = new PipeVal(64, new ResourceLocation("projectred-transporation:pressure_tube"), Seq("pressuretube")++(0 to 15 map{"colour/colour_"+_})*)
     val RESISTANCETUBE = new PipeVal(65, new ResourceLocation("projectred-transporation:resustance_tube"), "resistancetube")
 
     class PipeVal(override val meta:Int, val partname:ResourceLocation, val textures:String*) extends ItemDef(partname.toString)
     {
-        var sprites:Array[TextureAtlasSprite] = _
+        var sprites:Array[TextureAtlasSprite] = scala.compiletime.uninitialized
 
-        def registerIcon(map:TextureMap)
+        def registerIcon(map:TextureMap): Unit =
         {
             sprites = new Array[TextureAtlasSprite](textures.length)
-            if (textures.nonEmpty) for (i <- 0 until textures.length)
+            if textures.nonEmpty then for i <- 0 until textures.length do
                 sprites(i) = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/pipes/"+textures(i)))
         }
     }
@@ -91,17 +91,17 @@ class ItemRoutingChip extends ItemCore
     setHasSubtypes(true)
     setCreativeTab(ProjectRedTransportation.tabTransportation)
 
-    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab))
-            for (c <- RoutingChipDefs.values) list.add(c.makeStack)
+        if isInCreativeTab(tab) then
+            for c <- RoutingChipDefs.values do list.add(c.makeStack)
     }
 
-    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag): Unit =
     {
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) if (ItemRoutingChip.hasChipInside(stack))
+        if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then if ItemRoutingChip.hasChipInside(stack) then
         {
-            import scala.jdk.CollectionConverters._
+            import scala.jdk.CollectionConverters.*
             val r = ItemRoutingChip.loadChipFromItemStack(stack)
             val s = new ListBuffer[String]
             r.infoCollection(s)
@@ -113,7 +113,7 @@ class ItemRoutingChip extends ItemCore
     override def onItemRightClick(world:World, player:EntityPlayer, hand:EnumHand) =
     {
         val stack = player.getHeldItem(hand)
-        if (!world.isRemote && ItemRoutingChip.isValidChip(stack))
+        if !world.isRemote && ItemRoutingChip.isValidChip(stack) then
         {
             val r = ItemRoutingChip.loadChipFromItemStack(stack)
             r.openGui(player)
@@ -125,7 +125,7 @@ class ItemRoutingChip extends ItemCore
     override def onItemUse(player:EntityPlayer, world:World, pos:BlockPos, hand:EnumHand, facing:EnumFacing, hitX:Float, hitY:Float, hitZ:Float) =
     {
         val stack = player.getHeldItem(hand)
-        if (!world.isRemote && ItemRoutingChip.isValidChip(stack))
+        if !world.isRemote && ItemRoutingChip.isValidChip(stack) then
         {
             val r = ItemRoutingChip.loadChipFromItemStack(stack)
             r.openGui(player)
@@ -138,9 +138,9 @@ class ItemRoutingChip extends ItemCore
 
 object ItemRoutingChip
 {
-    def assertStackTag(stack:ItemStack)
+    def assertStackTag(stack:ItemStack): Unit =
     {
-        if (!stack.hasTagCompound) stack.setTagCompound(new NBTTagCompound)
+        if !stack.hasTagCompound then stack.setTagCompound(new NBTTagCompound)
     }
 
     def isValidChip(stack:ItemStack) =
@@ -154,7 +154,7 @@ object ItemRoutingChip
         isValidChip(stack) && stack.hasTagCompound && stack.getTagCompound.hasKey("chipROM")
     }
 
-    def saveChipToItemStack(stack:ItemStack, chipset:RoutingChip)
+    def saveChipToItemStack(stack:ItemStack, chipset:RoutingChip): Unit =
     {
         assertStackTag(stack)
         val tag1 = stack.getTagCompound
@@ -167,7 +167,7 @@ object ItemRoutingChip
     {
         val e = RoutingChipDefs.getForStack(stack)
         val chip = e.createChipset
-        if (stack.hasTagCompound && stack.getTagCompound.hasKey("chipROM"))
+        if stack.hasTagCompound && stack.getTagCompound.hasKey("chipROM") then
             chip.load(stack.getTagCompound.getCompoundTag("chipROM"))
         chip
     }
@@ -190,7 +190,7 @@ object RoutingChipDefs extends ItemDefinition
 
     def getForStack(stack:ItemStack) =
     {
-        if (!stack.isEmpty && stack.getItem.isInstanceOf[ItemRoutingChip])
+        if !stack.isEmpty && stack.getItem.isInstanceOf[ItemRoutingChip] then
             fromMeta(stack.getItemDamage)
         else null
     }
@@ -199,14 +199,14 @@ object RoutingChipDefs extends ItemDefinition
     {
         def this(icon:String, f: => RoutingChip) = this(icon, f, ChipType.INTERFACE)
 
-        var icon:TextureAtlasSprite = _
+        var icon:TextureAtlasSprite = scala.compiletime.uninitialized
 
-        def registerIcons(map:TextureMap)
+        def registerIcons(map:TextureMap): Unit =
         {
             icon = map.registerSprite(new ResourceLocation("projectred:items/mechanical/"+iconPath))
         }
 
-        def setCustomModelResourceLocations()
+        def setCustomModelResourceLocations(): Unit =
         {
             ModelLoader.setCustomModelResourceLocation(getItem, meta,
                 new ModelResourceLocation("projectred:mechanical/items", s"type=$iconPath"))

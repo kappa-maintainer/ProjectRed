@@ -10,7 +10,7 @@ import codechicken.lib.data.MCDataInput
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.vec.Vector3
 import codechicken.multipart.BlockMultipart
-import mrtjp.core.fx.ParticleAction._
+import mrtjp.core.fx.ParticleAction.*
 import mrtjp.core.fx.particles.{BeamMulti, SpriteParticle}
 import mrtjp.projectred.core.Configurator
 import net.minecraft.client.Minecraft
@@ -22,7 +22,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Queue
-import scala.collection.mutable.{Set => MSet}
+import scala.collection.mutable.{Set as MSet}
 
 object RouteFX2
 {
@@ -41,16 +41,16 @@ object RouteFX2
     def isFXDisabled = !Configurator.pipeRoutingFX
 
     //type 1 - expanding bubble
-    def spawnType1(colour:Int, pipe:TNetworkPipe)
+    def spawnType1(colour:Int, pipe:TNetworkPipe): Unit =
     {
-        if (!pipe.world.isRemote) sendPacket(pipe.world, pipe.posOfInternal, 1, colour, -1)
+        if !pipe.world.isRemote then sendPacket(pipe.world, pipe.posOfInternal, 1, colour, -1)
         else spawnType1_do(colour, pipe)
     }
 
     @SideOnly(Side.CLIENT)
-    private def spawnType1_do(colour:Int, pipe:TNetworkPipe)
+    private def spawnType1_do(colour:Int, pipe:TNetworkPipe): Unit =
     {
-        if (isFXDisabled) return
+        if isFXDisabled then return
 
         val c1 = EnumColour.BLACK
         val c2 = EnumColour.values()(colour)
@@ -82,16 +82,16 @@ object RouteFX2
     }
 
     //type 2 - 1 meter exit beam
-    def spawnType2(colour:Int, dir:Int, pipe:TNetworkPipe)
+    def spawnType2(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
     {
-        if (!pipe.world.isRemote) sendPacket(pipe.world, pipe.posOfInternal, 2, colour, dir)
+        if !pipe.world.isRemote then sendPacket(pipe.world, pipe.posOfInternal, 2, colour, dir)
         else spawnType2_do(colour, dir, pipe)
     }
 
     @SideOnly(Side.CLIENT)
-    private def spawnType2_do(colour:Int, dir:Int, pipe:TNetworkPipe)
+    private def spawnType2_do(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
     {
-        if (isFXDisabled) return
+        if isFXDisabled then return
 
         val c1 = EnumColour.BLACK
         val c2 = EnumColour.values()(colour)
@@ -122,22 +122,22 @@ object RouteFX2
     }
 
     //type 3 - router to router path finding beam
-    def spawnType3(colour:Int, dir:Int, pipe:TNetworkPipe)
+    def spawnType3(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
     {
-        if (!pipe.world.isRemote) sendPacket(pipe.world, pipe.posOfInternal, 3, colour, dir)
+        if !pipe.world.isRemote then sendPacket(pipe.world, pipe.posOfInternal, 3, colour, dir)
         else spawnType3_do(colour, dir, pipe)
     }
 
     @SideOnly(Side.CLIENT)
-    private def spawnType3_do(colour:Int, dir:Int, pipe:TNetworkPipe)
+    private def spawnType3_do(colour:Int, dir:Int, pipe:TNetworkPipe): Unit =
     {
-        if (isFXDisabled) return
+        if isFXDisabled then return
 
         val paths = BeamPathFinder.findPaths(pipe, dir)
         val c1 = EnumColour.BLACK
         val c2 = EnumColour.values()(colour)
 
-        import mrtjp.core.fx.ParticleAction._
+        import mrtjp.core.fx.ParticleAction.*
         val act = sequence(
             group(
                 changeColourTo(c2.rF, c2.gF, c2.bF, 5),
@@ -151,7 +151,7 @@ object RouteFX2
             kill()
         )
 
-        for (path <- paths) if (path.size > 1) {
+        for path <- paths do if path.size > 1 then {
             val beam = new BeamMulti(pipe.world)
             Minecraft.getMinecraft.effectRenderer.addEffect(beam)
             beam.setMaxAge(20)
@@ -163,16 +163,16 @@ object RouteFX2
         }
     }
 
-    def sendPacket(w:World, pos:BlockPos, id:Int, colour:Int, dir:Int)
+    def sendPacket(w:World, pos:BlockPos, id:Int, colour:Int, dir:Int): Unit =
     {
         val packet = new PacketCustom(TransportationSPH.channel, TransportationSPH.particle_Spawn)
         packet.writeByte(id)
         packet.writeByte(colour).writePos(pos)
-        if (dir != -1) packet.writeByte(dir)
+        if dir != -1 then packet.writeByte(dir)
         packet.sendPacketToAllAround(pos, 64, w.provider.getDimension)
     }
 
-    def handleClientPacket(in:MCDataInput, w:World)
+    def handleClientPacket(in:MCDataInput, w:World): Unit =
     {
         val id = in.readUByte()
         val colour = in.readUByte()
@@ -212,17 +212,17 @@ object BeamPathFinder
     private def iterate(open:Seq[Node], closed:Set[Node] = Set.empty):Unit = open match
     {
         case Seq() =>
-        case Seq(next, rest@_*) => getMultiPart(next.pos) match
+        case Seq(next, rest*) => getMultiPart(next.pos) match
         {
-            case iwr:IRouterContainer with TNetworkPipe =>
-                if (!closed.exists(_.pos == next.pos)) paths += next.path
+            case iwr:(IRouterContainer & TNetworkPipe) =>
+                if !closed.exists(_.pos == next.pos) then paths += next.path
                 iterate(rest, closed+next)
             case p:TNetworkSubsystem =>
                 val upNext = Seq.newBuilder[Node]
-                for (s <- 0 until 6) if (s != (next.dir^1) && p.maskConnects(s))
+                for s <- 0 until 6 do if s != (next.dir^1) && p.maskConnects(s) then
                 {
                     val route = next --> (s, p.getPathWeight)
-                    if (!closed(route) && !open.contains(route)) upNext += route
+                    if !closed(route) && !open.contains(route) then upNext += route
                 }
                 iterate(rest++upNext.result(), closed+next)
             case _ => iterate(rest, closed+next)
@@ -239,10 +239,10 @@ object BeamPathFinder
         var prev = -1
         var pos = new MutableBlockPos(start)
 
-        while(iterator.hasNext)
+        while iterator.hasNext do
         {
             val dir = iterator.next()
-            if (dir == prev) pos.move(EnumFacing.values()(dir))
+            if dir == prev then pos.move(EnumFacing.values()(dir))
             else {
                 newList += pos.toImmutable
                 pos.move(EnumFacing.values()(dir))

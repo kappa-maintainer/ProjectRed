@@ -1,6 +1,6 @@
 package mrtjp.projectred.exploration
 
-import java.util.{List => JList}
+import java.util.{List as JList}
 
 import codechicken.lib.util.ItemUtils
 import codechicken.microblock.Saw
@@ -12,7 +12,7 @@ import mrtjp.projectred.ProjectRedExploration
 import mrtjp.projectred.core.{ItemCraftingDamage, PartDefs}
 import mrtjp.projectred.exploration.ArmorDefs.ArmorDef
 import mrtjp.projectred.exploration.ToolDefs.ToolDef
-import net.minecraft.block._
+import net.minecraft.block.*
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.creativetab.CreativeTabs
@@ -21,13 +21,13 @@ import net.minecraft.entity.{Entity, EntityLivingBase}
 import net.minecraft.init.{Blocks, Items}
 import net.minecraft.inventory.EntityEquipmentSlot
 import net.minecraft.item.Item.ToolMaterial
-import net.minecraft.item.Item.ToolMaterial.{DIAMOND => toolMaterialDiamond, GOLD => toolMaterialGold, IRON => toolMaterialIron, STONE => toolMaterialStone, WOOD => toolMaterialWood}
+import net.minecraft.item.Item.ToolMaterial.{DIAMOND as toolMaterialDiamond, GOLD as toolMaterialGold, IRON as toolMaterialIron, STONE as toolMaterialStone, WOOD as toolMaterialWood}
 import net.minecraft.item.ItemArmor.ArmorMaterial
-import net.minecraft.item._
+import net.minecraft.item.*
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.text.TextFormatting
-import net.minecraft.util._
+import net.minecraft.util.*
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
 import org.lwjgl.input.Keyboard
@@ -50,23 +50,23 @@ class ItemBackpack extends ItemCore
         ActionResult.newResult(EnumActionResult.SUCCESS, player.getHeldItem(hand))
     }
 
-    def openGui(player:EntityPlayer)
+    def openGui(player:EntityPlayer): Unit =
     {
         GuiBackpack.open(player, ItemBackpack.createContainer(player))
     }
 
-    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack])
+    override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
     {
-        if (isInCreativeTab(tab))
-            for (i <- 0 until 16)
+        if isInCreativeTab(tab) then
+            for i <- 0 until 16 do
                 list.add(new ItemStack(this, 1, i))
     }
 
-    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag)
+    override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag): Unit =
     {
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+        if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then
             list.asInstanceOf[JList[String]].add(
-                TextFormatting.GRAY.toString+(if (ItemBackpack.hasBagInv(stack))
+                TextFormatting.GRAY.toString+(if ItemBackpack.hasBagInv(stack) then
                     ItemBackpack.getNumberOfItems(stack) else 0)+"/27 slots used")
     }
 }
@@ -88,7 +88,7 @@ object ItemBackpack
         stack.getTagCompound.getCompoundTag("baginv")
     }
 
-    def saveBagTag(stack:ItemStack, tag:NBTTagCompound)
+    def saveBagTag(stack:ItemStack, tag:NBTTagCompound): Unit =
     {
         stack.getTagCompound.setTag("baginv", tag)
     }
@@ -102,7 +102,7 @@ object ItemBackpack
 class ContainerBackpack(inv:BagInventory, player:EntityPlayer) extends NodeContainer
 {
     {
-        for (((x, y), i) <- GuiLib.createSlotGrid(8, 18, 9, 3, 0, 0).zipWithIndex)
+        for ((x, y), i) <- GuiLib.createSlotGrid(8, 18, 9, 3, 0, 0).zipWithIndex do
         {
             val s = new Slot3(inv, i, x, y)
             addSlotToContainer(s)
@@ -122,21 +122,21 @@ class BagInventory(player:EntityPlayer) extends TInventory
     override def getInventoryStackLimit = 64
     override def getName = ""
 
-    private def loadInventory()
+    private def loadInventory(): Unit =
     {
-        if (closeIfNoBag()) return
+        if closeIfNoBag() then return
         loadInv(ItemBackpack.getBagTag(ItemUtils.getHeldStack(player)))
     }
 
-    private def saveInventory()
+    private def saveInventory(): Unit =
     {
-        if (closeIfNoBag()) return
+        if closeIfNoBag() then return
         val tag = new NBTTagCompound
         saveInv(tag)
         ItemBackpack.saveBagTag(ItemUtils.getHeldStack(player), tag)
     }
 
-    override def markDirty()
+    override def markDirty(): Unit =
     {
         saveInventory()
     }
@@ -145,8 +145,8 @@ class BagInventory(player:EntityPlayer) extends TInventory
     {//TODO, Check hands ourself so we can dual wield, this should work for now tho.
         val bag = ItemUtils.getHeldStack(player)
         val hasBag = !bag.isEmpty && bag.getItem == ProjectRedExploration.itemBackpack
-        if (hasBag) {
-            if (!bag.hasTagCompound)
+        if hasBag then {
+            if !bag.hasTagCompound then
                 bag.setTagCompound(new NBTTagCompound)
         } else
             player.closeScreen()
@@ -155,9 +155,9 @@ class BagInventory(player:EntityPlayer) extends TInventory
 
     override def isItemValidForSlot(i:Int, stack:ItemStack):Boolean =
     {
-        if (!stack.isEmpty)
+        if !stack.isEmpty then
         {
-            if (stack.getItem == ProjectRedExploration.itemBackpack) return false
+            if stack.getItem == ProjectRedExploration.itemBackpack then return false
             //for (blocked <- Configurator.backpackBlacklist) if (stack.itemID == blocked) return false
             //TODO backpack blacklist
             return true
@@ -166,21 +166,21 @@ class BagInventory(player:EntityPlayer) extends TInventory
     }
 
     override def removeStackFromSlot(slot:Int) =
-        if (closeIfNoBag()) ItemStack.EMPTY
+        if closeIfNoBag() then ItemStack.EMPTY
         else super.removeStackFromSlot(slot)
 
     override def decrStackSize(slot:Int, count:Int) =
-        if (closeIfNoBag()) ItemStack.EMPTY
+        if closeIfNoBag() then ItemStack.EMPTY
         else super.decrStackSize(slot, count)
 
-    override def setInventorySlotContents(slot:Int, item:ItemStack)
+    override def setInventorySlotContents(slot:Int, item:ItemStack): Unit =
     {
-        if (!closeIfNoBag()) super.setInventorySlotContents(slot, item)
+        if !closeIfNoBag() then super.setInventorySlotContents(slot, item)
     }
 
-    override def dropInvContents(w:World, pos:BlockPos)
+    override def dropInvContents(w:World, pos:BlockPos): Unit =
     {
-        if (!closeIfNoBag()) super.dropInvContents(w, pos)
+        if !closeIfNoBag() then super.dropInvContents(w, pos)
     }
 }
 
@@ -249,12 +249,12 @@ trait TGemTool extends Item
 
     override def getIsRepairable(ist1:ItemStack, ist2:ItemStack) =
     {
-        if (toolDef.repair.isItemEqual(ist2)) true
+        if toolDef.repair.isItemEqual(ist2) then true
         else false
     }
 }
 
-import mrtjp.projectred.exploration.ItemToolProxies._
+import mrtjp.projectred.exploration.ItemToolProxies.*
 class ItemGemAxe(override val toolDef:ToolDef, damage:Float, speed:Float) extends Axe(toolDef.mat, damage, speed) with TGemTool
 class ItemGemPickaxe(override val toolDef:ToolDef) extends Pickaxe(toolDef.mat) with TGemTool
 class ItemGemShovel(override val toolDef:ToolDef) extends Shovel(toolDef.mat) with TGemTool
@@ -278,7 +278,7 @@ class ItemGemSickle(override val toolDef:ToolDef) extends ItemTool(3, 0/*TODO Th
 
     override def getDestroySpeed(stack:ItemStack, state:IBlockState) =
     {
-        if (state.getBlock.isInstanceOf[BlockLeaves]) efficiency
+        if state.getBlock.isInstanceOf[BlockLeaves] then efficiency
         else super.getDestroySpeed(stack, state)
     }
 
@@ -290,10 +290,10 @@ class ItemGemSickle(override val toolDef:ToolDef) extends ItemTool(3, 0/*TODO Th
             case _ => null
         }
 
-        if (player != null && state != null)
+        if player != null && state != null then
         {
-            if (WorldLib.isLeafType(w, pos, state)) return runLeaves(stack, w, pos, player)
-            else if (WorldLib.isPlantType(w, pos, state)) return runCrops(stack, w, pos, player)
+            if WorldLib.isLeafType(w, pos, state) then return runLeaves(stack, w, pos, player)
+            else if WorldLib.isPlantType(w, pos, state) then return runCrops(stack, w, pos, player)
         }
         super.onBlockDestroyed(stack, w, state, pos, ent)
     }
@@ -301,38 +301,38 @@ class ItemGemSickle(override val toolDef:ToolDef) extends ItemTool(3, 0/*TODO Th
     private def runLeaves(stack:ItemStack, w:World, pos:BlockPos, player:EntityPlayer) =
     {
         var used = false
-        for (i <- -radiusLeaves to radiusLeaves) for (j <- -radiusLeaves to radiusLeaves) for (k <- -radiusLeaves to radiusLeaves)
+        for i <- -radiusLeaves to radiusLeaves do for j <- -radiusLeaves to radiusLeaves do for k <- -radiusLeaves to radiusLeaves do
         {
             val p = pos.add(i, j, k)
             val b = w.getBlockState(p)
-            if (b != null && WorldLib.isLeafType(w, pos, b))
+            if b != null && WorldLib.isLeafType(w, pos, b) then
             {
-                if (b.getBlock.canHarvestBlock(w, p, player)) b.getBlock.harvestBlock(w, player, p, b, w.getTileEntity(p), stack)
+                if b.getBlock.canHarvestBlock(w, p, player) then b.getBlock.harvestBlock(w, player, p, b, w.getTileEntity(p), stack)
                 w.setBlockToAir(p)
                 used = true
             }
         }
 
-        if (used) stack.damageItem(1, player)
+        if used then stack.damageItem(1, player)
         used
     }
 
     private def runCrops(stack:ItemStack, w:World, pos:BlockPos, player:EntityPlayer) =
     {
         var used = false
-        for (i <- -radiusCrops to radiusCrops) for (j <- -radiusCrops to radiusCrops)
+        for i <- -radiusCrops to radiusCrops do for j <- -radiusCrops to radiusCrops do
         {
             val p = pos.add(i, 0, j)
             val b = w.getBlockState(p)
-            if (b != null && WorldLib.isPlantType(w, pos, b))
+            if b != null && WorldLib.isPlantType(w, pos, b) then
             {
-                if (b.getBlock.canHarvestBlock(w, p, player)) b.getBlock.harvestBlock(w, player, p, b, w.getTileEntity(p), stack)
+                if b.getBlock.canHarvestBlock(w, p, player) then b.getBlock.harvestBlock(w, player, p, b, w.getTileEntity(p), stack)
                 w.setBlockToAir(p)
                 used = true
             }
         }
 
-        if (used) stack.damageItem(1, player)
+        if used then stack.damageItem(1, player)
         used
     }
 }
@@ -371,14 +371,14 @@ class ItemGemArmor(adef:ArmorDef, slot:EntityEquipmentSlot) extends ItemToolProx
 
     override def getIsRepairable(ist1:ItemStack, ist2:ItemStack) =
     {
-        if (adef.repair.isItemEqual(ist2)) true
+        if adef.repair.isItemEqual(ist2) then true
         else false
     }
 
     override def getArmorTexture(stack: ItemStack, entity: Entity, slot: EntityEquipmentSlot, `type`: String): String = {
-        import net.minecraft.inventory.EntityEquipmentSlot._
-        if (slot.getSlotType == EntityEquipmentSlot.Type.ARMOR) {
-            val suffix = if (slot == LEGS) 2 else 1
+        import net.minecraft.inventory.EntityEquipmentSlot.*
+        if slot.getSlotType == EntityEquipmentSlot.Type.ARMOR then {
+            val suffix = if slot == LEGS then 2 else 1
             return s"projectred:textures/items/world/${adef.tex}_$suffix.png"
         }
         null
@@ -425,7 +425,7 @@ import net.minecraft.entity.monster.EntityEnderman
 import net.minecraft.util.DamageSource
 class ItemAthame() extends ItemSword(toolMaterialDiamond)
 {
-    private var damage:Float = _
+    private var damage:Float = scala.compiletime.uninitialized
 
     setMaxDamage(100)
     setCreativeTab(ProjectRedExploration.tabExploration)
@@ -438,7 +438,7 @@ class ItemAthame() extends ItemSword(toolMaterialDiamond)
     {
         damage = toolMaterialDiamond.getAttackDamage
 
-        if ((entity.isInstanceOf[EntityEnderman])) damage = 25.0F else damage = 1.0F
+        if (entity.isInstanceOf[EntityEnderman]) then damage = 25.0F else damage = 1.0F
 
         val damageSource = DamageSource.causePlayerDamage(player.asInstanceOf[EntityPlayer])
         entity.attackEntityFrom(damageSource, damage)
@@ -456,7 +456,7 @@ class ItemAthame() extends ItemSword(toolMaterialDiamond)
     override def getItemAttributeModifiers(slot:EntityEquipmentSlot) =
     {
         val damageModifier = HashMultimap.create().asInstanceOf[Multimap[String, AttributeModifier]]
-        if (slot == EntityEquipmentSlot.MAINHAND) {
+        if slot == EntityEquipmentSlot.MAINHAND then {
             damageModifier.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName, new AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 0, 0))
         }
         damageModifier

@@ -42,7 +42,7 @@ class GuiTimer(part:GatePart) extends NodeGui(256, 55)
         createButton(211, 25, 40, 20, "+10s", 200)
     }
 
-    override def drawBack_Impl(mouse:Point, frame:Float)
+    override def drawBack_Impl(mouse:Point, frame:Float): Unit =
     {
         GuiLib.drawGuiBox(0, 0, xSize, ySize, 0)
         val s = "Timer interval: "+"%.2f".format(logic.getTimerMax*0.05)+"s"
@@ -55,7 +55,7 @@ object GuiTimer extends TGuiFactory
 {
     override def getID = IntegrationProxy.timerGui
 
-    def open(player:EntityPlayer, gate:GatePart)
+    def open(player:EntityPlayer, gate:GatePart): Unit =
     {
         open(player, null, IntegrationCPH.writePartIndex(_, gate))
     }
@@ -76,14 +76,14 @@ class GuiCounter(part:GatePart) extends NodeGui(256, 145)
 {
     val logic = part.getLogic[ICounterGuiLogic]
 
-    override def onAddedToParent_Impl()
+    override def onAddedToParent_Impl(): Unit =
     {
         def createButton(x:Int, y:Int, w:Int, h:Int, id:Int, delta:Int) =
         {
             val b = new MCButtonNode
             b.position = Point(x, y)
             b.size = Size(w, h)
-            b.text = (if (delta < 0) "" else "+")+delta
+            b.text = (if delta < 0 then "" else "+")+delta
             b.clickDelegate = {() =>
                 val packet = new PacketCustom(IntegrationCPH.channel, 2)
                 IntegrationCPH.writePartIndex(packet, part)
@@ -94,7 +94,7 @@ class GuiCounter(part:GatePart) extends NodeGui(256, 145)
             addChild(b)
         }
 
-        for (row <- 0 until 3)
+        for row <- 0 until 3 do
         {
             val y = 16+40*row
             createButton(5, y, 40, 20, row, -10)
@@ -119,9 +119,9 @@ class GuiCounter(part:GatePart) extends NodeGui(256, 145)
         fontRenderer.drawString(s, (xSize-fontRenderer.getStringWidth(s))/2, 125, 0x404040)
     }
 
-    override def update_Impl()
+    override def update_Impl(): Unit =
     {
-        if (part.tile == null) mc.player.closeScreen()
+        if part.tile == null then mc.player.closeScreen()
     }
 }
 
@@ -129,7 +129,7 @@ object GuiCounter extends TGuiFactory
 {
     override def getID = IntegrationProxy.counterGui
 
-    def open(player:EntityPlayer, gate:GatePart)
+    def open(player:EntityPlayer, gate:GatePart): Unit =
     {
         open(player, null, IntegrationCPH.writePartIndex(_, gate))
     }

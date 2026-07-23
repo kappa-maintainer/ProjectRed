@@ -19,7 +19,7 @@ import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.property.IExtendedBlockState
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IRedstoneConnector with TNonStickableFrontFace
 {
@@ -31,15 +31,15 @@ class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IReds
     override def canAcceptBacklog(item:ItemKey, side:Int) = side == this.side
     override def canConnectSide(side:Int) = side == this.side
 
-    override def onActivate()
+    override def onActivate(): Unit =
     {
         val bc = getPos.offset(EnumFacing.VALUES(side^1))
         val state = world.getBlockState(bc)
 
-        if (state.getBlock == Blocks.BEDROCK) return
-        if (state.getBlock.isAir(state, world, bc)) return
-        if (state.getBlockHardness(world, bc) < 0) return
-        if (state.getBlock.getHarvestLevel(state) > getHarvestLevel) return
+        if state.getBlock == Blocks.BEDROCK then return
+        if state.getBlock.isAir(state, world, bc) then return
+        if state.getBlockHardness(world, bc) < 0 then return
+        if state.getBlock.getHarvestLevel(state) > getHarvestLevel then return
 
         state.getBlock.getDrops(world, bc, state, 0).asScala.foreach(itemStorage.add)
         world.playEvent(null, 2001, getPos, Block.getStateId(state))
@@ -49,7 +49,7 @@ class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IReds
 
     def getHarvestLevel = 2
 
-    override def getConnectionMask(side:Int) = if ((side^1) == this.side) 0 else 0x1F
+    override def getConnectionMask(side:Int) = if (side^1) == this.side then 0 else 0x1F
     override def weakPowerLevel(side:Int, mask:Int) = 0
 }
 
@@ -60,19 +60,19 @@ class TileDiamondBlockBreaker extends TileBlockBreaker
 
 class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
 {
-    import java.lang.{Boolean => JBool, Integer => JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
-    import mrtjp.projectred.expansion.BlockProperties._
+    import mrtjp.projectred.expansion.BlockProperties.*
     import org.apache.commons.lang3.tuple.Triple
 
-    var bottom:TextureAtlasSprite = _
-    var side1:TextureAtlasSprite = _
-    var top1:TextureAtlasSprite = _
-    var side2:TextureAtlasSprite = _
-    var top2:TextureAtlasSprite = _
+    var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top1:TextureAtlasSprite = scala.compiletime.uninitialized
+    var side2:TextureAtlasSprite = scala.compiletime.uninitialized
+    var top2:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT1:UVTransformation = _
-    var iconT2:UVTransformation = _
+    var iconT1:UVTransformation = scala.compiletime.uninitialized
+    var iconT2:UVTransformation = scala.compiletime.uninitialized
 
     override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos):IExtendedBlockState = world.getTileEntity(pos) match {
         case t:TActiveDevice => {
@@ -90,14 +90,14 @@ class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
         val rotation = state.getValue(UNLISTED_ROTATION_PROPERTY)
         val active = state.getValue(UNLISTED_ACTIVE_PROPERTY).asInstanceOf[Boolean]
         val powered = state.getValue(UNLISTED_POWERED_PROPERTY).asInstanceOf[Boolean]
-        Triple.of(side, rotation, if (active || powered) iconT2 else iconT1)
+        Triple.of(side, rotation, if active || powered then iconT2 else iconT1)
     }
 
     override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconT1)
 
     override def shouldCull() = true
 
-    override def registerIcons(reg:TextureMap)
+    override def registerIcons(reg:TextureMap): Unit =
     {
         bottom = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/bottom"))
         top1 = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/top1"))

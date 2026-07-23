@@ -6,7 +6,7 @@ import codechicken.lib.vec.Rotation
 import codechicken.multipart.TMultiPart
 import mrtjp.core.world.Messenger
 import mrtjp.projectred.api.IConnectable
-import mrtjp.projectred.core._
+import mrtjp.projectred.core.*
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.ITickable
@@ -15,13 +15,13 @@ trait TPowerWireCommons extends TWireCommons with TPowerPartCommons with ITickab
 {
     val cond:PowerConductor
 
-    override def save(tag: NBTTagCompound)
+    override def save(tag: NBTTagCompound): Unit =
     {
         super.save(tag)
         cond.save(tag)
     }
 
-    override def load(tag: NBTTagCompound)
+    override def load(tag: NBTTagCompound): Unit =
     {
         super.load(tag)
         cond.load(tag)
@@ -31,17 +31,17 @@ trait TPowerWireCommons extends TWireCommons with TPowerPartCommons with ITickab
 
     def getExternalCond(id:Int):PowerConductor
 
-    override def updateAndPropagate(prev:TMultiPart, mode:Int) {}
+    override def updateAndPropagate(prev:TMultiPart, mode:Int): Unit = {}
 
-    override def update()
+    override def update(): Unit =
     {
         //super.update()
-        if (!world.isRemote) cond.update()
+        if !world.isRemote then cond.update()
     }
 
     override def test(player:EntityPlayer):Boolean =
     {
-        if (world.isRemote) return true
+        if world.isRemote then return true
 
         val p = Messenger.createPacket
         p.writeDouble(pos.getX).writeDouble(pos.getY).writeDouble(pos.getZ)
