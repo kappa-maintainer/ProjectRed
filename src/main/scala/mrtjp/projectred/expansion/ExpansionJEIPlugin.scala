@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack
 import scala.jdk.CollectionConverters.*
 
 @JEIPlugin
-class ExpansionJEIPlugin extends BlankModPlugin
+class ExpansionJEIPlugin extends IModPlugin
 {
     override def register(registry:IModRegistry): Unit =
     {
