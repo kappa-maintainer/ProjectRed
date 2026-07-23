@@ -1,16 +1,16 @@
 package mrtjp.projectred.exploration
 
-import java.lang.{Character => JChar}
-
+import java.lang.Character as JChar
 import codechicken.microblock.BlockMicroMaterial
 import mrtjp.core.block.ItemBlockCore
 import mrtjp.core.gui.GuiHandler
 import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.item.ItemDefinition
-import mrtjp.core.world._
+import mrtjp.core.world.*
 import mrtjp.projectred.ProjectRedExploration
-import mrtjp.projectred.ProjectRedExploration._
+import mrtjp.projectred.ProjectRedExploration.*
 import mrtjp.projectred.core.{Configurator, IProxy, PartDefs}
+import net.minecraft.block.properties.IProperty
 import net.minecraft.block.state.IBlockState
 import net.minecraft.client.renderer.ItemMeshDefinition
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
@@ -389,11 +389,11 @@ class ExplorationProxy_client extends ExplorationProxy_server
                 import net.minecraft.block.BlockWall._
                 def parseLocation(state :IBlockState):String = {
                     val t = "type=" + state.getValue(STONE_TYPES)
-                    val u = "up=" + JBool.toString(state.getValue(UP))
-                    val n = "north=" + JBool.toString(state.getValue(NORTH))
-                    val s = "south=" + JBool.toString(state.getValue(SOUTH))
-                    val e = "east=" + JBool.toString(state.getValue(EAST))
-                    val w = "west=" + JBool.toString(state.getValue(WEST))
+                    val u = "up=" + JBool.toString(state.getValue(UP.asInstanceOf[IProperty[Nothing]]))
+                    val n = "north=" + JBool.toString(state.getValue(NORTH.asInstanceOf[IProperty[Nothing]]))
+                    val s = "south=" + JBool.toString(state.getValue(SOUTH.asInstanceOf[IProperty[Nothing]]))
+                    val e = "east=" + JBool.toString(state.getValue(EAST.asInstanceOf[IProperty[Nothing]]))
+                    val w = "west=" + JBool.toString(state.getValue(WEST.asInstanceOf[IProperty[Nothing]]))
                     t + "," + u + "," + n + "," + s + "," + e + "," + w
                 }
                 new ModelResourceLocation("projectred:world/wall", parseLocation(state))

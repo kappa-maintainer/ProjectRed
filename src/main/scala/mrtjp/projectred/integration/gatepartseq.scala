@@ -54,17 +54,17 @@ class SequentialGatePartT extends SequentialGatePart with INeighborTileChangePar
 
 object SequentialGateLogic
 {
-    import mrtjp.projectred.integration.GateDefinition._
-    def create(gate:SequentialGatePart, subID:Int) = subID match {
-        case SRLatch.ordinal => new SRLatch(gate)
-        case ToggleLatch.ordinal => new ToggleLatch(gate)
-        case Timer.ordinal => new Timer(gate)
-        case Sequencer.ordinal => new Sequencer(gate)
-        case Counter.ordinal => new Counter(gate)
-        case StateCell.ordinal => new StateCell(gate)
-        case Synchronizer.ordinal => new Synchronizer(gate)
-        case Comparator.ordinal => new Comparator(gate)
-        case _ => throw new IllegalArgumentException("Invalid gate subID: "+subID)
+
+    def create(gate: SequentialGatePart, subID: Int): SequentialGateLogic = subID match {
+        case GateDefinition.SRLatch.ordinal => new SRLatch(gate)
+        case GateDefinition.ToggleLatch.ordinal => new ToggleLatch(gate)
+        case GateDefinition.Timer.ordinal => new Timer(gate)
+        case GateDefinition.Sequencer.ordinal => new Sequencer(gate)
+        case GateDefinition.Counter.ordinal => new Counter(gate)
+        case GateDefinition.StateCell.ordinal => new StateCell(gate)
+        case GateDefinition.Synchronizer.ordinal => new Synchronizer(gate)
+        case GateDefinition.Comparator.ordinal => new Comparator(gate)
+        case _ => throw new IllegalArgumentException("Invalid gate subID: " + subID)
     }
 }
 

@@ -48,7 +48,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11._
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.{Map => MMap, Set => MSet}
 
 class TileICPrinter extends TileICMachine with TInventory with TInventoryCapablilityTile
@@ -453,13 +453,13 @@ object TileICPrinter
     def cacheRecipe(key:ItemKey)
     {
         val recipes = CraftingManager.REGISTRY.iterator
-        for (r <- recipes) try
+        for (r <- recipes.asScala) try
         {
             val out = ItemKey.get(r.getRecipeOutput)
             if (out == key)
             {
                 //TODO, We need to do proper ingredient matching.
-                val inputs = r.getIngredients.map(_.getMatchingStacks).filterNot(_ == null).map(i => ItemKey.get(i.head))
+                val inputs = r.getIngredients.asScala.map(_.getMatchingStacks).filterNot(_ == null).map(i => ItemKey.get(i.head))
 //                    r match
 //                {
 //                    case s:ShapedRecipes => s.recipeItems.toSeq.filterNot(_.getMatchingStacks.isEmpty).map(ItemKey.get)
@@ -482,7 +482,7 @@ object TileICPrinter
 //                }
                 if (inputs.nonEmpty)
                 {
-                    gRec += key -> inputs
+                    gRec += key -> inputs.toSeq
                     return
                 }
             }
@@ -662,7 +662,7 @@ class GuiICPrinter(c:ContainerPrinter, tile:TileICPrinter) extends NodeGui(c, 17
             val m2 = convertPointFromScreen(mouse)
             if (flagBox.contains(m2))
                 GuiDraw.drawMultiLineTip(ItemStack.EMPTY, m2.x+12, m2.y-12,
-                    Seq(s"$RED$BOLD" + "X" + s"$RESET blueprint contains errors"))
+                    Seq(s"$RED$BOLD" + "X" + s"$RESET blueprint contains errors").asJava)
         }
     }
 }
@@ -787,7 +787,7 @@ object RenderICPrinterDynamic extends TileEntitySpecialRenderer[TileICPrinter]
 
     def getMods =
     {
-        val map = OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/fabrication/printer.obj"), 7, null).toMap
+        val map = OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/fabrication/printer.obj"), 7, null).asScala.toMap
         map.values.foreach { m =>
             m.verts = m.backfacedCopy.verts
             m.apply(new Translation(8/16D, 10/16D, 8/16D))

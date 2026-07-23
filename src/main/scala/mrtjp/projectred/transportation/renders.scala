@@ -132,8 +132,8 @@ object RenderPipe extends IIconRegister
     def renderBreakingOverlay(icon:TextureAtlasSprite, pipe:SubcorePipePart, ccrs:CCRenderState)
     {
         ccrs.setPipeline(new Translation(pipe.pos), new IconTransformation(icon))
-        import scala.collection.JavaConversions._
-        for (box <- pipe.getCollisionBoxes)
+        import scala.jdk.CollectionConverters._
+        for (box <- pipe.getCollisionBoxes.asScala)
             BlockRenderer.renderCuboid(ccrs, box, 0)
     }
 

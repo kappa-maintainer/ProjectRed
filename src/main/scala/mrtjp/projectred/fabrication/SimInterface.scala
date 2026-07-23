@@ -236,13 +236,13 @@ class SEStatLogger extends ISEStatLogger
         gateIDToPoints += id -> points
     }
 
-    def getWarnings:Seq[(Seq[Point], String)] = warnings
-    def getWarningsForPoint(p:Point):Seq[(Seq[Point], String)] = warnings.filter(_._1 contains p)
+    def getWarnings:Seq[(Seq[Point], String)] = warnings.toSeq
+    def getWarningsForPoint(p:Point):Seq[(Seq[Point], String)] = warnings.filter(_._1 contains p).toSeq
 
-    def getErrors:Seq[(Seq[Point], String)] = errors
-    def getErrorsForPoint(p:Point):Seq[(Seq[Point], String)] = errors.filter(_._1 contains p)
+    def getErrors:Seq[(Seq[Point], String)] = errors.toSeq
+    def getErrorsForPoint(p:Point):Seq[(Seq[Point], String)] = errors.filter(_._1 contains p).toSeq
 
-    def getRuntimeFlags:Seq[(Seq[Point], String)] = runtimeFlags.map {p => (p._2 ++ p._3, runtimeFlagToMessage(p._1))}
+    def getRuntimeFlags:Seq[(Seq[Point], String)] = runtimeFlags.map {p => (p._2 ++ p._3, runtimeFlagToMessage(p._1))}.toSeq
     def getRuntimeFlagsForPoint(p:Point):Seq[(Seq[Point], String)] = getRuntimeFlags.filter(_._1 contains p)
 
     private def runtimeFlagToMessage(flag:Int):String = flag match {

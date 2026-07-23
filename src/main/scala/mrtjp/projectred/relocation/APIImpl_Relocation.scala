@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.Queue
 
 object APIImpl_Relocation extends IRelocationAPI
@@ -66,7 +66,7 @@ object StickResolver_Impl extends StickResolver
         world = null
         start = null
         excl = null
-        result
+        result.asJava
     }
 
     @tailrec
@@ -102,7 +102,7 @@ object StickResolver_Impl extends StickResolver
             }
         }
 
-        for (stick <- f1.getAdditionalSticks)
+        for (stick <- f1.getAdditionalSticks.asScala)
             b += stick
 
         b.result()

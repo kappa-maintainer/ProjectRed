@@ -11,7 +11,7 @@ import net.minecraft.world.World
 
 object PRLib
 {
-    def dropTowardsPlayer(w:World, pos:BlockPos, stack:ItemStack, p:EntityPlayer)
+    def dropTowardsPlayer(w:World, pos:BlockPos, stack:ItemStack, p:EntityPlayer): Unit =
     {
         if (!w.isRemote && w.getGameRules.getBoolean("doTileDrops"))
         {

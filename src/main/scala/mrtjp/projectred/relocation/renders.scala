@@ -365,11 +365,11 @@ class WrappedTESR(parentTesr:TileEntitySpecialRenderer[TileEntity]) extends Tile
             parentTesr.renderTileEntityFast(te, x, y, z, partialTicks, destroyStage, partial, buffer)
     }
 
-    override protected def setLightmapDisabled(disabled:Boolean) = parentTesr.setLightmapDisabled(disabled)
-    override protected def bindTexture(location:ResourceLocation) = parentTesr.bindTexture(location)
-    override protected def getWorld = parentTesr.getWorld
+    override def setLightmapDisabled(disabled:Boolean) = parentTesr.setLightmapDisabled(disabled)
+    override def bindTexture(location:ResourceLocation) = parentTesr.bindTexture(location)
+    override def getWorld = parentTesr.getWorld
     override def setRendererDispatcher(rendererDispatcherIn:TileEntityRendererDispatcher) = parentTesr.setRendererDispatcher(rendererDispatcherIn)
     override def getFontRenderer = parentTesr.getFontRenderer
     override def isGlobalRenderer(te:TileEntity) = parentTesr.isGlobalRenderer(te)
-    override protected def drawNameplate(te:TileEntity, str:String, x:Double, y:Double, z:Double, maxDistance:Int) = parentTesr.drawNameplate(te, str, x, y, z, maxDistance)
+    override def drawNameplate(te:TileEntity, str:String, x:Double, y:Double, z:Double, maxDistance:Int) = parentTesr.drawNameplate(te, str, x, y, z, maxDistance)
 }

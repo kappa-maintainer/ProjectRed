@@ -365,10 +365,10 @@ class ContainerPoweredMachine(tile:TPoweredMachine) extends NodeContainer
     override def detectAndSendChanges()
     {
         super.detectAndSendChanges()
-        import scala.collection.JavaConversions._
-        for (i <- listeners)
+        import scala.jdk.CollectionConverters._
+        for (i <- listeners.asScala)
         {
-            val ic = i.asInstanceOf[IContainerListener]
+            val ic = i
 
             if (ch != tile.cond.charge) ic.sendWindowProperty(this, 0, tile.cond.charge)
             if (fl != tile.cond.flow)
@@ -398,10 +398,10 @@ class ContainerProcessingMachine(tile:TileProcessingMachine) extends ContainerPo
     override def detectAndSendChanges()
     {
         super.detectAndSendChanges()
-        import scala.collection.JavaConversions._
-        for (i <- listeners)
+        import scala.jdk.CollectionConverters._
+        for (i <- listeners.asScala)
         {
-            val ic = i.asInstanceOf[IContainerListener]
+            val ic = i
 
             if (wr != tile.workRemaining) ic.sendWindowProperty(this, 3, tile.workRemaining)
             if (wm != tile.workMax) ic.sendWindowProperty(this, 4, tile.workMax)

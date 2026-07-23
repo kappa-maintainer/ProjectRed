@@ -35,7 +35,7 @@ import net.minecraftforge.event.AttachCapabilitiesEvent
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class TileTeleposer extends TileMachine with TPoweredMachine
 {
@@ -237,6 +237,7 @@ class TileTeleposer extends TileMachine with TPoweredMachine
 
         world.getEntitiesWithinAABB(classOf[EntityEnderPearl], box)
                 .asInstanceOf[JList[EntityEnderPearl]]
+                .asScala
                 .filterNot(CapabilityTeleposedEnderPearl.isTeleposed)
                 .headOption match
         {
@@ -250,6 +251,7 @@ class TileTeleposer extends TileMachine with TPoweredMachine
         val box = new Cuboid6(-3, 0, -3, 4, 4, 4).add(new Vector3(x, y, z)).aabb
         world.getEntitiesWithinAABB(classOf[EntityEnderPearl], box)
                 .asInstanceOf[JList[EntityEnderPearl]]
+                .asScala
                 .filterNot(CapabilityTeleposedEnderPearl.isTeleposed)
     }
 
@@ -258,7 +260,7 @@ class TileTeleposer extends TileMachine with TPoweredMachine
         Cuboid6.full = new Cuboid6(0, 0, 0, 1, 1, 1)
         val box = Cuboid6.full.copy.add(new Vector3(x, y+1, z)).aabb
         world.getEntitiesWithinAABB(classOf[EntityItem], box)
-                .asInstanceOf[JList[EntityItem]].filter{ ei =>
+                .asInstanceOf[JList[EntityItem]].asScala.filter{ ei =>
                     val s = ei.getItem
                     !s.isEmpty && (s.getItem == Items.ENDER_PEARL ||
                             s.getItem == ProjectRedExpansion.itemInfusedEnderPearl)
@@ -414,12 +416,12 @@ class TileTeleposer extends TileMachine with TPoweredMachine
 
 trait ITeleposedItem
 {
-    var isTeleposed:Boolean
+    var isTeleposed: Boolean = false
 }
 
 class TeleposedProperty extends ITeleposedItem with ICapabilityProvider with ICapabilitySerializable[NBTTagCompound]
 {
-    override var isTeleposed = false
+    isTeleposed = false
 
     override def hasCapability(capability:Capability[_], facing:EnumFacing) = capability == teleposedEnderPearlCapability
 

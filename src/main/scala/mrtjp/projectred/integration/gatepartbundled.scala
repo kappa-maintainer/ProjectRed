@@ -93,14 +93,13 @@ class BundledGatePart extends RedstoneGatePart with TBundledGatePart with TCompl
 
 object BundledGateLogic
 {
-    import mrtjp.projectred.integration.GateDefinition._
     def create(gate:BundledGatePart, subID:Int) = subID match
     {
-        case BusTransceiver.ordinal => new BusTransceiver(gate)
-        case BusRandomizer.ordinal => new BusRandomizer(gate)
-        case BusConverter.ordinal => new BusConverter(gate)
+        case GateDefinition.BusTransceiver.ordinal => new BusTransceiver(gate)
+        case GateDefinition.BusRandomizer.ordinal => new BusRandomizer(gate)
+        case GateDefinition.BusConverter.ordinal => new BusConverter(gate)
         case GateDefinition.BusInputPanel.ordinal => new BusInputPanel(gate)
-        case SegmentDisplay.ordinal => new SegmentDisplay(gate)
+        case GateDefinition.SegmentDisplay.ordinal => new SegmentDisplay(gate)
         case _ => throw new IllegalArgumentException("Invalid gate subID: "+subID)
     }
 }

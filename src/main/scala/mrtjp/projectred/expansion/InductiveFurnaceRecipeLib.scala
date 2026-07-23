@@ -42,7 +42,7 @@ object InductiveFurnaceRecipeLib
 
     def init()
     {
-        import scala.collection.JavaConversions._
+        import scala.jdk.CollectionConverters._
 
         def isDust(stack:ItemStack) = getOreName(stack).startsWith("dust")
         def isIngot(stack:ItemStack) = getOreName(stack).startsWith("ingot")
@@ -52,7 +52,7 @@ object InductiveFurnaceRecipeLib
         }
 
         val sl = FurnaceRecipes.instance.getSmeltingList
-        for ((in, out) <- sl) try  {
+        for ((in, out) <- sl.asScala) try  {
             if (getRecipeFor(in) == null)
             {
                 if (in.getItem.isInstanceOf[ItemFood]) addRecipe(in, out, 40)

@@ -23,7 +23,7 @@ import net.minecraft.util.{BlockRenderLayer, EnumFacing, EnumHand, ITickable}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusionPart with TFaceConnectable with TSwitchPacket with TIconHitEffectsPart with ITickable with TDynamicRenderPart
 {
@@ -200,7 +200,7 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
 
     def getItem = getGateDef.makeStack
 
-    override def getDrops = Seq(getItem)
+    override def getDrops = Seq(getItem).asJava
 
     override def pickItem(hit:CuboidRayTraceResult) = getItem
 
@@ -208,9 +208,9 @@ abstract class GatePart extends TMultiPart with TCuboidPart with TNormalOcclusio
 
     override def getBounds = getLogicPrimitive.getBounds(this)
 
-    override def getSubParts = Seq(new IndexedCuboid6(-1, getBounds))++getLogicPrimitive.getSubParts(this)
+    override def getSubParts = (Seq(new IndexedCuboid6(-1, getBounds))++getLogicPrimitive.getSubParts(this)).asJava
 
-    override def getOcclusionBoxes = getLogicPrimitive.getOcclusions(this)
+    override def getOcclusionBoxes = getLogicPrimitive.getOcclusions(this).asJava
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) = 2/30f
 

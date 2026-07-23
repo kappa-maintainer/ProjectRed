@@ -22,7 +22,7 @@ import net.minecraft.util._
 import net.minecraft.util.text.TextComponentString
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCenterRSPropagation with IRedwirePart with IMaskedRedstonePart
 {
@@ -124,7 +124,7 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
     }
 
     override def getDrops = if (hasRedstone)
-        super.getDrops :+ getMaterialStack else super.getDrops
+        (super.getDrops.asScala ++ Iterable.single(getMaterialStack)).asJava else super.getDrops
 
     def getMaterialStack =
         ItemMicroPart.create(769, BlockMicroMaterial.materialKey(Blocks.REDSTONE_BLOCK.getDefaultState))
@@ -325,7 +325,7 @@ trait TColourFilterPipe extends SubcorePipePart
     }
 
     abstract override def getDrops =
-        if (colour > -1) super.getDrops:+getColourStack
+        if (colour > -1) (super.getDrops.asScala ++ Iterable.single(getColourStack)).asJava
         else super.getDrops
 
     def getColourStack =

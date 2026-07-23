@@ -101,13 +101,13 @@ class ItemRoutingChip extends ItemCore
     {
         if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) if (ItemRoutingChip.hasChipInside(stack))
         {
-            import scala.collection.JavaConversions._
+            import scala.jdk.CollectionConverters._
             val r = ItemRoutingChip.loadChipFromItemStack(stack)
             val s = new ListBuffer[String]
             r.infoCollection(s)
-            list.addAll(s)
+            list.addAll(s.asJava)
         }
-        else list.add(ChatFormatting.GRAY+"not configured")
+        else list.add(ChatFormatting.GRAY.toString+"not configured")
     }
 
     override def onItemRightClick(world:World, player:EntityPlayer, hand:EnumHand) =

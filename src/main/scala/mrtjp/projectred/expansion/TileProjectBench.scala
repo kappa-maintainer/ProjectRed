@@ -30,7 +30,8 @@ import net.minecraftforge.fml.common.FMLCommonHandler
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.input.Keyboard
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
+import scala.language.postfixOps
 
 class TileProjectBench extends TileMachine with TInventory with ISidedInventory with TInventoryCapablilityTile with TGuiMachine
 {
@@ -184,7 +185,7 @@ class TileProjectBench extends TileMachine with TInventory with ISidedInventory 
         GuiProjectBench.open(player, createContainer(player), _.writePos(getPos))
     }
 
-    override def createContainer(player: EntityPlayer) = new ContainerProjectBench(player, this)
+    override def createContainer(player: EntityPlayer): ContainerProjectBench = new ContainerProjectBench(player, this)
 }
 
 class CraftingResultTestHelper
@@ -211,7 +212,7 @@ class CraftingResultTestHelper
     def findRecipeFromInputs(w:World)
     {
         val recipes = CraftingManager.REGISTRY.iterator
-        recipe = recipes.find(_.matches(invCrafting, w)).orNull
+        recipe = recipes.asScala.find(_.matches(invCrafting, w)).orNull
     }
 
     def loadResultFromRecipe()
@@ -282,7 +283,7 @@ class CraftingResultTestHelper
 
         val wr = InvWrapper.wrapInternal(new ArrayWrapInventory(storage, "", slotLimit))
 
-        for (stack <- Seq(result) ++ remaining.filter(!_.isEmpty)) {
+        for (stack <- Seq(result) ++ remaining.asScala.filter(!_.isEmpty)) {
             val i = wr.injectItem(ItemKey.get(stack), stack.getCount)
             if (i < stack.getCount)
                 return false
@@ -320,7 +321,7 @@ class SlotProjectCrafting(player: EntityPlayer, tile: TileProjectBench, idx: Int
         val order = (9 until 27) ++ (0 until 9)
         val storage = order.map {tile.getStackInSlot}.toArray
 
-        tile.craftHelper.loadStorage(storage, true)
+        tile.craftHelper.loadStorage(storage, copy = true)
         val (_, rem) = tile.craftHelper.consumeAndCraft(player.world)
         tile.craftHelper.unloadStorage(tile, order.apply)
 
@@ -329,7 +330,7 @@ class SlotProjectCrafting(player: EntityPlayer, tile: TileProjectBench, idx: Int
 
         for (i <- 0 until 9) {
             val istack = tile.getStackInSlot(i)
-            val rstack = rem(i)
+            val rstack = rem.get(i)
             if (!rstack.isEmpty) {
                 if (!tile.isPlanRecipe && istack.isEmpty) {
                     tile.setInventorySlotContents(i, rstack)

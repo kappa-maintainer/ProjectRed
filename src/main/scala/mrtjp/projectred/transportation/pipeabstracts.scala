@@ -17,7 +17,7 @@ import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraft.util.{BlockRenderLayer, EnumFacing, ITickable}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with TSwitchPacket with TNormalOcclusionPart with ISidedHollowConnect with TDynamicRenderPart
 {
@@ -113,7 +113,7 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) = 2/30f
 
-    override def getDrops = Seq(getItem)
+    override def getDrops = Seq(getItem).asJava
 
     override def pickItem(hit:CuboidRayTraceResult) = getItem
 
@@ -124,14 +124,14 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
         import mrtjp.projectred.transportation.PipeBoxes._
         var boxes = Seq(new IndexedCuboid6(-1, oBounds(6)))
         for (s <- 0 until 6) if (maskConnects(s)) boxes :+= new IndexedCuboid6(s, oBounds(s))
-        boxes
+        boxes.asJava
     }
 
     override def getOcclusionBoxes =
     {
         import mrtjp.projectred.transportation.PipeBoxes._
-        if (expandBounds >= 0) Seq(oBounds(expandBounds))
-        else Seq(oBounds(6))
+        if (expandBounds >= 0) Seq(oBounds(expandBounds)).asJava
+        else Seq(oBounds(6)).asJava
     }
 
     override def getCollisionBoxes =
@@ -139,7 +139,7 @@ abstract class SubcorePipePart extends TMultiPart with TCenterConnectable with T
         import mrtjp.projectred.transportation.PipeBoxes._
         var boxes = Seq(oBounds(6))
         for (s <- 0 until 6) if (maskConnects(s)) boxes :+= oBounds(s)
-        boxes
+        boxes.asJava
     }
 
     @SideOnly(Side.CLIENT)

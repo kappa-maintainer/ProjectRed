@@ -7,38 +7,39 @@ import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.util.{BlockRenderLayer, ResourceLocation}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 object LightFactoryFixture extends LightFactory
 {
-    val bounds = bakedBoxes(new Cuboid6(3.5/16D, 0, 3.5/16D, 12.5/16D, 6.5/16D, 12.5/16D))
-    val lBounds = bakedBoxes(new Cuboid6(4/16D, 1.5/16, 4/16D, 12/16D, 6.5/16D, 12/16D))
+    val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(3.5 / 16D, 0, 3.5 / 16D, 12.5 / 16D, 6.5 / 16D, 12.5 / 16D))
+    val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4 / 16D, 1.5 / 16, 4 / 16D, 12 / 16D, 6.5 / 16D, 12 / 16D))
 
     var icon:TextureAtlasSprite = _
 
     val bulbModels = new Array[CCModel](6)
     val chassiModels = new Array[CCModel](6)
 
-    override def getTranslationKey(inv:Boolean) = if (inv) "fixtureLightInverted" else "fixtureLight"
-    override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_fixture_light" else "fixture_light"
+    override def getTranslationKey(inv: Boolean): String = if (inv) "fixtureLightInverted" else "fixtureLight"
+
+    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_fixture_light" else "fixture_light"
     override def getType = new ResourceLocation("projectred-illumination:fixture_light")
 
-    override def getBounds(side:Int) = bounds(side)
-    override def getLBounds(side:Int) = lBounds(side)
+    override def getBounds(side: Int): Cuboid6 = bounds(side)
 
-    override def getModelBulb(side:Int) = bulbModels(side)
-    override def getModelChassi(side:Int) = chassiModels(side)
+    override def getLBounds(side: Int): Cuboid6 = lBounds(side)
 
-    override def getIcon = icon
+    override def getModelBulb(side: Int): CCModel = bulbModels(side)
+
+    override def getModelChassi(side: Int): CCModel = chassiModels(side)
+
+    override def getIcon: TextureAtlasSprite = icon
 
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map:TextureMap)
-    {
+    override def registerTextures(map: TextureMap): Unit = {
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/fixture"))
     }
 
-    override def loadModels()
-    {
+    override def loadModels(): Unit = {
         val models = parseModel("fixture")
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
@@ -52,34 +53,36 @@ object LightFactoryFixture extends LightFactory
 
 object LightFactoryFallout extends LightFactory
 {
-    val bounds = bakedBoxes(new Cuboid6(2/16D, 0, 2/16D, 14/16D, 11/16D, 14/16D))
-    val lBounds = bakedBoxes(new Cuboid6(4/16D, 1.5/16, 4/16D, 12/16D, 10/16D, 12/16D).expand(-0.002))
+    val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(2 / 16D, 0, 2 / 16D, 14 / 16D, 11 / 16D, 14 / 16D))
+    val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4 / 16D, 1.5 / 16, 4 / 16D, 12 / 16D, 10 / 16D, 12 / 16D).expand(-0.002))
 
-    var icon:TextureAtlasSprite = _
+    var icon: TextureAtlasSprite = _
 
-    val bulbModels = new Array[CCModel](6)
-    val chassiModels = new Array[CCModel](6)
+    val bulbModels: Array[CCModel] = new Array[CCModel](6)
+    val chassiModels: Array[CCModel] = new Array[CCModel](6)
 
 
-    override def getTranslationKey(inv:Boolean) = if (inv) "falloutLampInverted" else "falloutLamp"
-    override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_fallout_lamp" else "fallout_lamp"
+    override def getTranslationKey(inv: Boolean): String = if (inv) "falloutLampInverted" else "falloutLamp"
+
+    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_fallout_lamp" else "fallout_lamp"
     override def getType = new ResourceLocation("projectred-illumination:fallout_lamp")
 
-    override def getBounds(side:Int) = bounds(side)
-    override def getLBounds(side:Int) = lBounds(side)
+    override def getBounds(side: Int): Cuboid6 = bounds(side)
 
-    override def getModelBulb(side:Int) = bulbModels(side)
-    override def getModelChassi(side:Int) = chassiModels(side)
+    override def getLBounds(side: Int): Cuboid6 = lBounds(side)
 
-    override def getIcon = icon
+    override def getModelBulb(side: Int): CCModel = bulbModels(side)
+
+    override def getModelChassi(side: Int): CCModel = chassiModels(side)
+
+    override def getIcon: TextureAtlasSprite = icon
+
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map:TextureMap)
-    {
+    override def registerTextures(map: TextureMap): Unit = {
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/fallout"))
     }
 
-    override def loadModels()
-    {
+    override def loadModels(): Unit = {
         val models = parseModel("fallout")
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
@@ -93,37 +96,40 @@ object LightFactoryFallout extends LightFactory
 
 object LightFactoryCage extends LightFactory
 {
-    val bounds = bakedBoxes(new Cuboid6(3.5/16D, 0, 3.5/16D, 12.5/16D, 12/16D, 12.5/16D))
-    val lBounds = bakedBoxes(new Cuboid6(4.5/16D, 1.5/16, 4.5/16D, 11.5/16D, 11.5/16D, 11.5/16D))
+    val bounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(3.5 / 16D, 0, 3.5 / 16D, 12.5 / 16D, 12 / 16D, 12.5 / 16D))
+    val lBounds: Array[Cuboid6] = bakedBoxes(new Cuboid6(4.5 / 16D, 1.5 / 16, 4.5 / 16D, 11.5 / 16D, 11.5 / 16D, 11.5 / 16D))
 
-    var icon:TextureAtlasSprite = _
+    var icon: TextureAtlasSprite = _
 
-    val bulbModels = new Array[CCModel](6)
-    val chassiModels = new Array[CCModel](6)
+    val bulbModels: Array[CCModel] = new Array[CCModel](6)
+    val chassiModels: Array[CCModel] = new Array[CCModel](6)
 
 
-    override def getTranslationKey(inv:Boolean) = if (inv) "cageLampInverted" else "cageLamp"
-    override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_cage_lamp" else "cage_lamp"
-    override def getType = new ResourceLocation("projectred-illumination:cage_lamp")
+    override def getTranslationKey(inv: Boolean): String = if (inv) "cageLampInverted" else "cageLamp"
 
-    override def getBounds(side:Int) = bounds(side)
-    override def getLBounds(side:Int) = lBounds(side)
+    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_cage_lamp" else "cage_lamp"
 
-    override def getModelBulb(side:Int) = bulbModels(side)
-    override def getModelChassi(side:Int) = chassiModels(side)
+    override def getType: ResourceLocation = new ResourceLocation("projectred-illumination:cage_lamp")
+
+    override def getBounds(side: Int): Cuboid6 = bounds(side)
+
+    override def getLBounds(side: Int): Cuboid6 = lBounds(side)
+
+    override def getModelBulb(side: Int): CCModel = bulbModels(side)
+
+    override def getModelChassi(side: Int): CCModel = chassiModels(side)
 
     @SideOnly(Side.CLIENT)
-    override def getRenderLayer = BlockRenderLayer.CUTOUT
+    override def getRenderLayer: BlockRenderLayer = BlockRenderLayer.CUTOUT
 
-    override def getIcon = icon
+    override def getIcon: TextureAtlasSprite = icon
+
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map:TextureMap)
-    {
+    override def registerTextures(map: TextureMap): Unit = {
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/cage_lamp"))
     }
 
-    override def loadModels()
-    {
+    override def loadModels(): Unit = {
         val models = parseModel("cagelamp")
         val chassi = models.get("chassi")
         val bulb = models.get("bulb")
@@ -137,42 +143,47 @@ object LightFactoryCage extends LightFactory
 
 object LightFactoryLantern extends LightFactory
 {
-    private val bounds = new Cuboid6(0.35D, 0.25D, 0.35D, 0.65D, 0.75D, 0.65D)
-    private val lBounds = bounds.copy.expand(-1/64D)
+    private val bounds: Cuboid6 = new Cuboid6(0.35D, 0.25D, 0.35D, 0.65D, 0.75D, 0.65D)
+    private val lBounds: Cuboid6 = bounds.copy.expand(-1 / 64D)
 
-    var icon:TextureAtlasSprite = _
+    var icon: TextureAtlasSprite = _
 
-    var bulbModel:CCModel = _
-    val chassiModels = new Array[CCModel](7)
+    var bulbModel: CCModel = _
+    val chassiModels: Array[CCModel] = new Array[CCModel](7)
 
-    override def getTranslationKey(inv:Boolean) = if (inv) "lanternInverted" else "lantern"
-    override def getItemRegistryName(inv:Boolean) = if (inv) "inverted_lantern" else "lantern"
-    override def getType = new ResourceLocation("projectred-illumination:lantern")
+    override def getTranslationKey(inv: Boolean): String = if (inv) "lanternInverted" else "lantern"
 
-    override def getBounds(side:Int) = bounds
-    override def getLBounds(side:Int) = lBounds
+    override def getItemRegistryName(inv: Boolean): String = if (inv) "inverted_lantern" else "lantern"
 
-    override def createPart = new BaseLightPart(this)
+    override def getType: ResourceLocation = new ResourceLocation("projectred-illumination:lantern")
 
-    override def getModelBulb(side:Int) = bulbModel
-    override def getModelChassi(side:Int) = chassiModels(side)
-    override def getInvModelChassi = chassiModels(6)
+    override def getBounds(side: Int): Cuboid6 = bounds
 
-    override def getIcon = icon
+    override def getLBounds(side: Int): Cuboid6 = lBounds
+
+    override def createPart: BaseLightPart = new BaseLightPart(this)
+
+    override def getModelBulb(side: Int): CCModel = bulbModel
+
+    override def getModelChassi(side: Int): CCModel = chassiModels(side)
+
+    override def getInvModelChassi: CCModel = chassiModels(6)
+
+    override def getIcon: TextureAtlasSprite = icon
+
     @SideOnly(Side.CLIENT)
-    override def registerTextures(map:TextureMap)
-    {
+    override def registerTextures(map: TextureMap): Unit = {
         icon = map.registerSprite(new ResourceLocation("projectred:blocks/lighting/lantern"))
     }
 
-    override def getItemRenderTransform(t:TransformType) = t match {
+    override def getItemRenderTransform(t: TransformType): (Vector3, Vector3, Double) = t match {
         case TransformType.GUI =>
             val (_, rot, _) = super.getItemRenderTransform(t)
-            (new Vector3(0, -1/16D, 0), rot, 1.25)
+            (new Vector3(0, -1 / 16D, 0), rot, 1.25)
         case _ => super.getItemRenderTransform(t)
     }
 
-    override def loadModels()
+    override def loadModels(): Unit =
     {
         val models = parseModel("lantern")
 
@@ -185,14 +196,14 @@ object LightFactoryLantern extends LightFactory
         val side = models.get("standside")
 
         bulbModel = bulb
-        chassiModels(0) = CCModel.combine(Seq(body, bottom, bottomRing))
-        chassiModels(1) = CCModel.combine(Seq(body, top, topRing))
-        chassiModels(6) = CCModel.combine(Seq(body, topRing)) //Inv model
+        chassiModels(0) = CCModel.combine(Seq(body, bottom, bottomRing).asJava)
+        chassiModels(1) = CCModel.combine(Seq(body, top, topRing).asJava)
+        chassiModels(6) = CCModel.combine(Seq(body, topRing).asJava) //Inv model
 
         for (s <- 2 until 6) {
             val mSide = side.copy.apply(Rotation.sideOrientation(0, Rotation.rotationTo(0, s)).at(Vector3.center))
             val mRing = topRing.copy.apply(Rotation.sideOrientation(0, Rotation.rotationTo(0, s)).at(Vector3.center))
-            chassiModels(s) = CCModel.combine(Seq(body, mSide, mRing))
+            chassiModels(s) = CCModel.combine(Seq(body, mSide, mRing).asJava)
         }
 
         chassiModels.foreach(finishModel)

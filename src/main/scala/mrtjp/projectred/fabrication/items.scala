@@ -42,8 +42,8 @@ class ItemICBlueprint extends Item //hack to allow first-person map rendering of
 
         if (ItemICBlueprint.hasICInside(stack)) {
             val size = ItemICBlueprint.getICSize(stack)
-            tooltip.add(GRAY+ItemICBlueprint.getICName(stack))
-            tooltip.add(GRAY+s"${size.width} x ${size.height}")
+            tooltip.add(GRAY.toString+ItemICBlueprint.getICName(stack))
+            tooltip.add(GRAY.toString+s"${size.width} x ${size.height}")
 
             val (warnings, errors) = ItemICBlueprint.loadFlags(stack)
 
@@ -53,7 +53,7 @@ class ItemICBlueprint extends Item //hack to allow first-person map rendering of
             if (errors != 0)
                 tooltip.add(s"$RED$BOLD" + "X" + s"$RESET$GRAY contains $errors " + (if (errors > 1) "errors" else "error"))
         }
-        else tooltip.add(GRAY+"empty blueprint")
+        else tooltip.add(GRAY.toString+"empty blueprint")
     }
 }
 
@@ -332,6 +332,6 @@ object ItemICChip
     def addInfo(stack:ItemStack, list:JList[String])
     {
         if (ItemICBlueprint.hasICInside(stack))
-            list.add(ChatFormatting.GRAY+ItemICBlueprint.getICName(stack))
+            list.add(ChatFormatting.GRAY.toString+ItemICBlueprint.getICName(stack))
     }
 }

@@ -34,7 +34,7 @@ import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart with TSlottedPart with TNormalOcclusionPart with IRedstonePart with ILight with TDynamicRenderPart
 {
@@ -183,9 +183,9 @@ class BaseLightPart(factory:LightFactory) extends TMultiPart with TCuboidPart wi
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) = 2/30f
     override def getSlotMask = 1<<6
-    override def getOcclusionBoxes = Seq(getBounds)
+    override def getOcclusionBoxes = Seq(getBounds).asJava
 
-    override def getDrops = Seq(getItem)
+    override def getDrops = Seq(getItem).asJava
     override def pickItem(hit:CuboidRayTraceResult) = getItem
 
     override def canConnectRedstone(side:Int) = true
@@ -298,8 +298,7 @@ abstract class LightFactory extends IPartFactory
         if (name == getType) createPart else null
 
     @SideOnly(Side.CLIENT)
-    final def registerClient()
-    {
+    final def registerClient(): Unit = {
         val lightState = new CCModelState({
             val builder = ImmutableMap.builder[TransformType, TRSRTransformation]()
             for (tt <- TransformType.values()) {
@@ -307,31 +306,30 @@ abstract class LightFactory extends IPartFactory
                 val mat = ((new Rotation(rot.z.toRadians, 0, 0, 1) `with`
                     new Rotation(rot.y.toRadians, 0, 1, 0) `with`
                     new Rotation(rot.x.toRadians, 1, 0, 0) `with`
-                    new Scale(scale)) at Vector3.center `with`
+                    new Scale(scale) at Vector3.center) `with`
                     pos.translation()).compile()
                 builder.put(tt, TransformUtils.fromMatrix4(mat))
             }
             builder.build()
         })
 
-        val renderer = new IItemRenderer with IIconRegister
-        {
+        val renderer: IItemRenderer with IIconRegister = new IItemRenderer with IIconRegister {
             override def isAmbientOcclusion = true
+
             override def isGui3d = true
+
             override def getTransforms = lightState
 
-            override def renderItem(item:ItemStack, transformType: TransformType)
-            {
-                val color = item.getItemDamage%16
+            override def renderItem(item: ItemStack, transformType: TransformType) {
+                val color = item.getItemDamage % 16
                 val inv = item.getItem match {
-                    case i:ItemBaseLight => i.inverted
+                    case i: ItemBaseLight => i.inverted
                     case _ => false
                 }
                 renderInv(color, inv, Vector3.zero, CCRenderState.instance())
             }
 
-            override def registerIcons(textureMap:TextureMap)
-            {
+            override def registerIcons(textureMap: TextureMap) {
                 registerTextures(textureMap)
             }
         }
@@ -352,7 +350,7 @@ abstract class LightFactory extends IPartFactory
     {
         val models = OBJParser.parseModels(
             new ResourceLocation("projectred", "textures/obj/lighting/"+name+".obj"), 7, InvertX)
-        for (m <- models.values()) m.apply(new Translation(0.5, 0, 0.5))
+        for (m <- models.values().asScala) m.apply(new Translation(0.5, 0, 0.5))
         models
     }
 

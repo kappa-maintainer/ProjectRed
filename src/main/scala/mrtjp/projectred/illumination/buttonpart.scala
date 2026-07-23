@@ -28,7 +28,7 @@ import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDynamicRenderPart
 {
@@ -62,7 +62,7 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
 
     override def isOn = pressed != inverted
 
-    override def getColor = colorMeta
+    override def getColor: Int = colorMeta
 
     override def save(tag:NBTTagCompound)
     {
@@ -109,7 +109,7 @@ class LightButtonPart extends ButtonPart with ILight with TSwitchPacket with TDy
 
     def getItem:Item = ProjectRedIllumination.itemPartIllumarButton
     def getItemStack = new ItemStack(getItem, 1, colorMeta)
-    override def getDrops = Seq(getItemStack)
+    override def getDrops = Seq(getItemStack).asJava
     override def pickItem(hit:CuboidRayTraceResult) = getItemStack
 
     override def drop()

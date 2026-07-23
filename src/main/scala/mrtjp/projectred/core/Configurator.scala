@@ -75,7 +75,7 @@ object Configurator extends ModConfig("projectred-core")
 
     override def getFileName = "ProjectRed"
 
-    override protected def initValues()
+    override protected def initValues(): Unit =
     {
         val general = new BaseCategory("General Settings", "Contains basic settings for the mod.")
 

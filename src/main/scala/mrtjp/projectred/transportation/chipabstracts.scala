@@ -289,7 +289,7 @@ trait TChipStock extends RoutingChip
 
     def addStockInfo(list:ListBuffer[String])
     {
-        list += (ChatFormatting.GRAY+"Fill mode: "+(requestMode match
+        list += (ChatFormatting.GRAY.toString+"Fill mode: "+(requestMode match
         {
             case 0 => "when missing"
             case 1 => "when empty"

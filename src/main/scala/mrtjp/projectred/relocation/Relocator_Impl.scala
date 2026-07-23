@@ -11,7 +11,7 @@ import mrtjp.projectred.api.{IMovementCallback, Relocator}
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.{Set => MSet, Stack => MStack}
 
 class RelocationRun
@@ -96,7 +96,7 @@ object Relocator_Impl extends Relocator
 
     override def addBlocks(blocks:JSet[BlockPos])
     {
-        for (b <- blocks) addBlock(b)
+        for (b <- blocks.asScala) addBlock(b)
     }
 
     override def execute() =

@@ -8,8 +8,6 @@ import net.minecraft.item.{Item, ItemStack}
 import net.minecraftforge.oredict.OreDictionary
 import net.minecraftforge.oredict.OreDictionary._
 
-import scala.collection.JavaConversions._
-
 trait TRecipeObject
 {
     def matches(that:ItemKeyStack):Boolean
@@ -45,6 +43,7 @@ class ItemIn(val key:ItemKeyStack) extends RecipeInput
 
 class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
 {
+    import scala.jdk.CollectionConverters._
     def this(id:Int) = this(Seq(id))
     def this(name:String) = this(getOreID(name))
     def this(stack:ItemStack) = this(getOreIDs(stack))
@@ -57,8 +56,9 @@ class OreIn(val oreIDs:Seq[Int]) extends RecipeInput
         getOreIDs(that.makeStack).exists(oreIDs contains _)
     }
 
-    val ins = oreIDs.map(getOreName).map(getOres).flatten
-    override def matchingInputs = ins
+    val ins: Seq[ItemStack] = oreIDs.map(getOreName).flatMap(name => getOres(name).asScala)
+
+    override def matchingInputs: Seq[ItemStack] = ins
 }
 
 class ItemOut(val key:ItemKeyStack) extends RecipeOutput

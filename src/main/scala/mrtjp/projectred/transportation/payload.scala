@@ -1,7 +1,5 @@
 package mrtjp.projectred.transportation
 
-import java.util.UUID
-
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import mrtjp.core.item.ItemKeyStack
 import mrtjp.projectred.core.Configurator
@@ -11,8 +9,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.BlockPos
 
-import scala.collection.convert.WrapAsJava
-import scala.collection.immutable.{BitSet, HashSet}
+import java.util.UUID
+import scala.collection.immutable.HashSet
 
 object AbstractPipePayload
 {
@@ -270,6 +268,7 @@ class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
 
 class PayloadMovement[T <: AbstractPipePayload]
 {
+    import scala.jdk.CollectionConverters._
     var delegate = HashSet[T]()
     var inputQueue = HashSet[T]()
     var outputQueue = HashSet[T]()
@@ -338,5 +337,5 @@ class PayloadMovement[T <: AbstractPipePayload]
     }
 
     def it = delegate.iterator
-    def Jdel = WrapAsJava.asJavaCollection(delegate)
+    def Jdel = delegate.asJavaCollection
 }

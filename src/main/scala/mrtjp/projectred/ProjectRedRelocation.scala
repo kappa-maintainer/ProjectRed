@@ -17,28 +17,24 @@ object ProjectRedRelocation
     var blockMovingRow:BlockMovingRow = _
     var blockFrame:BlockFrame = _
 
-    var tabRelocation = new CreativeTabs("projectred.relocation")
-    {
+    var tabRelocation: CreativeTabs = new CreativeTabs("projectred.relocation") {
         override def createIcon = new ItemStack(blockFrame)
     }
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
-    {
+    def preInit(event: FMLPreInitializationEvent): Unit = {
         RelocationProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
-    {
+    def init(event: FMLInitializationEvent): Unit = {
         APIImpl_Relocation.isPreInit = false
         RelocationConfig.loadConfig()
         RelocationProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
-    {
+    def postInit(event: FMLPostInitializationEvent): Unit = {
         RelocationProxy.postinit()
     }
 }
@@ -66,8 +62,7 @@ object RelocationConfig extends ModConfig("projectred-relocation")
 
     override def getFileName = "ProjectRedRelocation"
 
-    override protected def initValues()
-    {
+    override protected def initValues(): Unit = {
         val general = BaseCategory("General", "Basic settings")
         moveLimit = general.put("moveLimit", moveLimit, "Maximum amount of blocks that can be moved at once.")
 
@@ -81,7 +76,7 @@ object RelocationConfig extends ModConfig("projectred-relocation")
 
     }
 
-    def buildMoverDesc:String =
+    def buildMoverDesc: String =
     {
         var s =
             """Used to configure which registered Tile Mover is used for a block. Key-Value pairs are defined using

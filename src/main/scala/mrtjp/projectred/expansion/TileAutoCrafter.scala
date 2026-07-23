@@ -164,7 +164,7 @@ class TileAutoCrafter extends TileMachine with TPoweredMachine with TInventory w
         GuiAutoCrafter.open(player, createContainer(player), _.writePos(getPos))
     }
 
-    override def createContainer(player:EntityPlayer) = new ContainerAutoCrafter(player, this)
+    override def createContainer(player: EntityPlayer): ContainerAutoCrafter = new ContainerAutoCrafter(player, this)
 }
 
 class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends ContainerPoweredMachine(tile)
@@ -190,10 +190,10 @@ class ContainerAutoCrafter(player:EntityPlayer, tile:TileAutoCrafter) extends Co
     override def detectAndSendChanges()
     {
         super.detectAndSendChanges()
-        import scala.collection.JavaConversions._
-        for (i <- listeners)
+        import scala.jdk.CollectionConverters._
+        for (i <- listeners.asScala)
         {
-            val ic = i.asInstanceOf[IContainerListener]
+            val ic = i
 
             if (slot != tile.planSlot) ic.sendWindowProperty(this, 3, tile.planSlot)
             slot = tile.planSlot

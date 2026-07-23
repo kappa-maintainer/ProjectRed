@@ -15,17 +15,17 @@ object PluginCC_BundledCable extends IPRPlugin
 {
     override def getModIDs = Array("computercraft", "projectred-transmission")
 
-    override def isEnabled = Configurator.compat_CCBundledCalbe
+    override def isEnabled: Boolean = Configurator.compat_CCBundledCalbe
 
-    override def preInit(){}
+    override def preInit(): Unit = {}
 
-    override def init()
+    override def init(): Unit =
     {
         CCPRBundledRedstoneProvider.register()
         PRCCBundledTileInteraction.register()
     }
 
-    override def postInit(){}
+    override def postInit(): Unit = {}
 
     override def desc() = "ComputerCraft: bundled cable connections"
 }
@@ -34,14 +34,13 @@ object PluginCC_BundledCable extends IPRPlugin
 object CCPRBundledRedstoneProvider extends IBundledRedstoneProvider
 {
     @Method(modid = "computercraft")
-    def register()
+    def register(): Unit =
     {
         CCAPI.registerBundledRedstoneProvider(this)
     }
 
     @Method(modid = "computercraft")
-    override def getBundledRedstoneOutput(world:World, pos:BlockPos, side:EnumFacing) =
-    {
+    override def getBundledRedstoneOutput(world: World, pos: BlockPos, side: EnumFacing): Int = {
         val sig = PRAPI.transmissionAPI.getBundledInput(world, pos.offset(side), side.getOpposite)
         BundledCommons.packDigital(sig)
     }
@@ -51,21 +50,20 @@ object CCPRBundledRedstoneProvider extends IBundledRedstoneProvider
 object PRCCBundledTileInteraction extends IBundledTileInteraction
 {
     @Method(modid = "projectred-transmission")
-    def register()
+    def register(): Unit =
     {
         PRAPI.transmissionAPI.registerBundledTileInteraction(this)
     }
 
     @Method(modid = "projectred-transmission")
-    override def isValidInteractionFor(world:World, pos:BlockPos, side:EnumFacing) =
+    override def isValidInteractionFor(world: World, pos: BlockPos, side: EnumFacing): Boolean =
         CCAPI.getBundledRedstoneOutput(world, pos, side) > -1
 
     @Method(modid = "projectred-transmission")
-    override def canConnectBundled(world:World, pos:BlockPos, side:EnumFacing) = true
+    override def canConnectBundled(world: World, pos: BlockPos, side: EnumFacing) = true
 
     @Method(modid = "projectred-transmission")
-    override def getBundledSignal(world:World, pos:BlockPos, side:EnumFacing) =
-    {
+    override def getBundledSignal(world: World, pos: BlockPos, side: EnumFacing): Array[Byte] = {
         val sig = CCAPI.getBundledRedstoneOutput(world, pos, side)
         BundledCommons.unpackDigital(null, sig)
     }

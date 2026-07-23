@@ -25,7 +25,7 @@ import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.property.IExtendedBlockState
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class TileItemImporter extends TileMachine with TPressureActiveDevice with IRedstoneConnector
 {
@@ -92,7 +92,7 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
         val elist = world.getEntitiesWithinAABB(classOf[EntityItem],
             box.copy.add(new Vector3(x, y, z)).aabb)
         var added = false
-        for (ei <- elist) if (!ei.isDead && ei.getItem.getCount > 0 && canImport(ItemKey.get(ei.getItem)))
+        for (ei <- elist.asScala) if (!ei.isDead && ei.getItem.getCount > 0 && canImport(ItemKey.get(ei.getItem)))
         {
             itemStorage.add(ei.getItem)
             world.removeEntity(ei)

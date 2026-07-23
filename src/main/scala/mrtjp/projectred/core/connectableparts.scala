@@ -78,7 +78,7 @@ trait TCenterAcquisitions extends TAcquisitionsCommons with TCenterOrient
 
 trait TConnectableCommons extends TMultiPart with IConnectable
 {
-    var connMap:Int
+    var connMap:Int = 0
 
     /**
       * Sets of defs that are common in all subtypes.
@@ -186,7 +186,7 @@ trait TFaceConnectable extends TConnectableCommons with TFaceAcquisitions
      * bit 16 = connection to the centerpart
      * 5 = Render corner connections. Like corner connections but set to low if the other wire part is smaller than this (they render to us not us to them)
      */
-    override var connMap = 0
+    connMap = 0
 
     override def connectCorner(part:IConnectable, r:Int, edgeRot:Int) =
     {
@@ -363,7 +363,7 @@ trait TCenterConnectable extends TConnectableCommons with TCenterAcquisitions
      * 0xFC0 = Internal conns to face (mixed with above for client, see clientConnMap)
      * 0x3F000 = External open connections (this wire is not blocked by a cover part and *could* connect through side)
      */
-    override var connMap = 0
+    connMap = 0
 
     override def canConnectCorner(r:Int) = false
 

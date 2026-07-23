@@ -2,9 +2,9 @@ package mrtjp.projectred.core
 
 trait IProxy
 {
-    def preinit()
+    def preinit(): Unit
 
-    def init()
+    def init(): Unit
 
-    def postinit()
+    def postinit(): Unit
 }

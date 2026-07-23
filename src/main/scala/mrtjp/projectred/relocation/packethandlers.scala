@@ -21,7 +21,7 @@ import net.minecraft.util.text.TextComponentString
 import net.minecraft.world.World
 import net.minecraftforge.fml.common.FMLCommonHandler
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.{HashMap => MHashMap, Map => MMap, MultiMap => MMultiMap, Set => MSet}
 
 /**
@@ -112,11 +112,11 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
     }
 
     private def getServerPlayers:Seq[EntityPlayerMP] =
-        FMLCommonHandler.instance().getMinecraftServerInstance.getPlayerList.getPlayers
+        FMLCommonHandler.instance().getMinecraftServerInstance.getPlayerList.getPlayers.asScala.toSeq
 
     private def sendData(players:Seq[EntityPlayerMP])
     {
-        for (p <- players if chunkWatchers.containsKey(p.getEntityId)) {
+        for (p <- players if chunkWatchers.asJava.containsKey(p.getEntityId)) {
             updateMap.get(p.world) match {
                 case Some(m) if m.nonEmpty =>
                     val chunks = chunkWatchers(p.getEntityId)
@@ -136,11 +136,11 @@ object RelocationSPH extends RelocationPH with IServerPacketHandler
 
     private def sendDesc(players:Seq[EntityPlayerMP])
     {
-        for (p <- players if newWatchers.containsKey(p.getEntityId)) {
+        for (p <- players if newWatchers.asJava.containsKey(p.getEntityId)) {
             val watched = newWatchers(p.getEntityId)
-            val pkt = getDescPacket(p.world, watched.toSet)
+            val pkt = getDescPacket(p.world, watched.asScala.toSet)
             if (pkt != null) pkt.sendToPlayer(p)
-            for (c <- watched)
+            for (c <- watched.asScala)
                 chunkWatchers.addBinding(p.getEntityId, c)
         }
         newWatchers.clear()

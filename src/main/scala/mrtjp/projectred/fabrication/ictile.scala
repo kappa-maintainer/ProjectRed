@@ -43,7 +43,7 @@ object ICTileDefs extends Enum
 
 object ICTile
 {
-    def createTile(id:Int) = ICTileDefs(id).createPart
+    def createTile(id: Int): ICTile = ICTileDefs(id).createPart
 }
 
 abstract class ICTile extends ISETile

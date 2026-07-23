@@ -165,7 +165,7 @@ class ItemPlan extends ItemCore
     {
         if (ItemPlan.hasRecipeInside(stack))
         {
-            val s = s"${TextFormatting.BLUE}Output: ${TextFormatting.GRAY+ItemPlan.loadPlanOutput(stack).getDisplayName}"
+            val s = s"${TextFormatting.BLUE}Output: ${TextFormatting.GRAY.toString + ItemPlan.loadPlanOutput(stack).getDisplayName}"
             list.add(s)
         }
     }
@@ -419,7 +419,7 @@ class ItemInfusedEnderPearl extends ItemCore
         if (hasLocation(stack))
         {
             val bc = getLocation(stack)
-            slist.add(TextFormatting.GRAY+s"Tied to [${bc.getX}, ${bc.getY}, ${bc.getZ}]")
+            slist.add(TextFormatting.GRAY.toString + s"Tied to [${bc.getX}, ${bc.getY}, ${bc.getZ}]")
         }
     }
 }

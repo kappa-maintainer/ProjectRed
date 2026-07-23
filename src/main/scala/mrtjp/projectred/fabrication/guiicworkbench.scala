@@ -28,7 +28,7 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.input.{Keyboard, Mouse}
 import org.lwjgl.opengl.GL11
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.ListMap
 import scala.collection.mutable.{ListBuffer => MListBuffer}
 
@@ -150,7 +150,7 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
                     ClipNode.tempDisableScissoring()
                     translateToScreen()
                     val Point(mx, my) = parent.convertPointToScreen(mouse)
-                    GuiDraw.drawMultiLineTip(ItemStack.EMPTY, mx+12, my-12, data)
+                    GuiDraw.drawMultiLineTip(ItemStack.EMPTY, mx+12, my-12, data.asJava)
 
                     import ChatFormatting._
                     val flags = new MListBuffer[String]
@@ -180,7 +180,7 @@ class TileMapEditorNode(editor:ICTileMapEditor) extends TNode
                     }
 
                     if (flags.nonEmpty)
-                        GuiDraw.drawMultiLineTip(ItemStack.EMPTY, mx+12, my-32-(flags.size*(getFontRenderer.FONT_HEIGHT+1)), flags)
+                        GuiDraw.drawMultiLineTip(ItemStack.EMPTY, mx+12, my-32-(flags.size*(getFontRenderer.FONT_HEIGHT+1)), flags.asJava)
 
                     GlStateManager.disableLighting()
                     translateFromScreen()
@@ -411,7 +411,7 @@ class ICToolsetNode extends TNode
             import ChatFormatting._
             translateToScreen()
             val Point(mx, my) = parent.convertPointToScreen(mouse)
-            GuiDraw.drawMultiLineTip(mx+12, my-32, Seq(AQUA.toString+ITALIC.toString+title))
+            GuiDraw.drawMultiLineTip(mx+12, my-32, Seq(AQUA.toString+ITALIC.toString+title).asJava)
             translateFromScreen()
         }
     }
@@ -600,8 +600,8 @@ class NewICNode extends TNode
             if (mousePos != null) {
                 translateToScreen()
                 val Point(mx, my) = parent.convertPointToScreen(mouse)
-                import scala.collection.JavaConversions._
-                GuiDraw.drawMultiLineTip(mx+12, my-12, Seq((mousePos.x+1)*16+" x "+(mousePos.y+1)*16))
+                import scala.jdk.CollectionConverters._
+                GuiDraw.drawMultiLineTip(mx+12, my-12, Seq((mousePos.x+1)*16+" x "+(mousePos.y+1)*16).asJava)
                 translateFromScreen()
             }
         }
@@ -661,8 +661,8 @@ class InfoNode extends TNode
         if (text.nonEmpty && rayTest(mouse)) {
             translateToScreen()
             val Point(mx, my) = parent.convertPointToScreen(mouse)
-            import scala.collection.JavaConversions._
-            GuiDraw.drawMultiLineTip(mx+12, my-12, Seq(text))
+            import scala.jdk.CollectionConverters._
+            GuiDraw.drawMultiLineTip(mx+12, my-12, Seq(text).asJava)
             translateFromScreen()
         }
     }
@@ -811,7 +811,7 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
         GuiDraw.drawStringC("tooltips", 290, 182, 30, 10, EnumColour.GRAY.argb, false)
 
         GuiDraw.drawStringC("scale", 273, 193, 42, 14, EnumColour.GRAY.argb, false)
-        GuiDraw.drawStringC(BigDecimal(pref.scale, new MathContext(2))+"", 279, 207, 30, 10, EnumColour.GRAY.argb, false)
+        GuiDraw.drawStringC(BigDecimal(pref.scale, new MathContext(2)).toString(), 279, 207, 30, 10, EnumColour.GRAY.argb, false)
     }
 }
 

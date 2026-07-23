@@ -6,7 +6,7 @@ import mezz.jei.api.recipe.transfer.IRecipeTransferInfo
 import mrtjp.projectred.ProjectRedExpansion._
 import net.minecraft.item.ItemStack
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 @JEIPlugin
 class ExpansionJEIPlugin extends BlankModPlugin
@@ -36,9 +36,9 @@ object ProjectBenchRecipeTransferInfo extends IRecipeTransferInfo[ContainerProje
 
     override def getContainerClass = classOf[ContainerProjectBench]
 
-    override def getRecipeSlots(container:ContainerProjectBench) = 0 until 9 map container.getSlot
+    override def getRecipeSlots(container:ContainerProjectBench) = (0 until 9 map container.getSlot).asJava
 
-    override def getInventorySlots(container:ContainerProjectBench) = (9 until 27) ++ (29 until 65) map container.getSlot
+    override def getInventorySlots(container:ContainerProjectBench) = ((9 until 27) ++ (29 until 65) map container.getSlot).asJava
 
     override def canHandle(container: ContainerProjectBench) = true//TODO??
 }

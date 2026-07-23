@@ -18,7 +18,7 @@ import net.minecraft.util.EnumBlockRenderType
 import net.minecraft.util.math.AxisAlignedBB
 import net.minecraft.world.World
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class BlockMovingRow extends MultiTileBlock(Material.ROCK)
 {
@@ -49,7 +49,7 @@ object TileMovingRow
         isCalculatingBB = true
         val box = bl.getCollisionBoundingBox(w, p) match {
             case aabb:AxisAlignedBB => new Cuboid6(aabb).subtract(Vector3.fromBlockPos(r.pos))
-                    .add(Vector3.fromVec3i(r.moveDir.getDirectionVec) * progress)
+                    .add(Vector3.fromVec3i(r.moveDir.getDirectionVec).multiply(progress))
             case _ => Cuboid6.full.copy
         }
         isCalculatingBB = false
@@ -90,10 +90,10 @@ class TileMovingRow extends MTBlockTile
         val boxBounds = box.aabb()
 
         val dp = (if (progress >= 1.0) progress + 0.1 else progress) - prevProg
-        val d = Vector3.fromVec3i(r.moveDir.getDirectionVec) * dp
+        val d = Vector3.fromVec3i(r.moveDir.getDirectionVec).multiply(dp)
         world.getEntitiesWithinAABBExcludingEntity(null, boxBounds) match {
             case list:JList[_] =>
-                for (e <- list.asInstanceOf[JList[Entity]]) {
+                for (e <- list.asScala) {
                     e.move(MoverType.PISTON, d.x, d.y*4 max 0, d.z) //TODO find better way to do this
                 }
             case _ =>

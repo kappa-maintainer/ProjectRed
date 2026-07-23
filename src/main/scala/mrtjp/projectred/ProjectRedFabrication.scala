@@ -24,26 +24,22 @@ object ProjectRedFabrication
 
     val icMachineBakery:SubBlockBakery = new SubBlockBakery
 
-    val tabFabrication = new CreativeTabs("projectred.fabrication")
-    {
+    val tabFabrication: CreativeTabs = new CreativeTabs("projectred.fabrication") {
         override def createIcon = new ItemStack(itemICChip)
     }
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
-    {
+    def preInit(event: FMLPreInitializationEvent): Unit = {
         FabricationProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
-    {
+    def init(event: FMLInitializationEvent): Unit = {
         FabricationProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
-    {
+    def postInit(event: FMLPostInitializationEvent): Unit = {
         FabricationProxy.postinit()
     }
 }

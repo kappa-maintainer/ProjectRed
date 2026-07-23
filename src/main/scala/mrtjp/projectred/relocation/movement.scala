@@ -21,7 +21,7 @@ import net.minecraft.world.{NextTickListEntry, World, WorldServer}
 import net.minecraftforge.common.DimensionManager
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable.HashSet
 import scala.collection.mutable.{HashMap => MHashMap, MultiMap => MMultiMap, Set => MSet}
 import scala.ref.WeakReference
@@ -220,7 +220,7 @@ object MovementManager
                 val scheduledTicks = chunks.flatMap(ch => world.getPendingBlockUpdates(ch, !isOptifine)
                         .asInstanceOf[JAList[NextTickListEntry]] match {
                     case null => HashSet[NextTickListEntry]()
-                    case tList => tList.toSet
+                    case tList => tList.asScala.toSet
                 })
 
                 if (isOptifine) for (tick <- scheduledTicks) {

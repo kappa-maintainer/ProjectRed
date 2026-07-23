@@ -8,7 +8,7 @@
 //import net.minecraft.world.World
 //import net.minecraftforge.oredict.{OreDictionary, ShapedOreRecipe, ShapelessOreRecipe}
 //
-//import scala.collection.JavaConversions._
+//import scala.jdk.CollectionConverters._
 //import scala.util.control.Breaks._
 //
 //class ShapelessNBTSensitiveRecipe(result:ItemStack, recipe:AnyRef*) extends ShapelessOreRecipe(result, recipe:_*)

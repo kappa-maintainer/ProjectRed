@@ -34,7 +34,7 @@ import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import org.lwjgl.opengl.GL11
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class BlockFrame extends Block(Material.WOOD) with IFrame
 {
@@ -182,7 +182,7 @@ object FrameModelGen
 {
     private val modelParts = OBJParser.parseModels(this.getClass.getResource(
         "/assets/projectred/textures/obj/mechanical/frame.obj").openStream(),
-        GL11.GL_QUADS, null).map(a => (a._1, a._2.backfacedCopy))
+        GL11.GL_QUADS, null).asScala.map(a => (a._1, a._2.backfacedCopy))
 
     private val models = new Array[CCModel](64)
 
@@ -201,7 +201,7 @@ object FrameModelGen
         var m = modelParts("frame").copy
 
         for (s <- 0 until 6) if ((mask & 1 << s) == 0)
-            m = combine(Seq(m, modelParts("cross_" + s)))
+            m = combine(Seq(m, modelParts("cross_" + s)).asJava)
 
         finishModel(m)
     }

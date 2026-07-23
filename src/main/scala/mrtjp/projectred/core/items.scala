@@ -1,7 +1,6 @@
 package mrtjp.projectred.core
 
 import java.util.{List => JList}
-
 import mrtjp.core.item.{ItemCore, ItemDefinition}
 import mrtjp.projectred.ProjectRedCore
 import mrtjp.projectred.api.IScrewdriver
@@ -13,6 +12,8 @@ import net.minecraft.util.NonNullList
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.client.model.ModelLoader
+
+import scala.language.postfixOps
 
 abstract class ItemCraftingDamage extends ItemCore
 {

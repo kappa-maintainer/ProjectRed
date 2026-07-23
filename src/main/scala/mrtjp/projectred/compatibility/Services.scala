@@ -9,20 +9,20 @@ import net.minecraftforge.fml.common.Loader
 object Services
 {
     //Hardcoded list of all possible plugins
-    val rootPlugins = Seq[IPRPlugin](
+    val rootPlugins: Seq[IPRPlugin] = Seq[IPRPlugin](
         PluginCC_BundledCable,
         PluginTreecapitator,
         PluginChisel
-//        PluginTConstruct,
-//        PluginThermalExpansion,
-//        PluginColoredLights,
-//        PluginMFRDeepStorage
+        //        PluginTConstruct,
+        //        PluginThermalExpansion,
+        //        PluginColoredLights,
+        //        PluginMFRDeepStorage
     )
 
     //List of all loaded plugins
-    var plugins = Seq[IPRPlugin]()
+    var plugins: Seq[IPRPlugin] = Seq[IPRPlugin]()
 
-    def servicesLoad()
+    def servicesLoad(): Unit =
     {
         try {
             for (p <- rootPlugins)
@@ -36,17 +36,17 @@ object Services
         }
     }
 
-    def doPreInit()
+    def doPreInit(): Unit =
     {
         for (p <- plugins) p.preInit()
     }
 
-    def doInit()
+    def doInit(): Unit =
     {
         for (p <- plugins) p.init()
     }
 
-    def doPostInit()
+    def doPostInit(): Unit =
     {
         for (p <- plugins) p.postInit()
     }

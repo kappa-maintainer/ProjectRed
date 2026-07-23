@@ -17,7 +17,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{EnumFacing, EnumHand}
 import net.minecraft.util.math.BlockPos
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOcclusionPart with TFaceConnectable with TSwitchPacket with TIconHitEffectsPart with TFacePowerPart
 {
@@ -122,7 +122,7 @@ trait TFaceElectricalDevice extends TMultiPart with TCuboidPart with TNormalOccl
 
     def getItem:ItemStack
 
-    override def getDrops = Seq(getItem)
+    override def getDrops = Seq(getItem).asJava
 
     override def pickItem(hit:CuboidRayTraceResult) = getItem
 

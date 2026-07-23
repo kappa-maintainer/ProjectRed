@@ -21,7 +21,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
 import org.lwjgl.opengl.GL11
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.util.control.Breaks
 
 object ComponentStore
@@ -132,13 +132,13 @@ object ComponentStore
     def loadCorrectedModels(name:String) =
     {
         val m = OBJParser.parseModels(new ResourceLocation("projectred:textures/obj/integration/"+name+".obj"), GL11.GL_QUADS, null)
-        val models = m.map(m => m._1 -> m._2.backfacedCopy())
+        val models = m.asScala.map(m => m._1 -> m._2.backfacedCopy())
         models.values.foreach(_.computeNormals.shrinkUVs(0.0005))
         models
     }
 
     def loadCorrectedModel(name:String) =
-        CCModel.combine(loadCorrectedModels(name).values)
+        CCModel.combine(loadCorrectedModels(name).values.asJavaCollection)
 
     @deprecated
     def parseModels(name:String) =
@@ -147,7 +147,7 @@ object ComponentStore
     @deprecated("use loadCorrectedModels instead")
     def loadModels(name:String) =
     {
-        val models = mapAsScalaMap(parseModels(name))
+        val models = parseModels(name).asScala
         models.values.foreach(_.computeNormals.shrinkUVs(0.0005))
         models
     }

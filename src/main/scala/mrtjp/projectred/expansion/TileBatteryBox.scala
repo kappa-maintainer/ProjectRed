@@ -218,7 +218,7 @@ class TileBatteryBox extends TileMachine with TPowerStorage with TGuiMachine wit
         GuiBatteryBox.open(player, createContainer(player), _.writePos(getPos))
     }
 
-    override def createContainer(player:EntityPlayer) =
+    override def createContainer(player: EntityPlayer): ContainerBatteryBox =
         new ContainerBatteryBox(player, this)
 }
 
@@ -234,11 +234,11 @@ class ContainerBatteryBox(p:EntityPlayer, tile:TileBatteryBox) extends Container
     override def detectAndSendChanges()
     {
         super.detectAndSendChanges()
-        import scala.collection.JavaConversions._
-        for (i <- listeners)
+        import scala.jdk.CollectionConverters._
+        for (i <- listeners.asScala)
         {
-            if (st != tile.powerStored) i.asInstanceOf[IContainerListener]
-                    .sendWindowProperty(this, 3, tile.powerStored)
+            if (st != tile.powerStored) i
+                .sendWindowProperty(this, 3, tile.powerStored)
         }
         st = tile.powerStored
     }

@@ -118,7 +118,7 @@ class LeverICTile extends ICTile with TICTileAcquisitions with IRedwireICGate wi
     override def buildRolloverData(buffer:ListBuffer[String])
     {
         super.buildRolloverData(buffer)
-        buffer += ChatFormatting.GRAY+"state: "+(if (on) "on" else "off")
+        buffer += ChatFormatting.GRAY.toString+"state: "+(if (on) "on" else "off")
     }
 
     @SideOnly(Side.CLIENT)

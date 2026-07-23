@@ -128,7 +128,7 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
 
     override def renderItem(item:ItemStack, transformType: TransformType)
     {
-        import scala.collection.JavaConversions._
+        import scala.jdk.CollectionConverters._
         val meta = item.getItemDamage
         val icon = new IconTransformation(if (meta > 15) LampRenderer.iconsOn(meta%16) else LampRenderer.iconsOff(meta))
 
@@ -147,7 +147,7 @@ object LampRenderer extends TileEntitySpecialRenderer[TileLamp] with IItemRender
         }
 
         def renderQuads(quads: JList[BakedQuad]) = {
-            for (quad:BakedQuad <- quads ) {
+            for (quad:BakedQuad <- quads.asScala) {
                 ccrs.getBuffer.addVertexData(quad.getVertexData)
             }
         }

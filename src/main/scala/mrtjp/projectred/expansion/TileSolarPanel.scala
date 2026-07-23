@@ -35,7 +35,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoadMachine with ITickable
 {
@@ -64,7 +64,7 @@ class SolarPanelPart extends TMultiPart with TFaceElectricalDevice with ILowLoad
     override def conductor(dir:Int) = cond
 
     override def getBounds = FaceMicroFactory.aBounds(0x10|side)
-    override def getOcclusionBoxes = SolarPanelPart.oBoxes(side).toSeq
+    override def getOcclusionBoxes = SolarPanelPart.oBoxes(side).toSeq.asJava
 
     override def doesRotate = false
 

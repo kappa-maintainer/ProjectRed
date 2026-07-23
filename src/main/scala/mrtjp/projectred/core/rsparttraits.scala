@@ -82,7 +82,7 @@ trait TCenterRSAcquisitions extends TRSAcquisitionsCommons with TCenterAcquisiti
 
 trait TPropagationCommons extends TMultiPart with IWirePart
 {
-    var propagationMask:Int
+    var propagationMask:Int = 0
 
     def propagate(prev:TMultiPart, mode:Int)
 
@@ -114,7 +114,7 @@ trait TPropagationCommons extends TMultiPart with IWirePart
 
 trait TFacePropagation extends TPropagationCommons with TFaceConnectable
 {
-    override var propagationMask = 0xF
+    propagationMask = 0xF
 
     override def propagate(prev:TMultiPart, mode:Int)
     {
@@ -132,7 +132,7 @@ trait TFacePropagation extends TPropagationCommons with TFaceConnectable
 
 trait TCenterPropagation extends TPropagationCommons with TCenterConnectable
 {
-    override var propagationMask = 0x3F
+    propagationMask = 0x3F
 
     override def propagate(prev:TMultiPart, mode:Int)
     {

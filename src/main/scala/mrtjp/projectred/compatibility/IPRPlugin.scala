@@ -6,9 +6,9 @@ trait IPRPlugin
 
     def isEnabled:Boolean
 
-    def preInit()
-    def init()
-    def postInit()
+    def preInit(): Unit
+    def init(): Unit
+    def postInit(): Unit
 
     def loadFailedDesc():String = "Failed to load PR Plugin: "+desc()
     def loadCompleteDesc():String = "Loaded PR Plugin: "+desc()

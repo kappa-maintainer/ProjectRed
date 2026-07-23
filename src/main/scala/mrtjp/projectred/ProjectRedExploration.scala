@@ -77,21 +77,18 @@ object ProjectRedExploration
     }
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
-    {
+    def preInit(event: FMLPreInitializationEvent): Unit = {
         SimpleGenHandler.init()
         ExplorationProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
-    {
+    def init(event: FMLInitializationEvent): Unit = {
         ExplorationProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
-    {
+    def postInit(event: FMLPostInitializationEvent): Unit = {
         ExplorationProxy.postinit()
     }
 }

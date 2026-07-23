@@ -17,8 +17,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats
 import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL11._
 
-import scala.collection.JavaConversions._
-
 object RenderICTileMap
 {
     def registerIcons(reg:TextureMap)
@@ -63,6 +61,7 @@ object RenderICTileMap
 import mrtjp.projectred.fabrication.ICComponentStore._
 object PrefboardRenderer
 {
+    import scala.jdk.CollectionConverters._
     private var boardModels = Map[(Int, Int), Seq[CCModel]]()
     private var cornerModels = Map[(Int, Int), Seq[CCModel]]()
     private var edgeModels = Map[(Int, Int), Seq[CCModel]]()
@@ -85,7 +84,7 @@ object PrefboardRenderer
             var models = Seq[CCModel]()
             for (t <- corners)
                 models :+= m.copy.apply(t)
-            CCModel.combine(models)
+            CCModel.combine(models.toList.asJavaCollection)
         }
     }
 
@@ -105,7 +104,7 @@ object PrefboardRenderer
             var models = Seq[CCModel]()
             for ((t, uvt) <- edges)
                 models :+= m.copy.apply(t).apply(uvt)
-            CCModel.combine(models)
+            CCModel.combine(models.asJavaCollection)
         }
     }
 

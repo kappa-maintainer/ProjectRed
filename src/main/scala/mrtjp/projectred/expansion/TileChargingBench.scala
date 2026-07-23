@@ -29,6 +29,8 @@ import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
+import scala.language.postfixOps
+
 class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachine with TInventory with ISidedInventory with TInventoryCapablilityTile
 {
     var powerStorage = 0
@@ -100,7 +102,7 @@ class TileChargingBench extends TileMachine with TPoweredMachine with TGuiMachin
     override def openGui(player:EntityPlayer) =
         GuiChargingBench.open(player, createContainer(player), _.writePos(getPos))
 
-    override def createContainer(player:EntityPlayer) = new ContainerChargingBench(player, this)
+    override def createContainer(player: EntityPlayer): ContainerChargingBench = new ContainerChargingBench(player, this)
 
     override def getBlock = ProjectRedExpansion.machine2
 
@@ -205,11 +207,11 @@ class ContainerChargingBench(p:EntityPlayer, tile:TileChargingBench) extends Con
     override def detectAndSendChanges()
     {
         super.detectAndSendChanges()
-        import scala.collection.JavaConversions._
-        for (i <- listeners)
+        import scala.jdk.CollectionConverters._
+        for (i <- listeners.asScala)
         {
-            if (st != tile.powerStorage) i.asInstanceOf[IContainerListener]
-                    .sendWindowProperty(this, 3, tile.powerStorage)
+            if (st != tile.powerStorage) i
+                .sendWindowProperty(this, 3, tile.powerStorage)
         }
         st = tile.powerStorage
     }

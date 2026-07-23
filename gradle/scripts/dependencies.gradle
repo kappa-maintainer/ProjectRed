@@ -4,7 +4,6 @@ repositories {
     maven { name = 'DVS1'; url = 'https://dvs1.progwml6.com/files/maven/' }
     maven { name = 'Outlands'; url = 'https://maven.outlands.top/releases' }
     maven { name = 'CleanroomMC'; url = 'https://repo.cleanroommc.com/releases' }
-    maven { name = 'Cleanroom'; url = 'https://maven.cleanroommc.com' }
     maven { name = 'CurseMaven'; url = 'https://cursemaven.com' }
     mavenCentral()
     mavenLocal()

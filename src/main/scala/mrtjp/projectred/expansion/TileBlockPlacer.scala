@@ -219,20 +219,20 @@ class TileBlockPlacer extends TileMachine with TActiveDevice with TInventory wit
         false
     }
 
-    def traceEntityHits(start:Vector3, end:Vector3) =
+    def traceEntityHits(start:Vector3, end:Vector3): Entity =
     {
         val box = new Cuboid6(0, 1, 0, 1, 3.5, 1).apply(rotationT).add(pos)
         val elist = world.getEntitiesWithinAABBExcludingEntity(fakePlayer, box.aabb)
 
-        import scala.collection.JavaConversions._
-        val eBoxes = elist.zipWithIndex.filter(_._1.canBeCollidedWith).map { pair =>
+        import scala.jdk.CollectionConverters._
+        val eBoxes = elist.asScala.zipWithIndex.filter(_._1.canBeCollidedWith).map { pair =>
             new IndexedCuboid6(pair._2, new Cuboid6(pair._1.getEntityBoundingBox)
                     .expand(pair._1.getCollisionBorderSize))
-        }
+        }.asJava
 
         val hit = RayTracer.rayTraceCuboidsClosest(start, end, pos, eBoxes)
         if (hit != null)
-            elist(hit.cuboid6.data.asInstanceOf[Int])
+            elist.get(hit.cuboid6.data.asInstanceOf[Int])
         else
             null
 

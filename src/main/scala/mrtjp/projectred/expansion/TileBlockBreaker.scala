@@ -19,7 +19,7 @@ import net.minecraft.util.{EnumFacing, ResourceLocation}
 import net.minecraft.world.IBlockAccess
 import net.minecraftforge.common.property.IExtendedBlockState
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IRedstoneConnector with TNonStickableFrontFace
 {
@@ -41,7 +41,7 @@ class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IReds
         if (state.getBlockHardness(world, bc) < 0) return
         if (state.getBlock.getHarvestLevel(state) > getHarvestLevel) return
 
-        state.getBlock.getDrops(world, bc, state, 0).foreach(itemStorage.add)
+        state.getBlock.getDrops(world, bc, state, 0).asScala.foreach(itemStorage.add)
         world.playEvent(null, 2001, getPos, Block.getStateId(state))
         world.setBlockToAir(bc)
         exportBuffer()

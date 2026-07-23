@@ -70,8 +70,8 @@ object RenderFramedWire extends IMicroHighlightRenderer
     def renderBreakingOverlay(icon:TextureAtlasSprite, wire:FramedWirePart, ccrs: CCRenderState)
     {
         ccrs.setPipeline(new Translation(wire.pos), new IconTransformation(icon))
-        import scala.collection.JavaConversions._
-        for (box <- wire.getCollisionBoxes) BlockRenderer.renderCuboid(ccrs, box, 0)
+        import scala.jdk.CollectionConverters._
+        for (box <- wire.getCollisionBoxes.asScala) BlockRenderer.renderCuboid(ccrs, box, 0)
     }
 
     def renderInv(thickness:Int, hue:Int, ccrs:CCRenderState, ops:IVertexOperation*)

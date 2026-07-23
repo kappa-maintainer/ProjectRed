@@ -15,7 +15,7 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.util.matching.Regex
 
 object StickRegistry
@@ -100,7 +100,7 @@ object BlockStateFilter
                         case Array(key, value) =>
                             val prop = block.getBlockState.getProperty(key)
                             val pvalue = prop.parseValue(value).get
-                            (prop, pvalue)
+                            (prop, pvalue.asInstanceOf[Comparable[_]])
                         case _ => throw new MatchError(s"Illegal key/value pair $it")
                     })
             BlockStateFilter(block, constraints.toMap)
@@ -108,5 +108,5 @@ object BlockStateFilter
     }
 
     def fromBlockState(state:IBlockState):BlockStateFilter =
-        BlockStateFilter(state.getBlock, state.getProperties.toMap)
+        BlockStateFilter(state.getBlock, state.getProperties.asScala.toMap)
 }

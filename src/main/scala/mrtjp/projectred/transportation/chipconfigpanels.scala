@@ -44,7 +44,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "Filter mode"
-            list += (ChatFormatting.GRAY + "Items are " + (if(chip.filterExclude) "blacklisted" else "whitelisted"))
+            list += (ChatFormatting.GRAY.toString + "Items are " + (if(chip.filterExclude) "blacklisted" else "whitelisted"))
         }
         b.clickDelegate = {() =>
             chip.toggleExcludeMode()
@@ -66,7 +66,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "Metadata matching"
-                list += (ChatFormatting.GRAY+"Meta is "+(if (chip.metaMatch) "checked" else "ignored"))
+                list += (ChatFormatting.GRAY.toString+"Meta is "+(if (chip.metaMatch) "checked" else "ignored"))
             }
             b.clickDelegate = {() =>
                 chip.toggleMetaMode()
@@ -86,7 +86,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "NBT matching"
-                list += (ChatFormatting.GRAY+"NBT is "+(if (chip.nbtMatch) "checked" else "ignored"))
+                list += (ChatFormatting.GRAY.toString+"NBT is "+(if (chip.nbtMatch) "checked" else "ignored"))
             }
             b.clickDelegate = {() =>
                 chip.toggleNBTMode()
@@ -106,7 +106,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "Ore Dictionary matching"
-                list += (ChatFormatting.GRAY+"Ore Dictionary is "+(if (chip.oreMatch) "checked" else "ignored"))
+                list += (ChatFormatting.GRAY.toString+"Ore Dictionary is "+(if (chip.oreMatch) "checked" else "ignored"))
             }
             b.clickDelegate = {() =>
                 chip.toggleOreMode()
@@ -128,7 +128,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             b.tooltipBuilder = { list =>
                 list += "Damage groups"
                 val percent = chip.grpPerc(chip.damageGroupMode)
-                list += (ChatFormatting.GRAY+(percent match
+                list += (ChatFormatting.GRAY.toString+(percent match
                 {
                     case -1 => "Tools are not grouped by damage."
                     case _ => "Tools grouped at "+percent+"%"
@@ -156,7 +156,7 @@ class FilterChipPanel(chip:TChipFilter) extends ChipPanelNode(chip)
             b.size = Size(14, 14)
             b.tooltipBuilder = { list =>
                 list += "Item hiding"
-                list += (ChatFormatting.GRAY+"Hide "+(if (chip.hideMode == 0) "nothing" else chip.hide(chip.hideMode)))
+                list += (ChatFormatting.GRAY.toString+"Hide "+(if (chip.hideMode == 0) "nothing" else chip.hide(chip.hideMode)))
             }
             b.clickDelegate = {() =>
                 chip.shiftHiding()
@@ -306,7 +306,7 @@ class StockChipPanel(chip:TChipStock) extends ChipPanelNode(chip)
         b.size = Size(14, 14)
         b.tooltipBuilder = {list =>
             list += "Fill mode"
-            list += ChatFormatting.GRAY+(chip.requestMode match
+            list += ChatFormatting.GRAY.toString+(chip.requestMode match
             {
                 case 0 => "refill when items missing"
                 case 1 => "refill when items empty"
@@ -446,7 +446,7 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "Metadata matching"
-            list += (ChatFormatting.GRAY+"Meta is "+(if (chip.matchMeta(idx)) "checked" else "ignored"))
+            list += (ChatFormatting.GRAY.toString+"Meta is "+(if (chip.matchMeta(idx)) "checked" else "ignored"))
         }
         b.clickDelegate = {() =>
             chip.toggleMatchMeta(idx)
@@ -467,7 +467,7 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "NBT matching"
-            list += (ChatFormatting.GRAY+"NBT is "+(if (chip.matchNBT(idx)) "checked" else "ignored"))
+            list += (ChatFormatting.GRAY.toString+"NBT is "+(if (chip.matchNBT(idx)) "checked" else "ignored"))
         }
         b.clickDelegate = {() =>
             chip.toggleMatchNBT(idx)
@@ -488,7 +488,7 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
         b.size = Size(14, 14)
         b.tooltipBuilder = { list =>
             list += "Ore Dictionary matching"
-            list += (ChatFormatting.GRAY+"Ore Dictionary is "+(if (chip.matchOre(idx)) "checked" else "ignored"))
+            list += (ChatFormatting.GRAY.toString+"Ore Dictionary is "+(if (chip.matchOre(idx)) "checked" else "ignored"))
         }
         b.clickDelegate = {() =>
             chip.toggleMatchOre(idx)
@@ -511,7 +511,7 @@ class MatrixMatchingPanel(chip:TChipMatchMatrix) extends ChipPanelNode(chip)
         b.tooltipBuilder = { list =>
             list += "Damage groups"
             val percent = chip.grpPerc(chip.matchGroup(idx))
-            list += (ChatFormatting.GRAY+(percent match
+            list += (ChatFormatting.GRAY.toString+(percent match
             {
                 case -1 => "Tools are not grouped by damage."
                 case _ => "Tools grouped at "+percent+"%"

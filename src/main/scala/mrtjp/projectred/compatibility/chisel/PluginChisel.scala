@@ -14,16 +14,16 @@ object PluginChisel extends IPRPlugin
 
     override def getModIDs = Array(chiselModID, "projectred-exploration")
 
-    override def isEnabled = Configurator.compat_Chisel
+    override def isEnabled: Boolean = Configurator.compat_Chisel
 
-    override def preInit(){}
+    override def preInit(): Unit = {}
 
-    override def init()
+    override def init(): Unit =
     {
         ChiselExplorationIntegration.initChiselModIntegration()
     }
 
-    override def postInit(){}
+    override def postInit(): Unit = {}
 
     override def desc() = "Chisel: Exploration decorative blocks"
 }
@@ -36,9 +36,9 @@ private object ChiselExplorationIntegration
     private val tagKeyBlock = "block"
     private val tagKeyMeta = "meta"
 
-    def initChiselModIntegration()
+    def initChiselModIntegration(): Unit =
     {
-        def addToGroup(group:String, stack:ItemStack, block:Block, meta:Int) {
+        def addToGroup(group: String, stack: ItemStack, block: Block, meta: Int): Unit = {
             val message = new NBTTagCompound
             message.setString(tagKeyGroup, group)
             message.setTag(tagKeyStack, stack.serializeNBT())

@@ -23,25 +23,25 @@ object ProjectRedTransmission
     }
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
+    def preInit(event:FMLPreInitializationEvent): Unit =
     {
         TransmissionProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
+    def init(event:FMLInitializationEvent): Unit =
     {
         TransmissionProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
+    def postInit(event:FMLPostInitializationEvent): Unit =
     {
         TransmissionProxy.postinit()
     }
 
     @Mod.EventHandler
-    def serverStopping(event:FMLServerAboutToStartEvent)
+    def serverStopping(event:FMLServerAboutToStartEvent): Unit =
     {
         WirePropagator.reset()
     }

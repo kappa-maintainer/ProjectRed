@@ -15,6 +15,8 @@ import mrtjp.projectred.fabrication.TileEditorOp._
 import mrtjp.projectred.fabrication.ICComponentStore._
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
+import scala.language.postfixOps
+
 object TileEditorOpDefs extends Enum
 {
     type EnumVal = OpDef

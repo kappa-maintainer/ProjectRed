@@ -89,7 +89,7 @@ class TileElectrotineGenerator extends TPoweredMachine with TGuiMachine with TIn
     override def openGui(player:EntityPlayer) =
         GuiElectrotineGenerator.open(player, createContainer(player), _.writePos(getPos))
 
-    override def createContainer(player:EntityPlayer) =
+    override def createContainer(player: EntityPlayer): ContainerElectrotineGenerator =
         new ContainerElectrotineGenerator(player, this)
 
     override protected val storage = Array.fill(1)(ItemStack.EMPTY)//new Array[ItemStack](1)
@@ -197,8 +197,8 @@ class ContainerElectrotineGenerator(p:EntityPlayer, tile:TileElectrotineGenerato
     override def detectAndSendChanges()
     {
         super.detectAndSendChanges()
-        import scala.collection.JavaConversions._
-        for (i <- listeners)
+        import scala.jdk.CollectionConverters._
+        for (i <- listeners.asScala)
         {
             if (st != tile.powerStorage) i
                     .sendWindowProperty(this, 3, tile.powerStorage)

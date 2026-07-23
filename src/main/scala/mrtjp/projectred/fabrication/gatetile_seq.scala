@@ -271,7 +271,7 @@ class Repeater(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String])
     {
         super.buildRolloverData(gate, buffer)
-        buffer += GRAY+"delay: "+delays(gate.shape)
+        buffer += GRAY.toString+"delay: "+delays(gate.shape)
     }
 
     override def allocInternalRegisters(linker:ISELinker)
@@ -717,7 +717,7 @@ trait TTimerICGateLogic extends SequentialGateTileLogic with ITimerGuiLogic
     override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String]) =
     {
         super.buildRolloverData(gate, buffer)
-        buffer += GRAY+"interval: "+"%.2f".format(getTimerMax*0.05)+"s"
+        buffer += GRAY.toString+"interval: "+"%.2f".format(getTimerMax*0.05)+"s"
     }
 }
 
@@ -948,7 +948,7 @@ class Sequencer(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate)
     override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String])
     {
         super.buildRolloverData(gate, buffer)
-        buffer += GRAY+"interval: "+"%.2f".format(getTimerMax*0.05)+"s"
+        buffer += GRAY.toString+"interval: "+"%.2f".format(getTimerMax*0.05)+"s"
     }
 
     override def allocInternalRegisters(linker:ISELinker){}
@@ -1113,10 +1113,10 @@ class Counter(gate:SequentialGateICTile) extends SequentialGateTileLogic(gate) w
     override def buildRolloverData(gate:SequentialGateICTile, buffer:ListBuffer[String])
     {
         super.buildRolloverData(gate, buffer)
-        buffer += GRAY + s"value: $getCounterValue"
-        buffer += GRAY + s"start at $getCounterStart"
-        buffer += GRAY + s"incr to $getCounterMax by $getCounterIncr"
-        buffer += GRAY + s"decr to 0 by $getCounterDecr"
+        buffer += GRAY.toString + s"value: $getCounterValue"
+        buffer += GRAY.toString + s"start at $getCounterStart"
+        buffer += GRAY.toString + s"incr to $getCounterMax by $getCounterIncr"
+        buffer += GRAY.toString + s"decr to 0 by $getCounterDecr"
     }
 
     override def allocInternalRegisters(linker:ISELinker)

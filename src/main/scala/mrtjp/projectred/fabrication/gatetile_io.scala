@@ -172,16 +172,16 @@ abstract class IOGateTileLogic(val gate:IOGateICTile) extends RedstoneGateTileLo
     {
         super.buildRolloverData(gate, buffer)
         import com.mojang.realmsclient.gui.ChatFormatting._
-        buffer += GRAY + "freq: "+getFreqName
-        buffer += GRAY + "mode: "+(gate.shape match {
+        buffer += GRAY.toString + "freq: "+getFreqName
+        buffer += GRAY.toString + "mode: "+(gate.shape match {
             case 0 => "I"
             case 1 => "O"
         })
 
         if (gate.getIOMode == Input)
-            buffer += GRAY + "I: "+(if ((gate.state&0xF) != 0) "high" else "low")
+            buffer += GRAY.toString + "I: "+(if ((gate.state&0xF) != 0) "high" else "low")
         else
-            buffer += GRAY + "O: "+(if ((gate.state>>4) != 0) "high" else "low")
+            buffer += GRAY.toString + "O: "+(if ((gate.state>>4) != 0) "high" else "low")
     }
 
     override def activate(gate:IOGateICTile)

@@ -181,7 +181,7 @@ private class WireNetChannel
 
 class ImplicitWireNet(ic:ICTileMapContainer, p:Point, r:Int) extends IWireNet
 {
-    override val points = MBuffer[(Point, Int)]()
+    override val points: mutable.Buffer[(Point, Int)] = mutable.Buffer[(Point, Int)]()
 
     private var regID = -1
 
@@ -240,11 +240,11 @@ class ImplicitWireNet(ic:ICTileMapContainer, p:Point, r:Int) extends IWireNet
 
 class WireNet(ic:ICTileMapContainer, p:Point, mask:Int) extends IWireNet
 {
-    override val points = MBuffer[(Point, Int)]()
+    override val points: mutable.Buffer[(Point, Int)] = mutable.Buffer[(Point, Int)]()
 
-    private val channels = MBuffer[WireNetChannel]()
+    private val channels = mutable.Buffer[WireNetChannel]()
 
-    private val inputs = MBuffer[(Point, Int)]()
+    private val inputs = mutable.Buffer[(Point, Int)]()
     private val outputs = MBuffer[(Point, Int)]()
 
     private val busWires = MSet[(Point, Int)]()

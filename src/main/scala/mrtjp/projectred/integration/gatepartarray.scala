@@ -24,7 +24,7 @@ trait TArrayGatePart extends RedstoneGatePart with IRedwirePart with TFaceRSProp
     override def getSignal = getLogicArray.getSignal(toInternalMask(propagationMask))
     override def setSignal(signal:Int) = getLogicArray.setSignal(toInternalMask(propagationMask), signal)
 
-    abstract override def updateAndPropagate(prev:TMultiPart, mode:Int)
+    override def updateAndPropagate(prev:TMultiPart, mode:Int)
     {
         val rd = sideDiff(prev)
         var uMask = 0
@@ -262,14 +262,13 @@ object ArrayGatePart
 
 object ArrayGateLogic
 {
-    import mrtjp.projectred.integration.GateDefinition._
     def create(gate:ArrayGatePart, subID:Int) = subID match
     {
-        case NullCell.ordinal => new NullCell(gate)
-        case InvertCell.ordinal => new InvertCell(gate)
-        case BufferCell.ordinal => new BufferCell(gate)
-        case ANDCell.ordinal => new ANDCell(gate)
-        case StackingLatch.ordinal => new StackingLatch(gate)
+        case GateDefinition.NullCell.ordinal => new NullCell(gate)
+        case GateDefinition.InvertCell.ordinal => new InvertCell(gate)
+        case GateDefinition.BufferCell.ordinal => new BufferCell(gate)
+        case GateDefinition.ANDCell.ordinal => new ANDCell(gate)
+        case GateDefinition.StackingLatch.ordinal => new StackingLatch(gate)
         case _ => throw new IllegalArgumentException("Invalid gate subID: "+subID)
     }
 }

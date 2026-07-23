@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.event.FMLInterModComms
 
 object AfterWorldCheck
 {
-    def checkedInit()
+    def checkedInit(): Unit =
     {
         val tpModCfg = new NBTTagCompound
         tpModCfg.setString("modID", "projectred-exploration")
@@ -26,16 +26,16 @@ object PluginTreecapitator extends IPRPlugin
 {
     override def getModIDs = Array("TreeCapitator", "projectred-exploration")
 
-    override def isEnabled = Configurator.compat_Treecapitator
+    override def isEnabled: Boolean = Configurator.compat_Treecapitator
 
-    override def preInit(){}
+    override def preInit(): Unit = {}
 
-    override def init()
+    override def init(): Unit =
     {
         AfterWorldCheck.checkedInit()
     }
 
-    override def postInit(){}
+    override def postInit(): Unit = {}
 
     override def desc() = "Treecapitator: gem axe compat"
 }

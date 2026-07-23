@@ -115,7 +115,7 @@ abstract class RedwireICTile extends WireICTile with IRedwireICPart
         super.buildRolloverData(buffer)
 
         import com.mojang.realmsclient.gui.ChatFormatting._
-        buffer += GRAY+"state: "+(if (signal != 0) "high" else "low")
+        buffer += GRAY.toString+"state: "+(if (signal != 0) "high" else "low")
     }
 }
 

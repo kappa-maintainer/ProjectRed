@@ -141,8 +141,8 @@ abstract class ComboGateTileLogic extends RedstoneGateTileLogic[ComboGateICTile]
     override def buildRolloverData(gate:ComboGateICTile, buffer:ListBuffer[String])
     {
         super.buildRolloverData(gate, buffer)
-        buffer += GRAY + "I: "+rolloverInput(gate)
-        buffer += GRAY + "O: "+rolloverOutput(gate)
+        buffer += GRAY.toString + "I: "+rolloverInput(gate)
+        buffer += GRAY.toString + "O: "+rolloverOutput(gate)
     }
 
     def rolloverInput(gate:ComboGateICTile) = "0x"+Integer.toHexString(gate.state&0xF)

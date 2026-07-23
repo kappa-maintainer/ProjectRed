@@ -17,20 +17,17 @@ object ProjectRedIntegration
     }
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
-    {
+    def preInit(event: FMLPreInitializationEvent): Unit = {
         IntegrationProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
-    {
+    def init(event: FMLInitializationEvent): Unit = {
         IntegrationProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
-    {
+    def postInit(event: FMLPostInitializationEvent): Unit = {
         IntegrationProxy.postinit()
     }
 }

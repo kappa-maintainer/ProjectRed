@@ -8,7 +8,8 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
 import net.minecraft.world.World
 
-import scala.collection.mutable.{Map => MMap}
+import scala.collection.mutable
+import scala.collection.mutable.Map as MMap
 
 trait IICTileEditorNetwork
 {
@@ -103,7 +104,7 @@ trait TICTileEditorNetwork extends IICTileEditorNetwork
 
 class ICTileMapContainer extends ISETileMap
 {
-    override val tiles = MMap[(Int, Int), ICTile]()
+    override val tiles: mutable.Map[(Int, Int), ICTile] = mutable.Map[(Int, Int), ICTile]()
 
     var tilesLoadedDelegate = {() => ()}
 

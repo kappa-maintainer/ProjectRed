@@ -28,8 +28,7 @@ object ProjectRedExpansion
     /** Parts **/
     var itemSolar:ItemSolarPanel = _
 
-    val tabExpansion = new CreativeTabs("projectred.expansion")
-    {
+    val tabExpansion: CreativeTabs = new CreativeTabs("projectred.expansion") {
         override def createIcon = new ItemStack(machine2)
     }
 
@@ -37,20 +36,17 @@ object ProjectRedExpansion
     val machine2Bakery:SubBlockBakery = new SubBlockBakery
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
-    {
+    def preInit(event: FMLPreInitializationEvent): Unit = {
         ExpansionProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
-    {
+    def init(event: FMLInitializationEvent): Unit = {
         ExpansionProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
-    {
+    def postInit(event: FMLPostInitializationEvent): Unit = {
         ExpansionProxy.postinit()
     }
 }

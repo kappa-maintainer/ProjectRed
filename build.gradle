@@ -20,7 +20,7 @@ base {
 }
 
 scala {
-    scalaVersion = scala_version
+    scalaVersion = '3.8.4'
 }
 
 java {
@@ -128,6 +128,10 @@ processResources {
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
+tasks.named('sourcesJar', Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 compileJava {
     options.release = java_version.toInteger()
     options.encoding = 'UTF-8'
@@ -139,9 +143,12 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.withType(ScalaCompile).configureEach {
     options.encoding = 'UTF-8'
-    // Java 25 is the compiler toolchain and Scala 3 emits Java 25-compatible bytecode.
-    def migrationMode = project.findProperty('scala_migration_mode')?.toString()
-    scalaCompileOptions.additionalParameters = ['-release:25'] + (migrationMode ? migrationMode.split(' ').toList() : [])
+    scalaCompileOptions.additionalParameters = [
+            '-release:25',
+            /*'-Ytasty-reader', */
+            '-nowarn', 
+            '-source:3.0-migration',
+            /*'-rewrite'*/]
 }
 
 jar {

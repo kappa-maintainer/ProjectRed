@@ -53,7 +53,7 @@ public interface ILuaContext
     @Nonnull
     default Object[] pullEventRaw( @Nullable String filter ) throws InterruptedException
     {
-        return yield( new Object[] { filter } );
+        return this.yield( new Object[] { filter } );
     }
 
     /**

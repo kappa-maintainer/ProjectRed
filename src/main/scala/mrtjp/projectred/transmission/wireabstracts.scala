@@ -20,7 +20,7 @@ import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.{BlockRenderLayer, EnumFacing, EnumHand, SoundCategory}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagationCommons with TSwitchPacket with TNormalOcclusionPart with TFastRenderPart
 {
@@ -97,7 +97,7 @@ trait TWireCommons extends TMultiPart with TConnectableCommons with TPropagation
 
     def getThickness = getWireType.thickness
 
-    override def getDrops = Seq(getItem)
+    override def getDrops = Seq(getItem).asJava
 
     override def pickItem(hit:CuboidRayTraceResult) = getItem
 
@@ -239,9 +239,9 @@ abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectab
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) = 2/30f
 
-    override def getSubParts = Seq(new IndexedCuboid6(0, WireBoxes.sBounds(getThickness)(side)))
+    override def getSubParts = Seq(new IndexedCuboid6(0, WireBoxes.sBounds(getThickness)(side))).asJava
 
-    override def getOcclusionBoxes = Seq(WireBoxes.oBounds(getThickness)(side))
+    override def getOcclusionBoxes = Seq(WireBoxes.oBounds(getThickness)(side)).asJava
 
     override def redstoneConductionMap = 0xF
 
@@ -353,17 +353,17 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
 
     override def getDrops =
     {
-        if (hasMaterial) super.getDrops :+ ItemMicroPart.create(1, material)
+        if (hasMaterial) (super.getDrops.asScala ++ Iterable.single(ItemMicroPart.create(1, material))).asJava
         else super.getDrops
     }
 
-    override def getSubParts = getCollisionBoxes.map(that => new IndexedCuboid6(0, that))
+    override def getSubParts = getCollisionBoxes.asScala.map(that => new IndexedCuboid6(0, that)).asJava
 
     override def getOcclusionBoxes =
     {
         import mrtjp.projectred.transmission.WireBoxes._
-        if (expandBounds >= 0) Seq(fOBounds(expandBounds))
-        else Seq(fOBounds(6))
+        if (expandBounds >= 0) Seq(fOBounds(expandBounds)).asJava
+        else Seq(fOBounds(6)).asJava
     }
 
     override def getCollisionBoxes =
@@ -371,7 +371,7 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
         import mrtjp.projectred.transmission.WireBoxes._
         var b = Seq.newBuilder[Cuboid6].+=(fOBounds(6))
         for (s <- 0 until 6) if (maskConnects(s)) b += fOBounds(s)
-        b.result()
+        b.result().asJava
     }
 
     override def getHollowSize(side:Int) = 8

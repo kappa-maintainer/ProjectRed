@@ -126,11 +126,11 @@ class PropagationRun
 //        if (CommandDebug.WIRE_READING)
 //            println(count+" propogations, "+partChanges.size+" part changes, "+res_NeighborChanges.size+" block updates")
 
-        import scala.collection.JavaConversions._
-        for (entry <- partChanges.asMap.entrySet) {
+        import scala.jdk.CollectionConverters._
+        for (entry <- partChanges.asMap.entrySet.asScala) {
             val parts = entry.getValue
 
-            for (part <- parts) part.asInstanceOf[IWirePart].onSignalUpdate()
+            for (part <- parts.asScala) part.asInstanceOf[IWirePart].onSignalUpdate()
             entry.getKey.multiPartChange(parts)
         }
 

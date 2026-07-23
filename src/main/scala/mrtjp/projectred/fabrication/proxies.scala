@@ -62,9 +62,9 @@ class FabricationProxy_server extends IProxy with IPartFactory
             if (stack.getItemDamage == GateDefinition.ICGate.meta) {
                 import com.mojang.realmsclient.gui.ChatFormatting._
                 if (!ItemICBlueprint.hasICInside(stack)) {
-                    list.add(RED + "INVALID: Craft by surrounding Printed IC with Circuit Plates")
+                    list.add(RED.toString + "INVALID: Craft by surrounding Printed IC with Circuit Plates")
                 } else {
-                    list.add(GRAY+ItemICBlueprint.getICName(stack))
+                    list.add(GRAY.toString+ItemICBlueprint.getICName(stack))
                 }
             }
         }

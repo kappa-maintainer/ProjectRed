@@ -18,26 +18,22 @@ object ProjectRedIllumination
     var itemPartIllumarButton:ItemPartButton = _
     var itemPartIllumarFButton:ItemPartFButton = _
 
-    val tabLighting = new CreativeTabs("projectred.illumination")
-    {
+    val tabLighting: CreativeTabs = new CreativeTabs("projectred.illumination") {
         override def createIcon = new ItemStack(LightFactoryCage.getItem(true))
     }
 
     @Mod.EventHandler
-    def preInit(event:FMLPreInitializationEvent)
-    {
+    def preInit(event: FMLPreInitializationEvent): Unit = {
         IlluminationProxy.preinit()
     }
 
     @Mod.EventHandler
-    def init(event:FMLInitializationEvent)
-    {
+    def init(event: FMLInitializationEvent): Unit = {
         IlluminationProxy.init()
     }
 
     @Mod.EventHandler
-    def postInit(event:FMLPostInitializationEvent)
-    {
+    def postInit(event: FMLPostInitializationEvent): Unit = {
         IlluminationProxy.postinit()
     }
 }

@@ -27,7 +27,7 @@ import net.minecraft.util.math.{BlockPos, RayTraceResult, Vec3d}
 import net.minecraft.world.World
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOcclusionPart with TIconHitEffectsPart// with ICapabilityProvider
 {
@@ -46,17 +46,15 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) =
         player.getDigSpeed(ProjectRedRelocation.blockFrame.getDefaultState, new BlockPos(0, -1, 0))
 
-    override def getDrops = Seq(new ItemStack(ProjectRedRelocation.blockFrame))
+    override def getDrops = Seq(new ItemStack(ProjectRedRelocation.blockFrame)).asJava
     override def pickItem(hit:CuboidRayTraceResult) = new ItemStack(ProjectRedRelocation.blockFrame)
 
     override def getBounds = Cuboid6.full
 
-    override def getOcclusionBoxes =
-    {
-        FramePart.sideOccludeTest match
-        {
-            case -1 => Seq()
-            case s => Seq(FramePart.aBounds(s))
+    override def getOcclusionBoxes: java.lang.Iterable[Cuboid6] = {
+        FramePart.sideOccludeTest match {
+            case -1 => Seq().asJava
+            case s => Seq(FramePart.aBounds(s)).asJava
         }
     }
 
@@ -75,7 +73,7 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
         mask
     }
 
-    override def occlusionTest(npart:TMultiPart):Boolean =
+    override def occlusionTest(npart:TMultiPart): Boolean =
     {
         if (npart.isInstanceOf[FramePart]) return false
 
@@ -83,13 +81,17 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
         if (FramePart.sideOccludeTest != -1)
         {
             var boxes = Seq[Cuboid6]()
-            if(npart.isInstanceOf[TNormalOcclusionPart])
-                boxes ++= npart.asInstanceOf[TNormalOcclusionPart].getOcclusionBoxes
-            if(npart.isInstanceOf[TPartialOcclusionPart])
-                boxes ++= npart.asInstanceOf[TPartialOcclusionPart].getPartialOcclusionBoxes
-            boxes ++= npart.getCollisionBoxes
+            npart match {
+                case part: TNormalOcclusionPart => boxes ++= part.getOcclusionBoxes.asScala
+                case _ =>
+            }
+            npart match {
+                case part: TPartialOcclusionPart => boxes ++= part.getPartialOcclusionBoxes.asScala
+                case _ =>
+            }
+            boxes ++= npart.getCollisionBoxes.asScala
 
-            NormalOcclusionTest(boxes, getOcclusionBoxes)
+            NormalOcclusionTest(boxes, getOcclusionBoxes.asScala)
         }
         else super.occlusionTest(npart)
     }
