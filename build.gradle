@@ -8,6 +8,8 @@ plugins {
     id 'net.kyori.blossom' version '2.2.0'
 }
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.jvm.tasks.Jar
 
@@ -122,13 +124,56 @@ sourceSets {
     }
 }
 
+// Blossom generates one metadata file per logical mod. Forge's 1.12 loader scans a
+// single mcmod.info, so merge those generated arrays before resources are consumed by
+// classes, jars, and the development run.
+def blossomResourceDir = layout.buildDirectory.dir('generated/resources/blossom/main/resource').get().asFile
+def mergedModInfoFile = layout.buildDirectory.file('generated/resources/projectred/main/mcmod.info').get().asFile
+def mergeModInfo = tasks.register('mergeModInfo') {
+    dependsOn tasks.named('generateResourceTemplates')
+    inputs.files(fileTree(blossomResourceDir) {
+        include '*_mod.info'
+    })
+    outputs.file(mergedModInfoFile)
+    doLast {
+        def sourceFiles = fileTree(blossomResourceDir) {
+            include '*_mod.info'
+        }.files.sort { a, b -> a.name <=> b.name }
+        if (sourceFiles.empty) {
+            throw new GradleException("No generated *_mod.info files found in ${blossomResourceDir}")
+        }
+
+        def mods = sourceFiles.collectMany { sourceFile ->
+            def parsed = new JsonSlurper().parse(sourceFile)
+            if (!(parsed instanceof List)) {
+                throw new GradleException("${sourceFile} must contain a JSON array")
+            }
+            parsed
+        }
+        mergedModInfoFile.parentFile.mkdirs()
+        mergedModInfoFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(mods)) + System.lineSeparator()
+    }
+}
+
 processResources {
+    dependsOn mergeModInfo
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // The development directory and combined artifacts expose one mcmod.info.
+    // Split jars read their individual generated metadata explicitly below.
+    exclude '**/*_mod.info'
+    from(mergeModInfo) {
+        into ''
+    }
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
 tasks.named('sourcesJar', Jar) {
+    dependsOn mergeModInfo
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude '**/*_mod.info'
+    from(mergeModInfo) {
+        into ''
+    }
 }
 
 compileJava {
@@ -165,14 +210,22 @@ jar {
 }
 
 // Keep the historical module split jars. They are assembled from the remapped universal jar.
-def moduleJar = { String taskName, String classifierName, Closure spec ->
+def moduleJar = { String taskName, String classifierName, String metadataName, Closure spec ->
     tasks.register(taskName, Jar) {
-        dependsOn tasks.named('remapJar')
+        dependsOn tasks.named('remapJar'), mergeModInfo
         archiveClassifier = classifierName
         includeEmptyDirs = false
         from(zipTree(tasks.named('remapJar').get().archiveFile)) {
+            // The remapped jar contains the combined metadata for universal/deobf.
+            // A historical split jar must instead expose only its own mod entry.
+            exclude 'mcmod.info'
+            exclude '**/*_mod.info'
             spec.delegate = delegate
             spec()
+        }
+        from(blossomResourceDir) {
+            include metadataName
+            rename metadataName, 'mcmod.info'
         }
     }
 }
@@ -184,18 +237,18 @@ def integrationPatterns = [
         '**/ProjectRedIntegration*.class', '**/ProjectRedTransmission*.class',
         '**/mrtjp/projectred/integration/**', '**/mrtjp/projectred/transmission/**',
         '**/assets/projectred/textures/blocks/integration/**', '**/assets/projectred/textures/obj/integration/**',
-        '**/assets/projectred-integration/recipes/**', '**/assets/projectred-transmission/recipes/**', 'integration_mod.info'
+        '**/assets/projectred-integration/recipes/**', '**/assets/projectred-transmission/recipes/**'
 ]
 def fabricationPatterns = [
         '**/ProjectRedFabrication*.class', '**/mrtjp/projectred/fabrication/**',
         '**/assets/projectred/cc_blockstates/fabrication/**', '**/assets/projectred/textures/blocks/fabrication/**',
         '**/assets/projectred/textures/items/fabrication/**', '**/assets/projectred/textures/obj/fabrication/**',
-        '**/assets/projectred-fabrication/recipes/**', 'fabrication_mod.info'
+        '**/assets/projectred-fabrication/recipes/**'
 ]
 def lightingPatterns = [
         '**/ProjectRedIllumination*.class', '**/mrtjp/projectred/illumination/**',
         '**/assets/projectred/textures/blocks/lighting/**', '**/assets/projectred/textures/items/lighting/**',
-        '**/assets/projectred/textures/obj/lighting/**', '**/assets/projectred-illumination/recipes/**', 'lighting_mod.info'
+        '**/assets/projectred/textures/obj/lighting/**', '**/assets/projectred-illumination/recipes/**'
 ]
 def mechanicalPatterns = [
         '**/ProjectRedExpansion*.class', '**/mrtjp/projectred/expansion/**',
@@ -204,26 +257,26 @@ def mechanicalPatterns = [
         '**/assets/projectred/cc_blockstates/mechanical/**', '**/assets/projectred/textures/blocks/mechanical/**',
         '**/assets/projectred/textures/items/mechanical/**', '**/assets/projectred/textures/obj/mechanical/**',
         '**/assets/projectred-expansion/recipes/**', '**/assets/projectred-transportation/recipes/**',
-        '**/assets/projectred-relocation/recipes/**', 'mechanical_mod.info', '**/projectred-relocation_at.cfg'
+        '**/assets/projectred-relocation/recipes/**', '**/projectred-relocation_at.cfg'
 ]
 def worldPatterns = [
         '**/ProjectRedExploration*.class', '**/mrtjp/projectred/exploration/**',
         '**/assets/projectred/cc_blockstates/world/**', '**/assets/projectred/textures/blocks/world/**',
         '**/assets/projectred/textures/items/world/**', '**/assets/projectred/textures/obj/world/**',
-        '**/assets/projectred-exploration/recipes/**', 'world_mod.info'
+        '**/assets/projectred-exploration/recipes/**'
 ]
 def compatPatterns = [
         '**/ProjectRedCompatibility*.class', '**/mrtjp/projectred/compatibility/**',
-        '**/assets/projectred/textures/blocks/compat/**', 'compat_mod.info'
+        '**/assets/projectred/textures/blocks/compat/**'
 ]
 
-def integrationJar = moduleJar('integrationJar', 'integration') { include integrationPatterns; rename('integration_mod.info', 'mcmod.info') }
-def fabricationJar = moduleJar('fabricationJar', 'fabrication') { include fabricationPatterns; rename('fabrication_mod.info', 'mcmod.info') }
-def lightingJar = moduleJar('lightingJar', 'lighting') { include lightingPatterns; rename('lighting_mod.info', 'mcmod.info') }
-def mechanicalJar = moduleJar('mechanicalJar', 'mechanical') { include mechanicalPatterns; rename('mechanical_mod.info', 'mcmod.info') }
+def integrationJar = moduleJar('integrationJar', 'integration', 'integration_mod.info') { include integrationPatterns }
+def fabricationJar = moduleJar('fabricationJar', 'fabrication', 'fabrication_mod.info') { include fabricationPatterns }
+def lightingJar = moduleJar('lightingJar', 'lighting', 'lighting_mod.info') { include lightingPatterns }
+def mechanicalJar = moduleJar('mechanicalJar', 'mechanical', 'mechanical_mod.info') { include mechanicalPatterns }
 mechanicalJar.configure { manifest { attributes('FMLAT': 'projectred-relocation_at.cfg') } }
-def worldJar = moduleJar('worldJar', 'world') { include worldPatterns; rename('world_mod.info', 'mcmod.info') }
-def compatJar = moduleJar('compatJar', 'compat') { include compatPatterns; rename('compat_mod.info', 'mcmod.info') }
+def worldJar = moduleJar('worldJar', 'world', 'world_mod.info') { include worldPatterns }
+def compatJar = moduleJar('compatJar', 'compat', 'compat_mod.info') { include compatPatterns }
 def splitJarTasks = [integrationJar, fabricationJar, lightingJar, mechanicalJar, worldJar, compatJar]
 
 def baseJar = tasks.register('baseJar', Jar) {
@@ -233,7 +286,12 @@ def baseJar = tasks.register('baseJar', Jar) {
     includeEmptyDirs = false
     from(zipTree(tasks.named('remapJar').get().archiveFile)) {
         exclude integrationPatterns + fabricationPatterns + lightingPatterns + mechanicalPatterns + worldPatterns + compatPatterns
-        rename('base_mod.info', 'mcmod.info')
+        exclude 'mcmod.info'
+        exclude '**/*_mod.info'
+    }
+    from(blossomResourceDir) {
+        include 'base_mod.info'
+        rename 'base_mod.info', 'mcmod.info'
     }
 }
 

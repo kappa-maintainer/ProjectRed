@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    implementation "org.scala-lang:scala3-tasty-inspector_3:${scala_version}"
+
     if (enable_lwjglx.toBoolean()) {
         compileOnly 'com.cleanroommc:lwjglx:1.0.0'
     }
@@ -18,14 +20,14 @@ dependencies {
     modRuntimeOnly 'com.cleanroommc:scalar:1.0.0'
 
     // Scala 3 / Cleanroom-compatible variants from the working-tree migration diff.
-    modImplementation "mrtjp:MrTJPCore:${tjpcore_version}"
-    modImplementation("codechicken:forgemultipartcbe:${fmp_version}") {
-        // The Cleanroom artifact declares Scalar through a remapped Maven coordinate.
-        // Scalar is supplied separately as a provider and must not be resolved transitively here.
+    modImplementation ("mrtjp:MrTJPCore:${tjpcore_version}:deobf") {
+        transitive = false
+    }
+    modImplementation("codechicken:forgemultipartcbe:${fmp_version}:deobf") {
         transitive = false
     }
     modImplementation "mezz:jei:${jei_version}"
 
     modImplementation "codechicken:ChickenASM:${chickenasm_version}"
-    modImplementation "codechicken:CodeChickenLib:${ccl_version}"
+    modImplementation "codechicken:CodeChickenLib:${ccl_version}:dev"
 }
