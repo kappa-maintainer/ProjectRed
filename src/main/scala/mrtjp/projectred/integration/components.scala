@@ -611,12 +611,12 @@ class SignalBarModel(x:Double, z:Double) extends ComponentModel
         bars(i-1) = bar1
         barsInv(i-1) = bar2
 
-        val t = new Scale(4/8D+1, 0.9999D, 4/32D+1)
-        barsBg = bars(15).copy.apply(t)
-        barsBgInv = barsInv(15).copy.apply(t)
+    val t = new Scale(4/8D+1, 0.9999D, 4/32D+1)
+    barsBg = bars(15).copy.apply(t)
+    barsBgInv = barsInv(15).copy.apply(t)
 
-        val base = signalPanel.copy.apply(pos.translation())
-        for i <- 0 until 48 do models(i) = bakeCopy(base, i)
+    val base: CCModel = signalPanel.copy.apply(pos.translation())
+    for i <- 0 until 48 do models(i) = bakeCopy(base, i)
 
     def renderModel(t:Transformation, orient:Int, ccrs:CCRenderState): Unit =
         val iconT = new IconTransformation(busConvIcon)

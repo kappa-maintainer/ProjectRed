@@ -4,7 +4,7 @@ import mrtjp.projectred.compatibility.CompatibilityProxy
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent}
 
-@Mod(modid = "projectred-compat", useMetadata = true, dependencies = "after:projectred-core", modLanguage = "scala")
+@Mod(modid = "projectred-compatibility", useMetadata = true, dependencies = "after:projectred-core", modLanguage = "scala")
 object ProjectRedCompatibility
 {
     @Mod.EventHandler
