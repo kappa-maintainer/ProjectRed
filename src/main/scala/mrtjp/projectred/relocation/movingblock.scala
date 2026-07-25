@@ -8,6 +8,9 @@ package mrtjp.projectred.relocation
 import java.util.{List as JList}
 
 import codechicken.lib.vec.{Cuboid6, Vector3}
+import net.minecraft.client.particle.ParticleManager
+import net.minecraft.util.math.{BlockPos, RayTraceResult}
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import mrtjp.core.block.{MTBlockTile, MultiTileBlock}
 import mrtjp.projectred.ProjectRedRelocation
 import net.minecraft.block.SoundType
@@ -27,6 +30,12 @@ class BlockMovingRow extends MultiTileBlock(Material.ROCK)
     setCreativeTab(null)
 
     override def getRenderType(state:IBlockState):EnumBlockRenderType = EnumBlockRenderType.INVISIBLE
+
+    @SideOnly(Side.CLIENT)
+    override def addHitEffects(state:IBlockState, world:World, target:RayTraceResult, manager:ParticleManager):Boolean = true
+
+    @SideOnly(Side.CLIENT)
+    override def addDestroyEffects(world:World, pos:BlockPos, manager:ParticleManager):Boolean = true
 
 object TileMovingRow
 :

@@ -82,6 +82,8 @@ object RenderFireStarter extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     def getIcon(s:Int, meta:Int) = s match
         case 0 => bottom
         case 1 => topA

@@ -91,6 +91,8 @@ class RenderBlockBreakerBase(spriteFolder:String) extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
+    override def getParticleTexture(state:IExtendedBlockState) = bottom
+
     override def registerIcons(reg:TextureMap): Unit =
         bottom = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/bottom"))
         top1 = reg.registerSprite(new ResourceLocation(s"projectred:blocks/mechanical/$spriteFolder/top1"))

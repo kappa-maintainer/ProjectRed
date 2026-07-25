@@ -6,6 +6,7 @@ import java.util.{Random, List as JList}
 import codechicken.lib.block.property.unlisted.{UnlistedBooleanProperty, UnlistedIntegerProperty}
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.model.bakery.generation.IBakery
+import codechicken.lib.render.particle.CustomParticleHandler
 import codechicken.lib.model.bakery.{IBakeryProvider, ModelBakery, SimpleBlockRenderer}
 import codechicken.lib.render.CCRenderState
 import codechicken.lib.render.item.IItemRenderer
@@ -18,6 +19,7 @@ import mrtjp.projectred.ProjectRedIllumination
 import mrtjp.projectred.core.RenderHalo
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
+import net.minecraft.client.particle.ParticleManager
 import net.minecraft.client.renderer.block.model.BakedQuad
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
@@ -30,7 +32,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.tileentity.TileEntity
 import net.minecraft.util.*
-import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.{BlockPos, RayTraceResult}
 import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
@@ -75,6 +77,14 @@ class BlockLamp extends MultiTileBlock(Material.REDSTONE_LIGHT) with IRedstoneCo
     @SideOnly(Side.CLIENT)
     override def getBakery: IBakery = LampBakery
 
+    @SideOnly(Side.CLIENT)
+    override def addHitEffects(state:IBlockState, world:World, target:RayTraceResult, manager:ParticleManager):Boolean =
+        CustomParticleHandler.handleHitEffects(state, world, target, manager)
+
+    @SideOnly(Side.CLIENT)
+    override def addDestroyEffects(world:World, pos:BlockPos, manager:ParticleManager):Boolean =
+        CustomParticleHandler.handleDestroyEffects(world, pos, manager)
+
 object BlockProperties:
     val UNLISTED_ON_PROPERTY = new UnlistedBooleanProperty("on")
     val UNLISTED_COLOUR_PROPERTY = new UnlistedIntegerProperty("colour")
@@ -101,6 +111,8 @@ object LampBakery extends SimpleBlockRenderer
         new IconTransformation(if stack.getItemDamage > 15 then LampRenderer.iconsOn(stack.getItemDamage%16) else LampRenderer.iconsOff(stack.getItemDamage)))
 
     override def shouldCull(): Boolean = true
+
+    override def getParticleTexture(state: IExtendedBlockState) = LampRenderer.iconsOff(0)
 
     override def registerIcons(textureMap: TextureMap): Unit =
         for i <- 0 until 16 do

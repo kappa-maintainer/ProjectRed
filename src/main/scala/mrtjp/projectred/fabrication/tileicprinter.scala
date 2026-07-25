@@ -560,6 +560,8 @@ object RenderICPrinter extends SimpleBlockRenderer
 
     override def shouldCull() = false
 
+    override def getParticleTexture(state:IExtendedBlockState) = bottom
+
     override def bakeQuads(face:EnumFacing, state:IExtendedBlockState):JList[BakedQuad] =
         val buffer = BakingVertexBuffer.create
         val worldData = getWorldTransforms(state)

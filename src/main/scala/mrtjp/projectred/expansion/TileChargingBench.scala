@@ -250,6 +250,8 @@ object RenderChargingBench extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     def getIcon(side:Int, meta:Int) = side match
         case 0 => bottom
         case 1 => top1

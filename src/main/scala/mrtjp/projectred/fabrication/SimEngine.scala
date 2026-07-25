@@ -60,7 +60,7 @@ class SEIntegratedCircuit(
 
         fetch()
 
-        while {
+        while
             for regID <- changes do
                 registers(regID).pushVal(this)
 
@@ -72,7 +72,8 @@ class SEIntegratedCircuit(
 
             fetch()
             checkOverflow()
-        ; changes.nonEmpty && !hasOverflow} do ()
+            changes.nonEmpty && !hasOverflow
+        do ()
 
         if hasOverflow then
             if callback != null then callback.icDidThrowErrorFlag(
@@ -85,18 +86,18 @@ class SEIntegratedCircuit(
         else
             false
 
-    override def toString =
+    override def toString: String =
         val builder = new mutable.StringBuilder()
         builder.append("SEIntegratedCircuit: DUMP\n")
         builder.append("=== Registers ===\n")
-        for i <- 0 until registers.length do
+        for i <- registers.indices do
             val reg = registers(i)
             builder.append(s"reg[$i] = ")
             reg match
-                case StandardRegister(r:Byte) => builder.append(s"$r {byte}")
-                case StandardRegister(r:Long) => builder.append(s"$r {long}")
-                case StandardRegister(r:Int)  => builder.append(s"$r {int}")
-                case ConstantRegister(r:Byte) => builder.append(s"$r {byte}")
+                case StandardRegister(r: Byte) => builder.append(s"$r {byte}")
+                case StandardRegister(r: Long) => builder.append(s"$r {long}")
+                case StandardRegister(r: Int) => builder.append(s"$r {int}")
+                case ConstantRegister(r: Byte) => builder.append(s"$r {byte}")
                 case _ => builder.append(s"${reg.getVal} {unknown}")
             builder.append("\n")
         builder.result()

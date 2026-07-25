@@ -4,6 +4,7 @@ import codechicken.lib.block.property.unlisted.{UnlistedBooleanProperty, Unliste
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.model.bakery.generation.{IBakery, IBlockBakery}
 import codechicken.lib.model.bakery.{IBakeryProvider, ModelBakery}
+import codechicken.lib.render.particle.CustomParticleHandler
 import codechicken.lib.vec.Rotation
 import mrtjp.core.block.*
 import mrtjp.core.gui.NodeContainer
@@ -14,13 +15,15 @@ import mrtjp.projectred.core.*
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.BlockStateContainer.Builder
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
+import net.minecraft.client.particle.ParticleManager
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{Container, IContainerListener, ISidedInventory}
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.math.BlockPos
-import net.minecraft.world.IBlockAccess
+import net.minecraft.util.math.{BlockPos, RayTraceResult}
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.property.{IExtendedBlockState, IUnlistedProperty}
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class BlockMachine(regName:String, bakery:IBlockBakery) extends MultiTileBlock(Material.ROCK) with IBakeryProvider
 :
@@ -45,6 +48,14 @@ class BlockMachine(regName:String, bakery:IBlockBakery) extends MultiTileBlock(M
     override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) = ModelBakery.handleExtendedState(state.asInstanceOf[IExtendedBlockState], world, pos)
 
     override def getBakery:IBakery = bakery
+
+    @SideOnly(Side.CLIENT)
+    override def addHitEffects(state:IBlockState, world:World, target:RayTraceResult, manager:ParticleManager):Boolean =
+        CustomParticleHandler.handleHitEffects(state, world, target, manager)
+
+    @SideOnly(Side.CLIENT)
+    override def addDestroyEffects(world:World, pos:BlockPos, manager:ParticleManager):Boolean =
+        CustomParticleHandler.handleDestroyEffects(world, pos, manager)
 
 object BlockProperties
 :

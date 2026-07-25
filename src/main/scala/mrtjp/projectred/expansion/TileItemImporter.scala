@@ -151,6 +151,8 @@ object RenderItemImporter extends SimpleBlockRenderer
 
     override def shouldCull() = false
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     override def registerIcons(reg:TextureMap): Unit =
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/importer/bottom"))
         top1 = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/importer/top1"))

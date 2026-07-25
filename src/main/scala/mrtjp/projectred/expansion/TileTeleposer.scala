@@ -421,6 +421,8 @@ object RenderTeleposer extends SimpleBlockRenderer
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT1)
     override def shouldCull() = true
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     override def registerIcons(map:TextureMap): Unit =
         bottom = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/teleposer/bottom"))
         top1 = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/teleposer/top1"))

@@ -256,6 +256,8 @@ object RenderElectrotineGenerator extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     override def registerIcons(reg:TextureMap): Unit =
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/elecgen/top"))

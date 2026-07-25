@@ -437,6 +437,8 @@ object RenderProjectBench extends SimpleBlockRenderer
     override def getItemTransforms(stack: ItemStack) = Triple.of(0, 0, iconT)
     override def shouldCull() = true
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     override def registerIcons(map: TextureMap): Unit =
         bottom = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/projectbench/bottom"))
         top = map.registerSprite(new ResourceLocation("projectred:blocks/mechanical/projectbench/top"))

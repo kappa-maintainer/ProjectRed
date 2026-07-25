@@ -8,6 +8,7 @@ package mrtjp.projectred.fabrication
 import codechicken.lib.block.property.unlisted.{UnlistedBooleanProperty, UnlistedIntegerProperty}
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.model.bakery.generation.IBakery
+import codechicken.lib.render.particle.CustomParticleHandler
 import codechicken.lib.model.bakery.{IBakeryProvider, ModelBakery, SimpleBlockRenderer}
 import codechicken.lib.packet.PacketCustom
 import codechicken.lib.vec.Rotation
@@ -21,15 +22,17 @@ import mrtjp.projectred.fabrication.ItemICBlueprint.*
 import net.minecraft.block.material.Material
 import net.minecraft.block.state.BlockStateContainer.Builder
 import net.minecraft.block.state.{BlockStateContainer, IBlockState}
+import net.minecraft.client.particle.ParticleManager
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
-import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.{BlockPos, RayTraceResult}
 import net.minecraft.util.{EnumFacing, ResourceLocation}
-import net.minecraft.world.IBlockAccess
+import net.minecraft.world.{IBlockAccess, World}
 import net.minecraftforge.common.property.IExtendedBlockState
+import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.collection.mutable.{Set as MSet}
 
@@ -47,6 +50,14 @@ class BlockICMachine(bakery:IBakery) extends MultiTileBlock(Material.ROCK) with 
     override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) = ModelBakery.handleExtendedState(state.asInstanceOf[IExtendedBlockState], world, pos)
 
     override def getBakery = bakery
+
+    @SideOnly(Side.CLIENT)
+    override def addHitEffects(state:IBlockState, world:World, target:RayTraceResult, manager:ParticleManager):Boolean =
+        CustomParticleHandler.handleHitEffects(state, world, target, manager)
+
+    @SideOnly(Side.CLIENT)
+    override def addDestroyEffects(world:World, pos:BlockPos, manager:ParticleManager):Boolean =
+        CustomParticleHandler.handleDestroyEffects(world, pos, manager)
 
 object BlockICMachine
 :
@@ -281,6 +292,8 @@ object RenderICWorkbench extends SimpleBlockRenderer
     override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconT)
 
     override def shouldCull() = true
+
+    override def getParticleTexture(state:IExtendedBlockState) = bottom
 
     override def registerIcons(reg:TextureMap): Unit =
         def register(s:String) = reg.registerSprite(new ResourceLocation("projectred:blocks/fabrication/icworkbench/"+s))

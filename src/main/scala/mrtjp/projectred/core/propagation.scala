@@ -134,7 +134,7 @@ class PropagationRun
             aChange = false
         fetch()
 
-        while {
+        while
             propagationList.clear(); pChange = true //we emptied it, probably changed it, but if we didnt, the loop will break anyway.
             ptmp.foreach(_.go())
 
@@ -143,7 +143,9 @@ class PropagationRun
             if ptmp.isEmpty && atmp.nonEmpty then
                 propagationList = analogDrops; ptmp = atmp; pChange = false //atmp is already up to date, so now ptmp is too.
                 analogDrops = Vector.newBuilder; aChange = true //atmp was nonempty, now it is
-        ; ptmp.nonEmpty} do ()
+            
+            ptmp.nonEmpty
+        do ()
         finish()
 
     def add(part:IWirePart, from:TMultiPart, mode:Int): Unit =

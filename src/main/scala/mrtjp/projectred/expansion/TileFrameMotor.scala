@@ -181,6 +181,8 @@ object RenderFrameMotor extends SimpleBlockRenderer
 
     override def shouldCull() = true
 
+    override def getParticleTexture(state: IExtendedBlockState) = bottom
+
     override def registerIcons(reg:TextureMap): Unit =
         bottom = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/motor/bottom"))
         top = reg.registerSprite(new ResourceLocation("projectred:blocks/mechanical/motor/top"))
