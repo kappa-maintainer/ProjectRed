@@ -243,7 +243,7 @@ def fabricationPatterns = [
         '**/ProjectRedFabrication*.class', '**/mrtjp/projectred/fabrication/**',
         '**/assets/projectred/cc_blockstates/fabrication/**', '**/assets/projectred/textures/blocks/fabrication/**',
         '**/assets/projectred/textures/items/fabrication/**', '**/assets/projectred/textures/obj/fabrication/**',
-        '**/assets/projectred-fabrication/recipes/**'
+        '**/assets/projectred-fabrication/blockstates/**', '**/assets/projectred-fabrication/models/block/empty.json', '**/assets/projectred-fabrication/recipes/**'
 ]
 def lightingPatterns = [
         '**/ProjectRedIllumination*.class', '**/mrtjp/projectred/illumination/**',
@@ -256,8 +256,9 @@ def mechanicalPatterns = [
         '**/ProjectRedRelocation*.class', '**/mrtjp/projectred/relocation/**',
         '**/assets/projectred/cc_blockstates/mechanical/**', '**/assets/projectred/textures/blocks/mechanical/**',
         '**/assets/projectred/textures/items/mechanical/**', '**/assets/projectred/textures/obj/mechanical/**',
-        '**/assets/projectred-expansion/recipes/**', '**/assets/projectred-transportation/recipes/**',
-        '**/assets/projectred-relocation/recipes/**', '**/projectred-relocation_at.cfg'
+        '**/assets/projectred-expansion/blockstates/**', '**/assets/projectred-expansion/models/block/empty.json', '**/assets/projectred-expansion/recipes/**',
+        '**/assets/projectred-transportation/recipes/**', '**/assets/projectred-relocation/blockstates/**',
+        '**/assets/projectred-relocation/recipes/**', '**/assets/projectred-relocation/models/block/empty.json', '**/projectred-relocation_at.cfg'
 ]
 def worldPatterns = [
         '**/ProjectRedExploration*.class', '**/mrtjp/projectred/exploration/**',

@@ -103,8 +103,10 @@ class FabricationProxy_client extends FabricationProxy_server
         val regLoc = icBlock.getRegistryName
         val normalLoc = new ModelResourceLocation(regLoc, "normal")
         val wrappedLoc = new ModelResourceLocation(regLoc, "printer_wrapped")
+        val itemICMachine = Item.getItemFromBlock(icBlock)
         ModelLoader.setCustomStateMapper(icBlock, new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
-        ModelLoader.setCustomMeshDefinition(Item.getItemFromBlock(icBlock), stack => if stack.getMetadata == 1 then wrappedLoc else normalLoc)
+        MCModelBakery.registerItemVariants(itemICMachine, normalLoc, wrappedLoc)
+        ModelLoader.setCustomMeshDefinition(itemICMachine, stack => if stack.getMetadata == 1 then wrappedLoc else normalLoc)
         ModelRegistryHelper.register(normalLoc, model)
         ModelRegistryHelper.register(wrappedLoc, RenderICPrinterItem)
         TextureUtils.addIconRegister(icMachineBakery.registerKeyGens(icBlock))

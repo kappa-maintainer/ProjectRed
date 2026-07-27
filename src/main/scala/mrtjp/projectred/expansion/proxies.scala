@@ -287,14 +287,15 @@ class ExpansionProxy_client extends ExpansionProxy_server
         registerBlockToBakery(machine2, machine2Bakery.registerKeyGens(machine2), new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
 
     @SideOnly(Side.CLIENT)
-    def registerBlockToBakery(block:Block, iconRegister:IIconRegister, stateMap:IStateMapper) =
+    def registerBlockToBakery(block: Block, iconRegister: IIconRegister, stateMap: IStateMapper): Unit =
         val model = new CCBakeryModel()
         val regLoc = block.getRegistryName
+        val normalLoc = new ModelResourceLocation(regLoc, "normal")
+        val item = Item.getItemFromBlock(block)
         ModelLoader.setCustomStateMapper(block, stateMap)
-        ModelLoader.setCustomMeshDefinition(Item.getItemFromBlock(block), new ItemMeshDefinition {
-            override def getModelLocation(stack: ItemStack) = new ModelResourceLocation(regLoc, "normal")
-        })
-        ModelRegistryHelper.register(new ModelResourceLocation(regLoc, "normal"), model)
+        MCModelBakery.registerItemVariants(item, normalLoc)
+        ModelLoader.setCustomMeshDefinition(item, (stack: ItemStack) => normalLoc)
+        ModelRegistryHelper.register(normalLoc, model)
         if iconRegister != null then
             TextureUtils.addIconRegister(iconRegister)
 

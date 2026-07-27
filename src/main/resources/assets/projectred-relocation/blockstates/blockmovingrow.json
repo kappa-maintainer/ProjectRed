@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "tile_idx=0": { "model": "projectred-relocation:empty" },
+    "tile_idx=1": { "model": "projectred-relocation:empty" },
+    "tile_idx=2": { "model": "projectred-relocation:empty" },
+    "tile_idx=3": { "model": "projectred-relocation:empty" },
+    "tile_idx=4": { "model": "projectred-relocation:empty" },
+    "tile_idx=5": { "model": "projectred-relocation:empty" },
+    "tile_idx=6": { "model": "projectred-relocation:empty" },
+    "tile_idx=7": { "model": "projectred-relocation:empty" },
+    "tile_idx=8": { "model": "projectred-relocation:empty" },
+    "tile_idx=9": { "model": "projectred-relocation:empty" },
+    "tile_idx=10": { "model": "projectred-relocation:empty" },
+    "tile_idx=11": { "model": "projectred-relocation:empty" },
+    "tile_idx=12": { "model": "projectred-relocation:empty" },
+    "tile_idx=13": { "model": "projectred-relocation:empty" },
+    "tile_idx=14": { "model": "projectred-relocation:empty" },
+    "tile_idx=15": { "model": "projectred-relocation:empty" }
+  }
+}

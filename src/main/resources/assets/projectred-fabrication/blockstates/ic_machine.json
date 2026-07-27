@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "normal": { "model": "projectred-fabrication:empty" },
+    "printer_wrapped": { "model": "projectred-fabrication:empty" },
+    "inventory": { "model": "projectred-fabrication:empty" }
+  }
+}
