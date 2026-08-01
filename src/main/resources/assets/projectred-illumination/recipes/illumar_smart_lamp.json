@@ -1,0 +1,39 @@
+{
+  "type": "forge:ore_shaped",
+  "result": {
+    "item": "projectred-illumination:illumar_smart_lamp",
+    "data": 0,
+    "count": 1
+  },
+  "pattern": [
+    "PRP",
+    "PGP",
+    "CBC"
+  ],
+  "key": {
+    "P": {
+      "type": "forge:ore_dict",
+      "ore": "paneGlassColorless"
+    },
+    "R": {
+      "type": "minecraft:item",
+      "item": "projectred-core:resource_item",
+      "data": 514
+    },
+    "G": {
+      "type": "minecraft:item",
+      "item": "projectred-core:resource_item",
+      "data": 513
+    },
+    "B": {
+      "type": "minecraft:item",
+      "item": "projectred-core:resource_item",
+      "data": 511
+    },
+    "C": {
+      "type": "minecraft:item",
+      "item": "projectred-core:resource_item",
+      "data": 3
+    }
+  }
+}

@@ -274,6 +274,7 @@ tile.projectred.illumination.lamp|28.name=Inverted Brown Lamp
 tile.projectred.illumination.lamp|29.name=Inverted Green Lamp
 tile.projectred.illumination.lamp|30.name=Inverted Red Lamp
 tile.projectred.illumination.lamp|31.name=Inverted Black Lamp
+tile.projectred.illumination.illumarSmartLamp|0.name=Illumar Smart Lamp
 item.projectred.illumination.lightButton|0.name=White Illumar Button
 item.projectred.illumination.lightButton|1.name=Orange Illumar Button
 item.projectred.illumination.lightButton|2.name=Magenta Illumar Button

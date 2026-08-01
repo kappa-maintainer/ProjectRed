@@ -12,6 +12,8 @@ object ProjectRedIllumination
     /** Blocks **/
     var blockLamp:BlockLamp = scala.compiletime.uninitialized
     var itemBlockLamp:ItemBlock = scala.compiletime.uninitialized
+    var blockSmartLamp:BlockSmartLamp = scala.compiletime.uninitialized
+    var itemBlockSmartLamp:ItemBlock = scala.compiletime.uninitialized
     var blockAirousLight:BlockAirousLight = scala.compiletime.uninitialized
 
 //    /** Multipart items **/

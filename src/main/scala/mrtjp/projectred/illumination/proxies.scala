@@ -6,7 +6,7 @@ import codechicken.lib.model.bakery.{CCBakeryModel, ModelBakery}
 import codechicken.lib.texture.TextureUtils
 import codechicken.multipart.MultiPartRegistry
 import codechicken.multipart.api.IPartFactory
-import mrtjp.core.block.MultiTileBlock
+import mrtjp.core.block.{ItemBlockCore, MultiTileBlock}
 import mrtjp.projectred.ProjectRedIllumination.*
 import mrtjp.projectred.core.IProxy
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
@@ -29,6 +29,13 @@ class IlluminationProxy_server extends IProxy with IPartFactory
         itemBlockLamp = new ItemBlockLamp
         ForgeRegistries.ITEMS.register(itemBlockLamp.setRegistryName(blockLamp.getRegistryName))
         blockLamp.addTile(classOf[TileLamp], 0)
+
+        blockSmartLamp = new BlockSmartLamp
+        blockSmartLamp.setTranslationKey("projectred.illumination.illumarSmartLamp")
+        ForgeRegistries.BLOCKS.register(blockSmartLamp.setRegistryName("illumar_smart_lamp"))
+        itemBlockSmartLamp = new ItemBlockCore(blockSmartLamp)
+        ForgeRegistries.ITEMS.register(itemBlockSmartLamp.setRegistryName(blockSmartLamp.getRegistryName))
+        blockSmartLamp.addTile(classOf[TileSmartLamp], 0)
 
         itemPartIllumarButton = new ItemPartButton
         itemPartIllumarButton.setTranslationKey("projectred.illumination.lightButton")
@@ -76,6 +83,18 @@ class IlluminationProxy_client extends IlluminationProxy_server
             }
         })
 
+        ModelLoader.setCustomStateMapper(blockSmartLamp, new StateMap.Builder().ignore(MultiTileBlock.TILE_INDEX).build())
+        ModelRegistryHelper.register(new ModelResourceLocation(blockSmartLamp.getRegistryName, "normal"), new CCBakeryModel())
+        ModelRegistryHelper.registerItemRenderer(itemBlockSmartLamp, SmartLampItemRenderer)
+        TextureUtils.addIconRegister(SmartLampRenderer)
+        ModelBakery.registerBlockKeyGenerator(blockSmartLamp, new IBlockStateKeyGenerator {
+            override def generateKey(state:IExtendedBlockState):String = {
+                val side = state.getValue(SmartLampProperties.SIDE)
+                val on = state.getValue(SmartLampProperties.ON)
+                state.getBlock.getRegistryName.toString + s",side=$side,on=$on"
+            }
+        })
+
         lights.foreach(_.registerClient())
 
         ModelRegistryHelper.registerItemRenderer(itemPartIllumarButton, ButtonItemRenderer)
@@ -88,6 +107,7 @@ class IlluminationProxy_client extends IlluminationProxy_server
 //        MinecraftForgeClient.registerItemRenderer(itemPartIllumarFButton, RenderFButton)
 
         ClientRegistry.bindTileEntitySpecialRenderer(classOf[TileLamp], LampRenderer)
+        ClientRegistry.bindTileEntitySpecialRenderer(classOf[TileSmartLamp], SmartLampHaloRenderer.instance)
 
     var getLightValue = (meta:Int, brightness:Int) => brightness
 
