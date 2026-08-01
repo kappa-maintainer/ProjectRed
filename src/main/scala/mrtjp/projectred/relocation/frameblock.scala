@@ -111,6 +111,8 @@ object FrameRenderer extends ICCBlockRenderer with IIconRegister with IItemRende
     private var icon:TextureAtlasSprite = scala.compiletime.uninitialized
     private var iconT:IconTransformation = scala.compiletime.uninitialized
 
+    def getIcon = icon
+
     def init(): Unit =
         BlockRenderingRegistry.registerRenderer(renderType, this)
         ModelRegistryHelper.registerItemRenderer(Item.getItemFromBlock(ProjectRedRelocation.blockFrame), this)

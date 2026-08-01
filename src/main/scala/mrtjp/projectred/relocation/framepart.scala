@@ -101,8 +101,7 @@ class FramePart extends TMultiPart with IFrame with TCuboidPart with TNormalOccl
     override def getBreakingIcon(hit:CuboidRayTraceResult) = getBrokenIcon(hit.sideHit.ordinal)
 
     @SideOnly(Side.CLIENT)
-    override def getBrokenIcon(side:Int) =
-        TextureUtils.getParticleIconForBlock(ProjectRedRelocation.blockFrame.getDefaultState)
+    override def getBrokenIcon(side:Int) = FrameRenderer.getIcon
 
 //    override def hasCapability(capability: Capability[_], facing: EnumFacing) = capability == CapabilityFrame.CAPABILITY
 //

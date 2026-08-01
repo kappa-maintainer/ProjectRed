@@ -266,6 +266,9 @@ class InsulatedRedAlloyPart extends RedwirePart with TInsulatedCommons
 
 class FramedInsulatedRedAlloyPart extends FramedRedwirePart with TInsulatedCommons
 :
+    @SideOnly(Side.CLIENT)
+    override def getBrokenIcon(side:Int) = getWireType.wireSprites(0)
+
     override def weakPowerLevel(side:Int) =
         if !maskConnects(side) then 0
         else super.weakPowerLevel(side)

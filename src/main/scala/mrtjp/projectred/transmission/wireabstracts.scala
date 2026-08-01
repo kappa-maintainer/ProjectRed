@@ -205,7 +205,7 @@ abstract class WirePart extends TMultiPart with TWireCommons with TFaceConnectab
     override def doStaticTessellation(pos:Vector3, layer:BlockRenderLayer, ccrs:CCRenderState): Unit =
         RenderWire.render(this, pos, ccrs)
 
-abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterConnectable with TCenterPropagation with ISidedHollowConnect
+abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterConnectable with TCenterPropagation with ISidedHollowConnect with TIconHitEffectsPart
 :
     var hasMaterial = false
     var material = 0
@@ -266,6 +266,12 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
 
     override def getType = getWireType.framedType
 
+    @SideOnly(Side.CLIENT)
+    override def getBreakingIcon(hit:CuboidRayTraceResult) = getBrokenIcon(hit.sideHit.ordinal)
+
+    @SideOnly(Side.CLIENT)
+    override def getBrokenIcon(side:Int) = getIcon
+
     override def canStay = true
 
     override def getStrength(player:EntityPlayer, hit:CuboidRayTraceResult) =
@@ -292,6 +298,9 @@ abstract class FramedWirePart extends TMultiPart with TWireCommons with TCenterC
         b.result().asJava
 
     override def getHollowSize(side:Int) = 8
+
+    @SideOnly(Side.CLIENT)
+    override def getBounds = WireBoxes.fOBounds(6)
 
     override def activate(player:EntityPlayer, hit:CuboidRayTraceResult, held:ItemStack, hand:EnumHand):Boolean =
         def dropMaterial(): Unit =
