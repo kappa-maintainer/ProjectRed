@@ -145,37 +145,6 @@ class AbstractPipePayload(val payloadID:Int)
         item.lifespan = 1600
         item
 
-class PressurePayload(payloadID:Int) extends AbstractPipePayload(payloadID)
-:
-    // Extended Data
-    // CCCC CCCC PPPP PPPP SSSS SSSS 0EOO OIII
-    // I = input
-    // O = output
-    // E = isEntering
-    // S = speed
-    // P = progress
-    // C = colour ******
-    def travelData = data>>>24
-    def travelData_=(i:Int): Unit ={ data = (data& ~0xFF000000)|i<<24 }
-
-    var colour:Byte = -1
-
-    override def save(tag:NBTTagCompound): Unit =
-        super.save(tag)
-        tag.setByte("col", colour)
-
-    override def load(tag:NBTTagCompound): Unit =
-        super.load(tag)
-        colour = tag.getByte("col")
-
-    override def writeDesc(packet:MCDataOutput): Unit =
-        super.writeDesc(packet)
-        packet.writeByte(colour)
-
-    override def readDesc(packet:MCDataInput): Unit =
-        super.readDesc(packet)
-        colour = packet.readByte()
-
 class NetworkPayload(payloadID:Int) extends AbstractPipePayload(payloadID)
 :
     // Extended Data

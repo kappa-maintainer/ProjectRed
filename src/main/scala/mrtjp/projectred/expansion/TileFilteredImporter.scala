@@ -15,7 +15,6 @@ import mrtjp.core.gui.*
 import mrtjp.core.inventory.{InvWrapper, TInventory, TInventoryCapablilityTile}
 import mrtjp.core.item.ItemKey
 import mrtjp.core.vec.{Point, Size}
-import mrtjp.projectred.transportation.PressurePayload
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{Container, ISidedInventory}
@@ -83,10 +82,6 @@ class TileFilteredImporter extends TileItemImporter with TInventory with ISidedI
 
     def clientCycleColourUp(): Unit =
         writeStream(7).sendToServer()
-
-    override def exportPipe(r:PressurePayload) =
-        r.colour = colour
-        super.exportPipe(r)
 
     override def onBlockActivated(player:EntityPlayer, actside:Int):Boolean =
         if super.onBlockActivated(player, actside) then return true

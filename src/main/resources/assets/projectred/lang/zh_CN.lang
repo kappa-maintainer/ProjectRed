@@ -111,8 +111,7 @@ item.projectred.transportation.pipe|3.name=路由请求管道
 item.projectred.transportation.pipe|4.name=路由防火墙管道
 item.projectred.transportation.pipe|32.name=网络值管道
 item.projectred.transportation.pipe|33.name=网络延迟管道
-item.projectred.transportation.pipe|64.name=压力管道
-item.projectred.transportation.pipe|65.name=耐压管道
+item.projectred.transportation.pipe|64.name=气动管道
 
 
 tile.projectred.exploration.ore|0.name=红宝石矿石

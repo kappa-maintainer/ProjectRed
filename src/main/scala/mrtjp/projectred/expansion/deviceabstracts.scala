@@ -8,60 +8,18 @@ package mrtjp.projectred.expansion
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.multipart.BlockMultipart
 import mrtjp.core.inventory.InvWrapper
+import mrtjp.core.item.ItemKey
 import mrtjp.core.world.WorldLib
-import mrtjp.projectred.core.PRLib
-import mrtjp.projectred.transportation.*
-import net.minecraft.block.Block
+import mrtjp.projectred.transportation.pneumatics.{PneumaticQueue, PneumaticTransportContainer, PneumaticTransportDevice, PneumaticTransportMode}
+import mrtjp.projectred.transportation.pneumatics.part.PneumaticTubePayload
 import net.minecraft.item.ItemStack
-import net.minecraft.nbt.{NBTTagCompound, NBTTagList}
+import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.EnumFacing
 
 import scala.collection.mutable.ListBuffer
 
-class ItemStorage
-:
-    private val storage = ListBuffer[PressurePayload]()
-    var backlogged = false
-
-    def isEmpty = storage.isEmpty
-
-    def add(item:PressurePayload): Unit ={ storage.prepend(item) }
-
-    def add(item:ItemStack): Unit =
-        val p = new PressurePayload(AbstractPipePayload.claimID())
-        p.setItemStack(item)
-        add(p)
-
-    def addBacklog(item:PressurePayload): Unit ={ storage.append(item); backlogged = true }
-
-    def poll() =
-        val item = storage.remove(storage.size-1)
-        if storage.size == 0 then backlogged = false
-        item
-
-    def peek = storage(storage.size-1)
-
-    def save(tag:NBTTagCompound): Unit =
-        val nbttaglist = new NBTTagList
-        for r <- storage do
-            val payloadData = new NBTTagCompound
-            nbttaglist.appendTag(payloadData)
-            r.save(payloadData)
-        tag.setTag("itemFlow", nbttaglist)
-
-    def load(tag:NBTTagCompound): Unit =
-        val nbttaglist = tag.getTagList("itemFlow", 0)
-        for j <- 0 until nbttaglist.tagCount do
-            try
-                val payloadData = nbttaglist.getCompoundTagAt(j)
-                val r = new PressurePayload(AbstractPipePayload.claimID())
-                r.load(payloadData)
-                if !r.isCorrupted then add(r)
-            catch {case t:Throwable =>}
-
 trait TActiveDevice extends TileMachine
 :
-    val itemStorage = new ItemStorage
     var powered = false
     var active = false
 
@@ -69,13 +27,11 @@ trait TActiveDevice extends TileMachine
         super.save(tag)
         tag.setBoolean("pow", powered)
         tag.setBoolean("act", active)
-        itemStorage.save(tag)
 
     override def load(tag:NBTTagCompound): Unit =
         super.load(tag)
         powered = tag.getBoolean("pow")
         active = tag.getBoolean("act")
-        itemStorage.load(tag)
 
     override def writeDesc(out:MCDataOutput): Unit =
         super.writeDesc(out)
@@ -96,18 +52,11 @@ trait TActiveDevice extends TileMachine
     def sendStateUpdate(): Unit =
         writeStream(4).writeBoolean(powered).writeBoolean(active).sendToChunk(this)
 
-    def shouldAcceptBacklog = true
-    def shouldAcceptInput = !powered && itemStorage.isEmpty
-
     override def onScheduledTick(): Unit =
-        if !getWorld.isRemote then
-            if !itemStorage.isEmpty then
-                exportBuffer()
-                scheduleTick(if itemStorage.isEmpty then 4 else 16)
-            else if !powered then
-                active = false
-                onDeactivate()
-                sendStateUpdate()
+        if !getWorld.isRemote && !powered then
+            active = false
+            onDeactivate()
+            sendStateUpdate()
 
     override def onNeighborBlockChange(): Unit =
         if getWorld.isBlockPowered(getPos) then
@@ -126,57 +75,102 @@ trait TActiveDevice extends TileMachine
     def onActivate(): Unit 
     def onDeactivate(): Unit ={}
 
-    def exportBuffer(): Unit =
-        while !itemStorage.isEmpty do
-            val r = itemStorage.peek
-            if exportPipe(r) || exportInv(r) || exportEject(r) then itemStorage.poll()
-            else itemStorage.backlogged = true
+trait TPneumaticActiveDevice extends TActiveDevice with PneumaticTransportDevice
+:
+    val pneumaticQueue = new PneumaticQueue
 
-            if itemStorage.backlogged then return
+    override def save(tag:NBTTagCompound): Unit =
+        super.save(tag)
+        val queueTag = new NBTTagCompound
+        pneumaticQueue.save(queueTag)
+        tag.setTag("pneumaticQueue", queueTag)
 
-    def exportPipe(r:PressurePayload) =
-        BlockMultipart.getPart(getWorld, getPos.offset(EnumFacing.VALUES(side)), 6) match
-            case pipe:TPressureTube if pipe.hasDestination(r, side^1) =>
-                pipe.injectPayload(r, side)
-                true
-            case _ => false
+    override def load(tag:NBTTagCompound): Unit =
+        super.load(tag)
+        pneumaticQueue.load(tag.getCompoundTag("pneumaticQueue"))
 
-    def exportInv(r:PressurePayload) =
-        val w = InvWrapper.wrap(getWorld, getPos.offset(EnumFacing.VALUES(side)), EnumFacing.VALUES(side^1))
-        if w != null then
-            r.payload.stackSize -= w.injectItem(r.payload.key, r.payload.stackSize)
-            r.payload.stackSize <= 0
+    def shouldAcceptPneumaticInput = !powered && pneumaticQueue.isEmpty
+    def shouldAcceptPneumaticBackstuff = true
+
+    override def canConnectTube(side:Int):Boolean = pneumaticCanConnectSide(side)
+
+    def pneumaticCanConnectSide(side:Int):Boolean = canConnectSide(side)
+
+    override def canAcceptPayload(side:Int, payload:PneumaticTubePayload, mode:PneumaticTransportMode):Boolean =
+        if !pneumaticCanConnectSide(side) then false
+        else
+            val key = ItemKey.get(payload.getItemStack)
+            mode match
+                case PneumaticTransportMode.PASSIVE_NORMAL =>
+                    canAcceptInput(key, side) && shouldAcceptPneumaticInput
+                case PneumaticTransportMode.PASSIVE_BACKSTUFF =>
+                    canAcceptBacklog(key, side) && shouldAcceptPneumaticBackstuff
+
+    override def insertPayload(side:Int, payload:PneumaticTubePayload):Boolean =
+        val key = ItemKey.get(payload.getItemStack)
+        val accepted = if canAcceptInput(key, side) && shouldAcceptPneumaticInput then
+            pneumaticQueue.add(payload)
+            true
+        else if canAcceptBacklog(key, side) && shouldAcceptPneumaticBackstuff then
+            pneumaticQueue.addBackstuffed(payload)
+            true
         else false
 
-    def exportEject(r:PressurePayload):Boolean =
-        val pos = getPos.offset(EnumFacing.VALUES(side))
-        if getWorld.isBlockLoaded(pos) &&
-                !getWorld.isAirBlock(pos) then return false
+            if accepted then
+                active = true
+                sendStateUpdate()
+                scheduleTick(4)
+            accepted
 
-        WorldLib.centerEject(getWorld, getPos, r.payload.makeStack, side, 0.25D)
-        true
+    override def onScheduledTick(): Unit =
+        if !getWorld.isRemote then
+            if !pneumaticQueue.isEmpty then
+                exportPneumaticQueue()
+                scheduleTick(if pneumaticQueue.isEmpty then 4 else 16)
+            else if !powered then
+                active = false
+                onDeactivate()
+                sendStateUpdate()
+
+    def exportPneumaticQueue(): Unit =
+        while !pneumaticQueue.isEmpty do
+            val payload = pneumaticQueue.poll()
+            if !exportPneumaticTube(payload) && !exportPneumaticInventory(payload) && !exportPneumaticEject(payload) then
+                pneumaticQueue.addBackstuffed(payload)
+
+            if pneumaticQueue.isBackstuffed then return
+
+    def exportPneumaticTube(payload:PneumaticTubePayload):Boolean =
+        BlockMultipart.getPart(getWorld, getPos.offset(EnumFacing.VALUES(side)), 6) match
+            case container:PneumaticTransportContainer => container.insertPayload(side, payload)
+            case _ => false
+
+    def exportPneumaticInventory(payload:PneumaticTubePayload):Boolean =
+        val inventory = InvWrapper.wrap(getWorld, getPos.offset(EnumFacing.VALUES(side)), EnumFacing.VALUES(side ^ 1))
+        if inventory == null then false
+        else
+            val stack = payload.getItemStack
+            val inserted = inventory.injectItem(ItemKey.get(stack), stack.getCount)
+            if inserted <= 0 then false
+            else
+                stack.shrink(inserted)
+                if stack.isEmpty then true
+                else
+                    payload.setItemStack(stack)
+                    false
+
+    def exportPneumaticEject(payload:PneumaticTubePayload):Boolean =
+        val outputPos = getPos.offset(EnumFacing.VALUES(side))
+        if getWorld.isBlockLoaded(outputPos) && !getWorld.isAirBlock(outputPos) then false
+        else
+            WorldLib.centerEject(getWorld, getPos, payload.getItemStack, side, 0.25D)
+            true
 
     override def onBlockRemoval(): Unit =
         super.onBlockRemoval()
-        while !itemStorage.isEmpty do
-            WorldLib.dropItem(getWorld, getPos, itemStorage.poll().payload.makeStack)
+        while !pneumaticQueue.isEmpty do
+            WorldLib.dropItem(getWorld, getPos, pneumaticQueue.poll().getItemStack)
 
-trait TPressureActiveDevice extends TActiveDevice with TPressureDevice
-:
-    override def acceptItem(item:PressurePayload, side:Int):Boolean =
-        if !canConnectSide(side) then return false
-
-        if canAcceptInput(item.payload.key, side) && shouldAcceptInput then
-            itemStorage.add(item)
-            active = true
-            sendStateUpdate()
-            scheduleTick(4)
-            exportBuffer()
-            true
-        else if canAcceptBacklog(item.payload.key, side) && shouldAcceptBacklog then
-            itemStorage.addBacklog(item)
-            active = true
-            sendStateUpdate()
-            scheduleTick(4)
-            true
-        else false
+    def canAcceptInput(item:ItemKey, side:Int):Boolean
+    def canAcceptBacklog(item:ItemKey, side:Int):Boolean
+    def canConnectSide(side:Int):Boolean

@@ -15,6 +15,7 @@ import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.item.ItemKey
 import mrtjp.projectred.ProjectRedExpansion
 import mrtjp.projectred.expansion.TileItemImporter.*
+import mrtjp.projectred.transportation.pneumatics.part.PneumaticTubePayload
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityItem
@@ -27,7 +28,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 
 import scala.jdk.CollectionConverters.*
 
-class TileItemImporter extends TileMachine with TPressureActiveDevice with IRedstoneConnector
+class TileItemImporter extends TileMachine with TPneumaticActiveDevice with IRedstoneConnector
 :
     override def getBlock = ProjectRedExpansion.machine2
 
@@ -37,7 +38,7 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
     override def doesOrient = true
 
     //side = out, side^1 = in
-    override def canAcceptInput(item:ItemKey, side:Int) = (side^1) == this.side && !powered && itemStorage.isEmpty
+    override def canAcceptInput(item:ItemKey, side:Int) = (side^1) == this.side && !powered && pneumaticQueue.isEmpty
     override def canAcceptBacklog(item:ItemKey, side:Int) = side == this.side
     override def canConnectSide(side:Int) = (side&6) == (this.side&6)
 
@@ -57,11 +58,11 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
                 val toExtract = math.min(k.getMaxStackSize, getExtractAmount)
                 val extracted = inv.extractItem(k, toExtract)
                 if extracted > 0 then
-                    itemStorage.add(k.makeStack(extracted))
+                    pneumaticQueue.add(new PneumaticTubePayload(k.makeStack(extracted)))
                     active = true
                     sendStateUpdate()
                     scheduleTick(4)
-                    exportBuffer()
+                    exportPneumaticQueue()
                     true
                 else false
             case None => false
@@ -70,7 +71,7 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
         suckEntities(sbounds(side))
 
     override def onEntityCollision(ent:Entity): Unit =
-        if !world.isRemote && !powered && itemStorage.isEmpty then
+        if !world.isRemote && !powered && pneumaticQueue.isEmpty then
             suckEntities(ibounds(side))
 
     def suckEntities(box:Cuboid6):Boolean =
@@ -80,14 +81,14 @@ class TileItemImporter extends TileMachine with TPressureActiveDevice with IReds
             box.copy.add(new Vector3(x, y, z)).aabb)
         var added = false
         for ei <- elist.asScala do if !ei.isDead && ei.getItem.getCount > 0 && canImport(ItemKey.get(ei.getItem)) then
-            itemStorage.add(ei.getItem)
+            pneumaticQueue.add(new PneumaticTubePayload(ei.getItem))
             world.removeEntity(ei)
             added = true
         if added then
             active = true
             sendStateUpdate()
             scheduleTick(4)
-            exportBuffer()
+            exportPneumaticQueue()
         added
 
     def canSuckEntities:Boolean =

@@ -9,6 +9,7 @@ import mrtjp.core.item.{ItemCore, ItemDefinition}
 import mrtjp.projectred.ProjectRedCore.*
 import mrtjp.projectred.ProjectRedTransportation
 import mrtjp.projectred.transportation.ChipType.ChipType
+import mrtjp.projectred.transportation.pneumatics.part.PneumaticTubePart
 import net.minecraft.block.SoundType
 import net.minecraft.client.renderer.block.model.ModelResourceLocation
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
@@ -36,8 +37,10 @@ class ItemPartPipe extends ItemCore with TItemMultiPart
       */
     override def newPart(item:ItemStack, player:EntityPlayer, world:World, pos:BlockPos, side:Int, vhit:Vector3) =
         val pdef = PipeDefs.fromMeta(item.getItemDamage)
-        val p = MultiPartRegistry.loadPart(pdef.partname, null:NBTTagCompound).asInstanceOf[PayloadPipePart[?]]
-        if p != null then p.preparePlacement(side, item.getItemDamage)
+        val p = MultiPartRegistry.loadPart(pdef.partname, null:NBTTagCompound)
+        p match
+            case pipe:SubcorePipePart => pipe.preparePlacement(side, item.getItemDamage)
+            case _ =>
         p
 
     override def getSubItems(tab:CreativeTabs, list:NonNullList[ItemStack]): Unit =
@@ -63,10 +66,9 @@ object PipeDefs extends ItemDefinition
     val NETWORKVALVE = new PipeVal(32, new ResourceLocation("projectred-transporation:netvalve_pipe"), "netvalve_blocked", "netvalve_in", "netvalve_out", "netvalve_inout")
     val NETWORKLATENCY = new PipeVal(33, new ResourceLocation("projectred-transporation:netlatency_pipe"), "netlatency")
 
-    /** Pressure Tubes 64+ **/
+    /** Pneumatic Tubes 64+ **/
 
-    val PRESSURETUBE = new PipeVal(64, new ResourceLocation("projectred-transporation:pressure_tube"), Seq("pressuretube")++(0 to 15 map{"colour/colour_"+_})*)
-    val RESISTANCETUBE = new PipeVal(65, new ResourceLocation("projectred-transporation:resustance_tube"), "resistancetube")
+    val PNEUMATICTUBE = new PipeVal(64, new ResourceLocation("projectred-transporation:pneumatic_tube"), "pressuretube")
 
     class PipeVal(override val meta:Int, val partname:ResourceLocation, val textures:String*) extends ItemDef(partname.toString)
     :

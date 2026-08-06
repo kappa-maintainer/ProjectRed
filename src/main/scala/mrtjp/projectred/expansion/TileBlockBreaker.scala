@@ -10,6 +10,7 @@ import codechicken.lib.vec.uv.{MultiIconTransformation, UVTransformation}
 import codechicken.multipart.IRedstoneConnector
 import mrtjp.core.item.ItemKey
 import mrtjp.projectred.ProjectRedExpansion
+import mrtjp.projectred.transportation.pneumatics.part.PneumaticTubePayload
 import net.minecraft.block.Block
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.init.Blocks
@@ -21,7 +22,7 @@ import net.minecraftforge.common.property.IExtendedBlockState
 
 import scala.jdk.CollectionConverters.*
 
-class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IRedstoneConnector with TNonStickableFrontFace
+class TileBlockBreaker extends TileMachine with TPneumaticActiveDevice with IRedstoneConnector with TNonStickableFrontFace
 :
     override def getBlock = ProjectRedExpansion.machine2
     override def doesRotate = false
@@ -40,10 +41,10 @@ class TileBlockBreaker extends TileMachine with TPressureActiveDevice with IReds
         if state.getBlockHardness(world, bc) < 0 then return
         if state.getBlock.getHarvestLevel(state) > getHarvestLevel then return
 
-        state.getBlock.getDrops(world, bc, state, 0).asScala.foreach(itemStorage.add)
+        state.getBlock.getDrops(world, bc, state, 0).asScala.foreach(stack => pneumaticQueue.add(new PneumaticTubePayload(stack)))
         world.playEvent(null, 2001, getPos, Block.getStateId(state))
         world.setBlockToAir(bc)
-        exportBuffer()
+        exportPneumaticQueue()
 
     def getHarvestLevel = 2
 

@@ -101,7 +101,7 @@ object RenderPipe extends IIconRegister
 
     def renderColourWool(p:TColourFilterPipe, pos:Vector3, colour:Byte, ccrs:CCRenderState): Unit =
         val t = pos.translation()
-        val uvt2 = new IconTransformation(PipeDefs.PRESSURETUBE.sprites(1+colour))
+        val uvt2 = new IconTransformation(PipeDefs.PNEUMATICTUBE.sprites(0))
         val connMap = p.connMap&0x3F
 
         if connMap == 0x3 || connMap == 0xC || connMap == 0x30 then for a <- 0 until 3 do
@@ -120,6 +120,27 @@ object RenderPipe extends IIconRegister
     def renderInv(ccrs:CCRenderState, ops:IVertexOperation*): Unit =
         centerModels(3).render(ccrs, ops*)
         for s <- 0 to 1 do sideModels(s).render(ccrs, ops*)
+
+    def renderPneumaticItemFlow(p:mrtjp.projectred.transportation.pneumatics.part.PneumaticTubePart, pos:Vector3, frame:Float, ccrs:CCRenderState): Unit =
+        pushMatrix()
+        disableLighting()
+        for payload <- p.getPneumaticTransport.getPayloads do
+            val dir = payload.getCurrentSide
+            val progress = (payload.getProgress + payload.getSpeed * frame).toDouble / payload.MAX_PROGRESS
+            var x = pos.x + 0.5D
+            var y = pos.y + 0.25D
+            var z = pos.z + 0.5D
+            dir match
+                case 0 => y = (pos.y - 0.25D) + (1.0D - progress)
+                case 1 => y = (pos.y - 0.25D) + progress
+                case 2 => z = pos.z + (1.0D - progress)
+                case 3 => z = pos.z + progress
+                case 4 => x = pos.x + (1.0D - progress)
+                case 5 => x = pos.x + progress
+                case _ =>
+            doRenderItem(payload.getItemStack, x, y, z)
+        enableLighting()
+        popMatrix()
 
     def renderItemFlow[T <: AbstractPipePayload](p:PayloadPipePart[T], pos:Vector3, frame:Float, ccrs:CCRenderState): Unit =
         pushMatrix()
@@ -143,16 +164,17 @@ object RenderPipe extends IIconRegister
             r match
                 case net:NetworkPayload =>
                     renderPayloadColour(net.netPriority.color, frameX, frameY, frameZ, ccrs)
-                case pa:PressurePayload if pa.colour > -1 =>
-                    renderPayloadColour(pa.colour, frameX, frameY, frameZ, ccrs)
                 case _ =>
         enableLighting()
         popMatrix()
 
     private def doRenderItem(r:AbstractPipePayload, x:Double, y:Double, z:Double): Unit =
         if r == null || r.getItemStack == null then return
+        doRenderItem(r.getItemStack, x, y, z)
+
+    private def doRenderItem(itemstack:ItemStack, x:Double, y:Double, z:Double): Unit =
+        if itemstack == null || itemstack.isEmpty then return
         val renderScale = 0.7f
-        val itemstack = r.getItemStack
 
         pushMatrix()
         translate(x, y, z)

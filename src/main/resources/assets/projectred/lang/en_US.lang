@@ -111,8 +111,7 @@ item.projectred.transportation.pipe|3.name=Routed Request pipe
 item.projectred.transportation.pipe|4.name=Routed Firewall pipe
 item.projectred.transportation.pipe|32.name=Network Valve pipe
 item.projectred.transportation.pipe|33.name=Network Latency pipe
-item.projectred.transportation.pipe|64.name=Pressure tube
-item.projectred.transportation.pipe|65.name=Pressure Resistance tube
+item.projectred.transportation.pipe|64.name=Pneumatic tube
 
 
 tile.projectred.exploration.ore|0.name=Ruby Ore

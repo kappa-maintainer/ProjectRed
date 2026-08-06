@@ -1,0 +1,18 @@
+{
+  "pressurize": {
+    "category": "block",
+    "sounds": [
+      "projectred-transportation:pressurize_1",
+      "projectred-transportation:pressurize_2",
+      "projectred-transportation:pressurize_3"
+    ]
+  },
+  "depressurize": {
+    "category": "block",
+    "sounds": [
+      "projectred-transportation:depressurize_1",
+      "projectred-transportation:depressurize_2",
+      "projectred-transportation:depressurize_3"
+    ]
+  }
+}
