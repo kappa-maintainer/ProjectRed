@@ -155,6 +155,40 @@ new items (`base_silicon_wafer`, `rough_silicon_wafer`, `etched_silicon_wafer`,
 Workbench crafting flow is single-step and has none of these intermediate items or machines.
 Porting means designing and implementing the whole pipeline, not just adding blocks. Not started.
 
+#### IC simulation engine options considered
+
+High-version Fabrication compiles circuits via the external `io.github.mrtjp:fabrication-engine`
+library (source: github.com/MrTJP/fabrication-engine), jarJar'd into the mod rather than vendored.
+Evaluated it and one third-party alternative as potential replacements for 1.12's own
+`SimEngine`/`SimInterface`/`SimLinker`.
+
+- **`fabrication-engine`** (Maven: `io.github.mrtjp`, confirmed live on
+  `proxy-maven.covers1624.net`, latest `0.1.0-alpha-19`, no sources jar ever published). Same
+  author, same core propagation algorithm as 1.12's `SimEngine` (identical changeQueue-driven
+  incremental recompute, identical 32-cycle overflow threshold) — likely a common Scala ancestor,
+  later rewritten to Java. Advantages: type-safe byte registers (vs 1.12's runtime-polymorphic
+  `asInstanceOf` casts), and a real six-phase assembly pipeline with register remapping that
+  supports nested sub-circuits (`addTileMap`/`addFlatMap`) — a capability 1.12 has no equivalent
+  for. Disadvantages: byte-only registers make multi-byte values (e.g. a 64-bit timer) clunkier
+  than 1.12's native `Long` registers; the step-through assembler needed for live editor feedback
+  is the least-finished part of the library (18 `TODO: Return something useful` placeholders);
+  project has been stuck in alpha for its entire history and saw no commits in over two years.
+- **`RedstoneControl`/`rscpl`** (github.com/CD4017BE/RedstoneControl, last commit 2021-02-08,
+  unmaintained 4+ years). Fundamentally different approach: compiles circuit graphs to real ASM
+  bytecode classes instead of interpreting a register model, giving native JIT-optimizable
+  execution and a real static type system (int/long/float/double, not byte-only). Requires a
+  bytecode allow-list security checker to safely load generated classes. Critically, its
+  compile-time DAG ordering rejects combinational feedback loops outright (`CAUSAL_LOOP` compile
+  error) — incompatible with 1.12's existing SR Latch/Toggle Latch/StateCell/Synchronizer gates,
+  which rely on runtime convergence. Not evaluated further as a drop-in replacement.
+
+**Decision**: keep 1.12's own `SimEngine`/`SimInterface`/`SimLinker`. Neither external engine is a
+safe dependency (alpha-stage/unmaintained, in both cases without a compatible feedback-loop
+semantics or a finished editor-feedback path), and 1.12's own implementation already covers the
+gate set in active use. If nested-IC support is wanted later, borrow the six-phase/remap design
+idea from `fabrication-engine` and implement it directly against `SimLinker` rather than adding
+the external dependency.
+
 ### IC internal IO pin components (`io_buffer`, `io_bundled_buffer`, `io_bundled_bus`, `io_redstone_connector`, `io_bundled_connector`, `io_potentiometer`)
 
 These are components used *inside* the Fabrication IC editor/engine (`RedstoneIOGateTile`,
