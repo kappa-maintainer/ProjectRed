@@ -16,6 +16,7 @@ import mrtjp.core.inventory.{TInventory, TInventoryCapablilityTile}
 import mrtjp.core.vec.Point
 import mrtjp.projectred.ProjectRedExpansion
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{IContainerListener, ISidedInventory}
 import net.minecraft.item.ItemStack
@@ -219,8 +220,8 @@ class GuiBatteryBox(tile:TileBatteryBox, c:ContainerBatteryBox) extends NodeGui(
         else if tile.cond.charge < tile.getDrawFloor && tile.powerStored > 0 then
             GuiDraw.drawTexturedModalRect(65, 30, 199, 0, 48, 18)
 
-        GuiDraw.drawString("Battery Box", 8, 6, EnumColour.GRAY.argb, false)
-        GuiDraw.drawString("Inventory", 8, 79, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("tile.projectred.expansion.machine2|5.name"), 8, 6, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("container.inventory"), 8, 79, EnumColour.GRAY.argb, false)
 
 object GuiBatteryBox extends TGuiFactory
 :

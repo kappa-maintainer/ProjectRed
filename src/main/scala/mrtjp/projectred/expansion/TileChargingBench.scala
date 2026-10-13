@@ -18,6 +18,7 @@ import mrtjp.core.vec.Point
 import mrtjp.core.world.WorldLib
 import mrtjp.projectred.ProjectRedExpansion
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{IContainerListener, ISidedInventory}
 import net.minecraft.item.ItemStack
@@ -208,8 +209,8 @@ class GuiChargingBench(tile:TileChargingBench, c:ContainerChargingBench) extends
         if tile.containsUncharged && tile.powerStorage > 0 then
             GuiDraw.drawTexturedModalRect(63, 29, 210, 0, 17, 10)
 
-        GuiDraw.drawString("Charging Bench", 8, 6, EnumColour.GRAY.argb, false)
-        GuiDraw.drawString("Inventory", 8, 91, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("tile.projectred.expansion.machine2|6.name"), 8, 6, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("container.inventory"), 8, 91, EnumColour.GRAY.argb, false)
 
 object GuiChargingBench extends TGuiFactory
 :

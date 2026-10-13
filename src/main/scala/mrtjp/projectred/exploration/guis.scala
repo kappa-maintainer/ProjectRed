@@ -7,6 +7,7 @@ import codechicken.lib.util.ItemUtils
 import mrtjp.core.gui.{NodeGui, TGuiFactory}
 import mrtjp.core.vec.Point
 import mrtjp.projectred.ProjectRedExploration
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
@@ -22,7 +23,7 @@ class GuiBackpack(player:EntityPlayer, bag:ItemStack) extends NodeGui(ItemBackpa
 
     override def drawFront_Impl(mouse:Point, frame:Float): Unit =
         getFontRenderer.drawString(bag.getDisplayName, 8, 6, EnumColour.GRAY.rgb)
-        getFontRenderer.drawString("Inventory", 8, 75, EnumColour.GRAY.rgb)
+        getFontRenderer.drawString(I18n.format("container.inventory"), 8, 75, EnumColour.GRAY.rgb)
 
     override def keyPressed_Impl(c:Char, keycode:Int, consumed:Boolean) =
         keycode == player.inventory.currentItem+2

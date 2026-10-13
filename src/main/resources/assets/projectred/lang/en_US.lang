@@ -511,3 +511,29 @@ item.projectred.fabrication.validDie.name=Valid Die
 item.projectred.fabrication.invalidDie.name=Invalid Die
 
 tile.projectred.relocation.frame.name=Frame
+
+#GUI labels
+gui.projectred.transportation.requester.pull=Pull
+gui.projectred.transportation.requester.craft=Craft
+gui.projectred.transportation.requester.partial=Partial
+gui.projectred.transportation.requester.refresh=Refresh
+gui.projectred.transportation.requester.submit=Submit
+gui.projectred.transportation.requester.all=All
+gui.projectred.transportation.extraction.is=Extraction is
+gui.projectred.transportation.extraction.notSimulated=not simulated
+gui.projectred.transportation.extraction.simulatedFrom=simulated from
+gui.projectred.transportation.extraction.direction.0=the bottom
+gui.projectred.transportation.extraction.direction.1=the top
+gui.projectred.transportation.extraction.direction.2=the North
+gui.projectred.transportation.extraction.direction.3=the South
+gui.projectred.transportation.extraction.direction.4=the West
+gui.projectred.transportation.extraction.direction.5=the East
+gui.projectred.transportation.chip.randomize=randomize
+gui.projectred.fabrication.gate.rotate=rotate
+gui.projectred.fabrication.gate.configure=configure
+gui.projectred.fabrication.gate.var=var
+gui.projectred.fabrication.gate.ioMode=io mode
+gui.projectred.fabrication.workbench.confirm=confirm
+gui.projectred.fabrication.workbench.start=start
+gui.projectred.fabrication.workbench.redraw=redraw
+gui.projectred.fabrication.workbench.rename=rename

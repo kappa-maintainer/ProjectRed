@@ -16,6 +16,7 @@ import mrtjp.core.inventory.{TInventory, TInventoryCapablilityTile}
 import mrtjp.core.vec.{Point, Size}
 import mrtjp.projectred.ProjectRedExpansion
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{IContainerListener, ISidedInventory}
 import net.minecraft.item.ItemStack
@@ -211,8 +212,8 @@ class GuiAutoCrafter(tile:TileAutoCrafter, c:ContainerAutoCrafter) extends NodeG
         if !plan.isEmpty && ItemPlan.hasRecipeInside(plan) then
             ItemDisplayNode.renderItem(Point(152, 58), Size(16, 16), zPosition, true, ItemPlan.loadPlanOutput(plan))
 
-        GuiDraw.drawString("Auto Crafting Bench", 8, 6, EnumColour.GRAY.argb, false)
-        GuiDraw.drawString("Inventory", 8, 120, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("tile.projectred.expansion.machine2|11.name"), 8, 6, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("container.inventory"), 8, 120, EnumColour.GRAY.argb, false)
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
         if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then

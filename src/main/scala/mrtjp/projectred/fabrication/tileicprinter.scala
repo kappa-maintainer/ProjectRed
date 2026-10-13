@@ -35,6 +35,7 @@ import net.minecraft.client.renderer.block.model.*
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.init.{Blocks, Items}
@@ -500,7 +501,7 @@ class GuiICPrinter(c:ContainerPrinter, tile:TileICPrinter) extends NodeGui(c, 17
         if hasErrors then
             GuiDraw.drawTexturedModalRect(flagBox.x, flagBox.y, 176, 19, flagBox.width, flagBox.height) //draw the error symbol
 
-        GuiDraw.drawString("IC Printer", 8, 6, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("tile.projectred.fabrication.icMachine|1.name"), 8, 6, EnumColour.GRAY.argb, false)
 
     override def drawFront_Impl(mouse:Point, rframe:Float): Unit =
         if hasErrors then

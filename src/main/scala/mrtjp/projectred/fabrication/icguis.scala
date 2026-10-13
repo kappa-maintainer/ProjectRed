@@ -12,6 +12,7 @@ import codechicken.lib.vec.Translation
 import mrtjp.core.gui.{GuiLib, MCButtonNode, TNode}
 import mrtjp.core.vec.{Point, Rect, Size}
 import net.minecraft.client.gui.Gui
+import net.minecraft.client.resources.I18n
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 
@@ -99,14 +100,14 @@ class ICGateGui(override val gate:GateICTile) extends ICTileGui(gate) with TGate
         val rotate = new MCButtonNode
         rotate.position = Point(58, 12)
         rotate.size = Size(50, 15)
-        rotate.text = "rotate"
+        rotate.text = I18n.format("gui.projectred.fabrication.gate.rotate")
         rotate.clickDelegate = {() => gate.sendClientPacket(_.writeByte(0))}
         addChild(rotate)
 
         val conf = new MCButtonNode
         conf.position = Point(58, 28)
         conf.size = Size(50, 15)
-        conf.text = "configure"
+        conf.text = I18n.format("gui.projectred.fabrication.gate.configure")
         conf.clickDelegate = {() => gate.sendClientPacket(_.writeByte(1))}
         addChild(conf)
 
@@ -121,14 +122,14 @@ class ICTimerGateGui(override val gate:SequentialGateICTile) extends ICTileGui(g
     val rotate = new MCButtonNode
     rotate.position = Point(ax, 5)
     rotate.size = Size(aw, ah)
-    rotate.text = "rotate"
+    rotate.text = I18n.format("gui.projectred.fabrication.gate.rotate")
     rotate.clickDelegate = {() => gate.sendClientPacket(_.writeByte(0))}
     addChild(rotate)
 
     val conf = new MCButtonNode
     conf.position = Point(ax+aw+1, 5)
     conf.size = Size(aw, ah)
-    conf.text = "configure"
+    conf.text = I18n.format("gui.projectred.fabrication.gate.configure")
     conf.clickDelegate = {() => gate.sendClientPacket(_.writeByte(1))}
     addChild(conf)
 
@@ -175,21 +176,21 @@ class ICCounterGateGui(override val gate:SequentialGateICTile) extends ICTileGui
     val rotate = new MCButtonNode
     rotate.position = Point(ax, 5)
     rotate.size = Size(aw, ah)
-    rotate.text = "rotate"
+    rotate.text = I18n.format("gui.projectred.fabrication.gate.rotate")
     rotate.clickDelegate = {() => gate.sendClientPacket(_.writeByte(0))}
     addChild(rotate)
 
     val conf = new MCButtonNode
     conf.position = Point(ax+aw+1, 5)
     conf.size = Size(aw, ah)
-    conf.text = "configure"
+    conf.text = I18n.format("gui.projectred.fabrication.gate.configure")
     conf.clickDelegate = {() => gate.sendClientPacket(_.writeByte(1))}
     addChild(conf)
 
     val sw = new MCButtonNode
     sw.position = Point(54, 28)
     sw.size = Size(20, 12)
-    sw.text = "var"
+    sw.text = I18n.format("gui.projectred.fabrication.gate.var")
     sw.clickDelegate = {() => valID = (valID+1)%4}
     addChild(sw)
 
@@ -237,7 +238,7 @@ class ICIOGateGui(override val gate:IOGateICTile) extends ICTileGui(gate) with T
     val conf = new MCButtonNode
     conf.position = Point(62, 33)
     conf.size = Size(46, 15)
-    conf.text = "io mode"
+    conf.text = I18n.format("gui.projectred.fabrication.gate.ioMode")
     conf.clickDelegate = {() => gate.sendClientPacket(_.writeByte(1))}
     addChild(conf)
 
@@ -258,7 +259,7 @@ class ICIOFreqGateGui(override val gate:IOGateICTile) extends ICTileGui(gate) wi
     val conf = new MCButtonNode
     conf.position = Point(52, 7)
     conf.size = Size(46, 15)
-    conf.text = "io mode"
+    conf.text = I18n.format("gui.projectred.fabrication.gate.ioMode")
     conf.clickDelegate = {() => gate.sendClientPacket(_.writeByte(1))}
     addChild(conf)
 

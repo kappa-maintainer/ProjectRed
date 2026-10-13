@@ -511,3 +511,29 @@ item.projectred.fabrication.validDie.name=良品晶粒
 item.projectred.fabrication.invalidDie.name=缺陷晶粒
 
 tile.projectred.relocation.frame.name=框架
+
+#GUI labels
+gui.projectred.transportation.requester.pull=提取
+gui.projectred.transportation.requester.craft=合成
+gui.projectred.transportation.requester.partial=部分
+gui.projectred.transportation.requester.refresh=刷新
+gui.projectred.transportation.requester.submit=提交
+gui.projectred.transportation.requester.all=全部
+gui.projectred.transportation.extraction.is=提取方向
+gui.projectred.transportation.extraction.notSimulated=未模拟
+gui.projectred.transportation.extraction.simulatedFrom=模拟自
+gui.projectred.transportation.extraction.direction.0=底面
+gui.projectred.transportation.extraction.direction.1=顶面
+gui.projectred.transportation.extraction.direction.2=北面
+gui.projectred.transportation.extraction.direction.3=南面
+gui.projectred.transportation.extraction.direction.4=西面
+gui.projectred.transportation.extraction.direction.5=东面
+gui.projectred.transportation.chip.randomize=随机
+gui.projectred.fabrication.gate.rotate=旋转
+gui.projectred.fabrication.gate.configure=配置
+gui.projectred.fabrication.gate.var=变量
+gui.projectred.fabrication.gate.ioMode=IO模式
+gui.projectred.fabrication.workbench.confirm=确认
+gui.projectred.fabrication.workbench.start=开始
+gui.projectred.fabrication.workbench.redraw=重绘
+gui.projectred.fabrication.workbench.rename=重命名

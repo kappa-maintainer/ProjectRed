@@ -16,6 +16,7 @@ import mrtjp.core.inventory.{InvWrapper, TInventory, TInventoryCapablilityTile}
 import mrtjp.core.item.ItemKey
 import mrtjp.core.vec.{Point, Size}
 import net.minecraft.client.renderer.texture.{TextureAtlasSprite, TextureMap}
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.{Container, ISidedInventory}
 import net.minecraft.item.ItemStack
@@ -125,8 +126,8 @@ class GuiFilteredImporter(c:Container, tile:TileFilteredImporter) extends NodeGu
     override def drawBack_Impl(mouse:Point, frame:Float): Unit =
         TextureUtils.changeTexture(GuiFilteredImporter.background)
         GuiDraw.drawTexturedModalRect(0, 0, 0, 0, 176, 168)
-        GuiDraw.drawString("Filtered Importer", 8, 6, EnumColour.GRAY.argb, false)
-        GuiDraw.drawString("Inventory", 8, 75, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("tile.projectred.expansion.machine2|3.name"), 8, 6, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("container.inventory"), 8, 75, EnumColour.GRAY.argb, false)
 
 object GuiFilteredImporter extends TGuiFactory
 :

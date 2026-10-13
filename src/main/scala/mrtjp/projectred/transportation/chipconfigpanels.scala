@@ -11,6 +11,7 @@ import codechicken.lib.texture.TextureUtils
 import com.mojang.realmsclient.gui.ChatFormatting
 import mrtjp.core.gui.*
 import mrtjp.core.vec.{Point, Size}
+import net.minecraft.client.resources.I18n
 import net.minecraft.util.ResourceLocation
 
 import scala.collection.mutable.ListBuffer
@@ -178,17 +179,15 @@ class OrientChipPanel(chip:TChipOrientation) extends ChipPanelNode(chip)
         list += "Orientation"
         chip.addOrientInfo(list)
 
-    private val names = Seq("bottom", "top", "North", "South", "West", "East")
-
     override def drawBack_Impl(mouse:Point, rframe:Float): Unit =
         super.drawBack_Impl(mouse, rframe)
         val xOff = 52
         val yOff = 16
-        GuiDraw.drawString("Extraction is", position.x+xOff, position.y+yOff, EnumColour.GRAY.rgb, false)
-        if chip.extractOrient == -1 then GuiDraw.drawString("not simulated", position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
+        GuiDraw.drawString(I18n.format("gui.projectred.transportation.extraction.is"), position.x+xOff, position.y+yOff, EnumColour.GRAY.rgb, false)
+        if chip.extractOrient == -1 then GuiDraw.drawString(I18n.format("gui.projectred.transportation.extraction.notSimulated"), position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
         else
-            GuiDraw.drawString("simulated from", position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
-            GuiDraw.drawString("the " + names(chip.extractOrient), position.x+xOff, position.y+yOff+20, EnumColour.GRAY.rgb, false)
+            GuiDraw.drawString(I18n.format("gui.projectred.transportation.extraction.simulatedFrom"), position.x+xOff, position.y+yOff+10, EnumColour.GRAY.rgb, false)
+            GuiDraw.drawString(I18n.format("gui.projectred.transportation.extraction.direction." + chip.extractOrient), position.x+xOff, position.y+yOff+20, EnumColour.GRAY.rgb, false)
 
 class PriorityChipPanel(chip:TChipPriority) extends ChipPanelNode(chip)
 :
@@ -472,7 +471,7 @@ class ExtensionIDPanel(chip:TChipCrafterExtension) extends ChipPanelNode(chip)
     val ref = new MCButtonNode
     ref.position = Point(57, 38)
     ref.size = Size(58, 12)
-    ref.text = "randomize"
+    ref.text = I18n.format("gui.projectred.transportation.chip.randomize")
     ref.clickDelegate = {() =>
         chip.randomizeUUID()
         getContainer.saveChip()

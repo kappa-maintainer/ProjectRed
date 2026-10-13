@@ -21,6 +21,7 @@ import mrtjp.projectred.fabrication.ICComponentStore.*
 import net.minecraft.client.gui.Gui
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.client.renderer.GlStateManager.*
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemStack
 import net.minecraft.util.ResourceLocation
@@ -372,7 +373,7 @@ class RenameICNode(oldName:String) extends TNode
             removeFromParent()
             completionDelegate()
         }
-        fin.text = "confirm"
+        fin.text = I18n.format("gui.projectred.fabrication.workbench.confirm")
         addChild(fin)
 
         textbox = new SimpleTextboxNode
@@ -465,7 +466,7 @@ class NewICNode extends TNode
             removeFromParent()
             completionDelegate()
         }
-        fin.text = "start"
+        fin.text = I18n.format("gui.projectred.fabrication.workbench.start")
         addChild(fin)
 
         textbox = new SimpleTextboxNode
@@ -630,7 +631,7 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
         val reqNew = new MCButtonNode
         reqNew.position = Point(272, 133)
         reqNew.size = Size(44, 12)
-        reqNew.text = "redraw"
+        reqNew.text = I18n.format("gui.projectred.fabrication.workbench.redraw")
         reqNew.clickDelegate = {() =>
             if tile.hasBP then
                 val nic = new NewICNode
@@ -649,7 +650,7 @@ class GuiICWorkbench(val tile:TileICWorkbench) extends NodeGui(330, 256)
         val rename = new MCButtonNode
         rename.position = Point(272, 116)
         rename.size = Size(44, 12)
-        rename.text = "rename"
+        rename.text = I18n.format("gui.projectred.fabrication.workbench.rename")
         rename.clickDelegate = {() =>
             if tile.hasBP then
                 val rn = new RenameICNode(tile.editor.tileMapContainer.name)
