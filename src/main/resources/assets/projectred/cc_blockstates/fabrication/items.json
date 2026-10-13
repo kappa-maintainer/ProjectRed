@@ -27,6 +27,31 @@
         "textures": {
           "layer0": "items/fabrication/ic_blueprint"
         }
+      },
+      "rough_silicon_wafer": {
+        "textures": {
+          "layer0": "items/fabrication/rough_silicon_wafer"
+        }
+      },
+      "blank_photomask": {
+        "textures": {
+          "layer0": "items/fabrication/blank_photomask"
+        }
+      },
+      "photomask_set": {
+        "textures": {
+          "layer0": "items/fabrication/photomask_set"
+        }
+      },
+      "valid_die": {
+        "textures": {
+          "layer0": "items/fabrication/valid_die"
+        }
+      },
+      "invalid_die": {
+        "textures": {
+          "layer0": "items/fabrication/invalid_die"
+        }
       }
     }
   }

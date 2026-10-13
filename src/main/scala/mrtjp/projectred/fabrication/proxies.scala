@@ -40,6 +40,14 @@ class FabricationProxy_server extends IProxy with IPartFactory
         icBlock.addTile(classOf[TileICWorkbench], 0)
         icBlock.addTile(classOf[TileICPrinter], 1)
 
+        fabricationMachineBlock = new BlockFabricationMachine(fabricationMachineBakery)
+        fabricationMachineBlock.setTranslationKey("projectred.fabrication.fabricationMachine")
+        ForgeRegistries.BLOCKS.register(fabricationMachineBlock.setRegistryName("fabrication_machine"))
+        ForgeRegistries.ITEMS.register(new ItemBlockCore(fabricationMachineBlock).setRegistryName(fabricationMachineBlock.getRegistryName))
+        fabricationMachineBlock.addTile(classOf[TilePlottingTable], 0)
+        fabricationMachineBlock.addTile(classOf[TileLithographyTable], 1)
+        fabricationMachineBlock.addTile(classOf[TilePackagingTable], 2)
+
         itemICBlueprint = new ItemICBlueprint
         itemICBlueprint.setTranslationKey("projectred.fabrication.icBlueprint")
         ForgeRegistries.ITEMS.register(itemICBlueprint.setRegistryName("ic_blueprint"))
@@ -47,6 +55,26 @@ class FabricationProxy_server extends IProxy with IPartFactory
         itemICChip = new ItemICChip
         itemICChip.setTranslationKey("projectred.fabrication.icChip")
         ForgeRegistries.ITEMS.register(itemICChip.setRegistryName("ic_chip"))
+
+        itemRoughSiliconWafer = new ItemRoughSiliconWafer
+        itemRoughSiliconWafer.setTranslationKey("projectred.fabrication.roughSiliconWafer")
+        ForgeRegistries.ITEMS.register(itemRoughSiliconWafer.setRegistryName("rough_silicon_wafer"))
+
+        itemBlankPhotomask = new ItemBlankPhotomask
+        itemBlankPhotomask.setTranslationKey("projectred.fabrication.blankPhotomask")
+        ForgeRegistries.ITEMS.register(itemBlankPhotomask.setRegistryName("blank_photomask"))
+
+        itemPhotomaskSet = new ItemPhotomaskSet
+        itemPhotomaskSet.setTranslationKey("projectred.fabrication.photomaskSet")
+        ForgeRegistries.ITEMS.register(itemPhotomaskSet.setRegistryName("photomask_set"))
+
+        itemValidDie = new ItemValidDie
+        itemValidDie.setTranslationKey("projectred.fabrication.validDie")
+        ForgeRegistries.ITEMS.register(itemValidDie.setRegistryName("valid_die"))
+
+        itemInvalidDie = new ItemInvalidDie
+        itemInvalidDie.setTranslationKey("projectred.fabrication.invalidDie")
+        ForgeRegistries.ITEMS.register(itemInvalidDie.setRegistryName("invalid_die"))
 
         MultiPartRegistry.registerParts(this, Array(GateDefinition.typeICGate))
         MinecraftForge.EVENT_BUS.register(FabricationRecipes)
@@ -98,6 +126,27 @@ class FabricationProxy_client extends FabricationProxy_server
                 state.getBlock.getRegistryName.toString + s",rot=$rot"
             )
 
+        fabricationMachineBakery.registerSubBakery(0, RenderPlottingTable, new IBlockStateKeyGenerator
+        :
+            override def generateKey(state: IExtendedBlockState): String =
+                val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
+                state.getBlock.getRegistryName.toString + s",rot=$rot"
+        )
+
+        fabricationMachineBakery.registerSubBakery(1, RenderLithographyTable, new IBlockStateKeyGenerator
+        :
+            override def generateKey(state: IExtendedBlockState): String =
+                val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
+                state.getBlock.getRegistryName.toString + s",rot=$rot"
+        )
+
+        fabricationMachineBakery.registerSubBakery(2, RenderPackagingTable, new IBlockStateKeyGenerator
+        :
+            override def generateKey(state: IExtendedBlockState): String =
+                val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
+                state.getBlock.getRegistryName.toString + s",rot=$rot"
+        )
+
         
         val model = new CCBakeryModel()
         val regLoc = icBlock.getRegistryName
@@ -111,11 +160,19 @@ class FabricationProxy_client extends FabricationProxy_server
         ModelRegistryHelper.register(wrappedLoc, RenderICPrinterItem)
         TextureUtils.addIconRegister(icMachineBakery.registerKeyGens(icBlock))
 
+        registerBlockToBakery(fabricationMachineBlock, fabricationMachineBakery.registerKeyGens(fabricationMachineBlock), new Builder().ignore(MultiTileBlock.TILE_INDEX).build())
+
         registerModelType(itemICBlueprint, "projectred:fabrication/items", "ic_blueprint")
         MapRenderRegistry.registerMapRenderer(itemICBlueprint, ItemRenderICBlueprint)
 
         registerModelType(itemICChip, "projectred:fabrication/items", Array("ic_active", "ic_inert"), { stack =>
             if ItemICBlueprint.hasICInside(stack) then "ic_active" else "ic_inert" })
+
+        registerModelType(itemRoughSiliconWafer, "projectred:fabrication/items", "rough_silicon_wafer")
+        registerModelType(itemBlankPhotomask, "projectred:fabrication/items", "blank_photomask")
+        registerModelType(itemPhotomaskSet, "projectred:fabrication/items", "photomask_set")
+        registerModelType(itemValidDie, "projectred:fabrication/items", "valid_die")
+        registerModelType(itemInvalidDie, "projectred:fabrication/items", "invalid_die")
 
         ClientRegistry.bindTileEntitySpecialRenderer(classOf[TileICPrinter], RenderICPrinterDynamic)
 
@@ -123,6 +180,19 @@ class FabricationProxy_client extends FabricationProxy_server
         GuiHandler.register(GuiICPrinter, icPrinterGui)
 
         RenderGate.hotswap(new RenderICGate, GateDefinition.ICGate.ordinal)
+
+    @SideOnly(Side.CLIENT)
+    def registerBlockToBakery(block: net.minecraft.block.Block, iconRegister: TextureUtils.IIconRegister, stateMap: net.minecraft.client.renderer.block.statemap.IStateMapper): Unit =
+        val model = new CCBakeryModel()
+        val regLoc = block.getRegistryName
+        val normalLoc = new ModelResourceLocation(regLoc, "normal")
+        val item = Item.getItemFromBlock(block)
+        ModelLoader.setCustomStateMapper(block, stateMap)
+        MCModelBakery.registerItemVariants(item, normalLoc)
+        ModelLoader.setCustomMeshDefinition(item, (stack: ItemStack) => normalLoc)
+        ModelRegistryHelper.register(normalLoc, model)
+        if iconRegister != null then
+            TextureUtils.addIconRegister(iconRegister)
 
     @SideOnly(Side.CLIENT)
     def registerModelType(item:Item, jsonLocation:String, typeValue:String): Unit =

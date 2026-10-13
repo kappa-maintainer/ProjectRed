@@ -501,5 +501,13 @@ item.projectred.fabrication.icChip|0.name=IC芯片
 item.projectred.fabrication.icChip|1.name=创造模式IC芯片
 tile.projectred.fabrication.icMachine|0.name=IC工作台
 tile.projectred.fabrication.icMachine|1.name=IC印刷机
+tile.projectred.fabrication.fabricationMachine|0.name=制版台
+tile.projectred.fabrication.fabricationMachine|1.name=光刻台
+tile.projectred.fabrication.fabricationMachine|2.name=封装台
+item.projectred.fabrication.roughSiliconWafer.name=粗硅晶圆
+item.projectred.fabrication.blankPhotomask.name=空白光掩膜
+item.projectred.fabrication.photomaskSet.name=光掩膜组
+item.projectred.fabrication.validDie.name=良品晶粒
+item.projectred.fabrication.invalidDie.name=缺陷晶粒
 
 tile.projectred.relocation.frame.name=框架

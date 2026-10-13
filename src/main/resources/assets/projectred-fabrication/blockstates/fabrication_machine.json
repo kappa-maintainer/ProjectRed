@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "normal": { "model": "projectred-fabrication:empty" },
+    "inventory": { "model": "projectred-fabrication:empty" }
+  }
+}
