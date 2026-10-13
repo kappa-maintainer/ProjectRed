@@ -132,26 +132,9 @@ class FabricationProxy_client extends FabricationProxy_server
                 state.getBlock.getRegistryName.toString + s",rot=$rot"
             )
 
-        fabricationMachineBakery.registerSubBakery(0, RenderPlottingTable, new IBlockStateKeyGenerator
-        :
-            override def generateKey(state: IExtendedBlockState): String =
-                val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
-                state.getBlock.getRegistryName.toString + s",rot=$rot"
-        )
-
-        fabricationMachineBakery.registerSubBakery(1, RenderLithographyTable, new IBlockStateKeyGenerator
-        :
-            override def generateKey(state: IExtendedBlockState): String =
-                val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
-                state.getBlock.getRegistryName.toString + s",rot=$rot"
-        )
-
-        fabricationMachineBakery.registerSubBakery(2, RenderPackagingTable, new IBlockStateKeyGenerator
-        :
-            override def generateKey(state: IExtendedBlockState): String =
-                val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
-                state.getBlock.getRegistryName.toString + s",rot=$rot"
-        )
+        fabricationMachineBakery.registerSubBakery(0, RenderPlottingTable, rotStateKeyGen)
+        fabricationMachineBakery.registerSubBakery(1, RenderLithographyTable, rotStateKeyGen)
+        fabricationMachineBakery.registerSubBakery(2, RenderPackagingTable, rotStateKeyGen)
 
         
         val model = new CCBakeryModel()
@@ -189,6 +172,20 @@ class FabricationProxy_client extends FabricationProxy_server
         GuiHandler.register(GuiPackagingTable)
 
         RenderGate.hotswap(new RenderICGate, GateDefinition.ICGate.ordinal)
+
+    /**
+      * Cache key for the three table variants. Must include the tile index:
+      * the state mapper ignores `TILE_INDEX`, so all three share a single
+      * ModelResourceLocation and would otherwise collapse onto one baked
+      * model -- whichever was baked first.
+      */
+    @SideOnly(Side.CLIENT)
+    val rotStateKeyGen = new IBlockStateKeyGenerator
+    :
+        override def generateKey(state: IExtendedBlockState): String =
+            val meta = state.getBlock.getMetaFromState(state)
+            val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
+            state.getBlock.getRegistryName.toString + s",meta=$meta,rot=$rot"
 
     @SideOnly(Side.CLIENT)
     def registerBlockToBakery(block: net.minecraft.block.Block, iconRegister: TextureUtils.IIconRegister, stateMap: net.minecraft.client.renderer.block.statemap.IStateMapper): Unit =

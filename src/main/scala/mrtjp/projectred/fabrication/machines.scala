@@ -71,6 +71,13 @@ object BlockFabricationMachine
 :
     val UNLISTED_ROTATION_PROPERTY = new UnlistedIntegerProperty("rotation")
 
+    /**
+      * These are 10/16-tall domed machines, so the selection and collision box
+      * stops well short of a full cube. Matches the model and the high
+      * version's `getOcclusionShape`.
+      */
+    val BOUNDS = new Cuboid6(0, 0, 0, 1, 10/16D, 1)
+
 abstract class TileFabricationMachine extends MTBlockTile with TTileOrient
 :
     override def getBlock = ProjectRedFabrication.fabricationMachineBlock
@@ -95,6 +102,10 @@ abstract class TileFabricationMachine extends MTBlockTile with TTileOrient
 
     //Not a full cube, so no face is solid. Same treatment as TileICPrinter.
     override def getBlockFaceShape(side:Int): BlockFaceShape = BlockFaceShape.UNDEFINED
+
+    override def getBlockBounds:Cuboid6 = BlockFabricationMachine.BOUNDS
+
+    override def getCollisionBounds:Cuboid6 = BlockFabricationMachine.BOUNDS
 
 class RenderFabricationTable(spriteFolder:String) extends SimpleBlockRenderer
 :
