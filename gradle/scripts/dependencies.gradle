@@ -1,6 +1,6 @@
 repositories {
     maven { name = 'ChickenBones'; url = 'https://chickenbones.net/maven/' }
-    maven { name = 'ProjectRed'; url = 'https://files.projectredwiki.com/maven' }
+    //maven { name = 'ProjectRed'; url = 'https://files.projectredwiki.com/maven' }
     maven { name = 'DVS1'; url = 'https://dvs1.progwml6.com/files/maven/' }
     maven { name = 'Outlands'; url = 'https://maven.outlands.top/releases' }
     maven { name = 'CleanroomMC'; url = 'https://repo.cleanroommc.com/releases' }
