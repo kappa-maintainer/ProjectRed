@@ -106,7 +106,7 @@ class GuiPlottingTable(tile:TilePlottingTable, c:ContainerFabricationMachine) ex
         GuiFabricationMachine.drawBackground(GuiPlottingTable.background, c, 80, 40, 24)
 
     override def drawFront_Impl(mouse:Point, frame:Float):Unit =
-        GuiFabricationMachine.drawLabels("Plotting Table")
+        GuiFabricationMachine.drawLabels(tile)
 
 object GuiPlottingTable extends TGuiFactory:
 

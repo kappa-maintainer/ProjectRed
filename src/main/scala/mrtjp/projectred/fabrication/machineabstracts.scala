@@ -12,6 +12,7 @@ import codechicken.lib.texture.TextureUtils
 import mrtjp.core.gui.{GuiLib, NodeContainer}
 import mrtjp.projectred.api.IConnectable
 import mrtjp.projectred.core.*
+import net.minecraft.client.resources.I18n
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.inventory.Container
 import net.minecraft.nbt.NBTTagCompound
@@ -229,6 +230,13 @@ object GuiFabricationMachine:
     val WIDTH = 176
     val HEIGHT = 171
 
+    /**
+      * Lang key of one table variant. Mirrors how `ItemBlockCore` builds its
+      * key from the block's translation key plus the item damage, so the GUI
+      * title and the item name always agree.
+      */
+    def machineNameKey(meta:Int):String = s"tile.projectred.fabrication.fabricationMachine|$meta.name"
+
     def drawBackground(background:ResourceLocation, c:ContainerFabricationMachine,
                        progressX:Int, progressY:Int, progressWidth:Int):Unit =
         TextureUtils.changeTexture(background)
@@ -244,6 +252,7 @@ object GuiFabricationMachine:
             GuiDraw.drawTexturedModalRect(27, 16, 185, 18, 7, 9)
         GuiLib.drawVerticalTank(27, 26, 185, 27, 7, 48, c.getFlowScaled(48))
 
-    def drawLabels(title:String):Unit =
+    def drawLabels(tile:TileFabricationMachine):Unit =
+        val title = I18n.format(machineNameKey(tile.getBlockMetadata))
         GuiDraw.drawString(title, 8, 6, EnumColour.GRAY.argb, false)
-        GuiDraw.drawString("Inventory", 8, 79, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString(I18n.format("container.inventory"), 8, 79, EnumColour.GRAY.argb, false)

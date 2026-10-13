@@ -179,7 +179,7 @@ class GuiPackagingTable(tile:TilePackagingTable, c:ContainerPackagingTable) exte
                 GuiDraw.drawRect(slot.xPos, slot.yPos, 16, 16, colour)
 
     override def drawFront_Impl(mouse:Point, frame:Float):Unit =
-        GuiFabricationMachine.drawLabels("Packaging Table")
+        GuiFabricationMachine.drawLabels(tile)
 
 object GuiPackagingTable extends TGuiFactory:
 

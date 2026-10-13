@@ -130,7 +130,7 @@ class GuiLithographyTable(tile:TileLithographyTable, c:ContainerFabricationMachi
         GuiFabricationMachine.drawBackground(GuiLithographyTable.background, c, 80, 40, 24)
 
     override def drawFront_Impl(mouse:Point, frame:Float):Unit =
-        GuiFabricationMachine.drawLabels("Lithography Table")
+        GuiFabricationMachine.drawLabels(tile)
 
 object GuiLithographyTable extends TGuiFactory:
 
