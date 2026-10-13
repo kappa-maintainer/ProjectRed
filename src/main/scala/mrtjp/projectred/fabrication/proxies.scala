@@ -17,7 +17,7 @@ import mrtjp.core.block.{ItemBlockCore, MultiTileBlock}
 import mrtjp.core.gui.GuiHandler
 import mrtjp.projectred.ProjectRedFabrication.*
 import mrtjp.projectred.ProjectRedIntegration
-import mrtjp.projectred.core.IProxy
+import mrtjp.projectred.core.{IProxy, PartDefs}
 import mrtjp.projectred.integration.{GateDefinition, RenderGate}
 import net.minecraft.client.renderer.block.model.{ModelResourceLocation, ModelBakery as MCModelBakery}
 import net.minecraft.client.renderer.block.statemap.StateMap.Builder
@@ -27,7 +27,7 @@ import net.minecraftforge.client.model.ModelLoader
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.property.IExtendedBlockState
 import net.minecraftforge.fml.client.registry.ClientRegistry
-import net.minecraftforge.fml.common.registry.ForgeRegistries
+import net.minecraftforge.fml.common.registry.{ForgeRegistries, GameRegistry}
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 class FabricationProxy_server extends IProxy with IPartFactory
@@ -79,7 +79,10 @@ class FabricationProxy_server extends IProxy with IPartFactory
         MultiPartRegistry.registerParts(this, Array(GateDefinition.typeICGate))
         MinecraftForge.EVENT_BUS.register(FabricationRecipes)
 
-    override def init(): Unit ={}
+    override def init(): Unit =
+        //Rough Silicon Wafer. The other fabrication recipes are JSON, but 1.12
+        //smelting is registered in code, as the core module does.
+        GameRegistry.addSmelting(PartDefs.SILICON.makeStack, new ItemStack(itemRoughSiliconWafer), 0f)
 
     override def postinit(): Unit =
         //hook into gate part to add tooltip info
@@ -105,6 +108,9 @@ class FabricationProxy_client extends FabricationProxy_server
 :
     val icWorkbenchGui = 12
     val icPrinterGui = 13
+    val plottingTableGui = 14
+    val lithographyTableGui = 15
+    val packagingTableGui = 16
 
     @SideOnly(Side.CLIENT)
     override def preinit(): Unit =
@@ -178,6 +184,9 @@ class FabricationProxy_client extends FabricationProxy_server
 
         GuiHandler.register(GuiICWorkbench, icWorkbenchGui)
         GuiHandler.register(GuiICPrinter, icPrinterGui)
+        GuiHandler.register(GuiPlottingTable)
+        GuiHandler.register(GuiLithographyTable)
+        GuiHandler.register(GuiPackagingTable)
 
         RenderGate.hotswap(new RenderICGate, GateDefinition.ICGate.ordinal)
 

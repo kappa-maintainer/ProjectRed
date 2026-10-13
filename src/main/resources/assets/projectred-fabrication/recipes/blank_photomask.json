@@ -1,0 +1,23 @@
+{
+	"type": "forge:ore_shaped",
+	"result": {
+		"item": "projectred-fabrication:blank_photomask",
+		"data": 0,
+		"count": 1
+	},
+	"pattern": [
+		"ggg",
+		"gqg",
+		"ggg"
+	],
+	"key": {
+		"g": {
+			"type": "forge:ore_dict",
+			"ore": "paneGlassColorless"
+		},
+		"q": {
+			"type": "forge:ore_dict",
+			"ore": "gemQuartz"
+		}
+	}
+}

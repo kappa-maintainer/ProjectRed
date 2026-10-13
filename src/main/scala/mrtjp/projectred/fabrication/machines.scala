@@ -96,12 +96,6 @@ abstract class TileFabricationMachine extends MTBlockTile with TTileOrient
     //Not a full cube, so no face is solid. Same treatment as TileICPrinter.
     override def getBlockFaceShape(side:Int): BlockFaceShape = BlockFaceShape.UNDEFINED
 
-class TilePlottingTable extends TileFabricationMachine
-
-class TileLithographyTable extends TileFabricationMachine
-
-class TilePackagingTable extends TileFabricationMachine
-
 class RenderFabricationTable(spriteFolder:String) extends SimpleBlockRenderer
 :
     import java.lang.{Integer as JInt}

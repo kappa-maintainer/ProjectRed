@@ -5,10 +5,19 @@
  */
 package mrtjp.projectred.fabrication
 
+import codechicken.lib.colour.EnumColour
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
+import codechicken.lib.gui.GuiDraw
+import codechicken.lib.texture.TextureUtils
+import mrtjp.core.gui.{GuiLib, NodeContainer}
 import mrtjp.projectred.api.IConnectable
 import mrtjp.projectred.core.*
+import net.minecraft.entity.player.EntityPlayer
+import net.minecraft.inventory.Container
 import net.minecraft.nbt.NBTTagCompound
+import net.minecraft.util.ResourceLocation
+
+import scala.jdk.CollectionConverters.*
 
 /**
   * Power-driven base for the fabrication production chain.
@@ -140,3 +149,101 @@ trait TFabricationPowered extends TileFabricationMachine with TPowerTile with IL
         cond.load(tag)
         isCharged = tag.getBoolean("isCharged")
         isWorking = tag.getBoolean("isWorking")
+
+/**
+  * Opens a container GUI when the machine is used. 1.12's equivalent,
+  * `TGuiMachine`, also lives in the expansion module and is out of reach
+  * here, so this is the fabrication-local version.
+  */
+trait TGuiFabricationMachine extends TFabricationPowered:
+
+    abstract override def onBlockActivated(player:EntityPlayer, side:Int):Boolean =
+        if super.onBlockActivated(player, side) then true
+        else if !player.isSneaking then
+            if !getWorld.isRemote then openGui(player)
+            true
+        else false
+
+    def openGui(player:EntityPlayer):Unit
+
+    def createContainer(player:EntityPlayer):Container
+
+/**
+  * Container base for the fabrication machines. Syncs the same quantities
+  * `ContainerPoweredMachine` and `ContainerProcessingMachine` do in the
+  * expansion module, which again is not reachable from this jar:
+  * conductor charge and flow drive the two tanks, remaining and total work
+  * drive the progress arrow.
+  */
+class ContainerFabricationMachine(tile:TFabricationPowered) extends NodeContainer:
+
+    private var lastCharge = -2
+    private var lastFlow = -2
+    private var lastWorkRemaining = -1
+    private var lastWorkMax = -1
+
+    override def detectAndSendChanges():Unit =
+        super.detectAndSendChanges()
+
+        for listener <- listeners.asScala do
+            if lastCharge != tile.cond.charge then
+                listener.sendWindowProperty(this, 0, tile.cond.charge)
+            if lastFlow != tile.cond.flow then
+                listener.sendWindowProperty(this, 1, tile.cond.flow & 0xFFFF)
+                listener.sendWindowProperty(this, 2, tile.cond.flow >> 16 & 0xFFFF)
+            if lastWorkRemaining != tile.workRemaining then
+                listener.sendWindowProperty(this, 3, tile.workRemaining)
+            if lastWorkMax != tile.workMax then
+                listener.sendWindowProperty(this, 4, tile.workMax)
+
+        lastCharge = tile.cond.charge
+        lastFlow = tile.cond.flow
+        lastWorkRemaining = tile.workRemaining
+        lastWorkMax = tile.workMax
+
+    override def updateProgressBar(id:Int, bar:Int):Unit = id match
+        case 0 => tile.cond.charge = bar
+        case 1 => tile.cond.flow = tile.cond.flow & 0xFFFF0000 | bar & 0xFFFF
+        case 2 => tile.cond.flow = tile.cond.flow & 0xFFFF | (bar & 0xFFFF) << 16
+        case 3 => tile.workRemaining = bar
+        case 4 => tile.workMax = bar
+        case _ => super.updateProgressBar(id, bar)
+
+    def canConductorWork:Boolean = tile.cond.canWork
+    def isFlowFull:Boolean = tile.cond.flow == -1
+    def getChargeScaled(scale:Int):Int = tile.cond.getChargeScaled(scale)
+    def getFlowScaled(scale:Int):Int = tile.cond.getFlowScaled(scale)
+    def getProgressScaled(scale:Int):Int = tile.progressScaled(scale)
+
+/**
+  * Drawing shared by the three machine GUIs. Only the progress arrow differs
+  * between them: the plotting and lithography tables put it at (80, 40) and
+  * scale it to 24px, the packaging table at (104, 41) scaled to 20px.
+  *
+  * The atlas offsets for the arrow and both tanks are identical to the ones
+  * the 1.12 furnace GUI already uses, which is why the high-version
+  * backgrounds can be used as-is.
+  */
+object GuiFabricationMachine:
+
+    val WIDTH = 176
+    val HEIGHT = 171
+
+    def drawBackground(background:ResourceLocation, c:ContainerFabricationMachine,
+                       progressX:Int, progressY:Int, progressWidth:Int):Unit =
+        TextureUtils.changeTexture(background)
+        GuiDraw.drawTexturedModalRect(0, 0, 0, 0, WIDTH, HEIGHT)
+
+        GuiDraw.drawTexturedModalRect(progressX, progressY, 176, 0, c.getProgressScaled(progressWidth) + 1, 16)
+
+        if c.canConductorWork then
+            GuiDraw.drawTexturedModalRect(16, 16, 177, 18, 7, 9)
+        GuiLib.drawVerticalTank(16, 26, 177, 27, 7, 48, c.getChargeScaled(48))
+
+        if c.isFlowFull then
+            GuiDraw.drawTexturedModalRect(27, 16, 185, 18, 7, 9)
+        GuiLib.drawVerticalTank(27, 26, 185, 27, 7, 48, c.getFlowScaled(48))
+
+    def drawLabels(title:String):Unit =
+        GuiDraw.drawString(title, 8, 6, EnumColour.GRAY.argb, false)
+        GuiDraw.drawString("Inventory", 8, 79, EnumColour.GRAY.argb, false)

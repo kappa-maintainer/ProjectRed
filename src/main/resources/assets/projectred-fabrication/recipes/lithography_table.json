@@ -1,0 +1,40 @@
+{
+	"type": "forge:ore_shaped",
+	"result": {
+		"item": "projectred-fabrication:fabrication_machine",
+		"data": 1,
+		"count": 1
+	},
+	"pattern": [
+		"gtg",
+		"oio",
+		"wbw"
+	],
+	"key": {
+		"g": {
+			"type": "minecraft:item",
+			"item": "minecraft:glass",
+			"data": 0
+		},
+		"t": {
+			"type": "forge:ore_dict",
+			"ore": "gemEmerald"
+		},
+		"o": {
+			"type": "forge:ore_dict",
+			"ore": "obsidian"
+		},
+		"i": {
+			"type": "forge:ore_dict",
+			"ore": "ingotIron"
+		},
+		"w": {
+			"type": "forge:ore_dict",
+			"ore": "plankWood"
+		},
+		"b": {
+			"type": "forge:ore_dict",
+			"ore": "ingotElectrotineAlloy"
+		}
+	}
+}

@@ -7,6 +7,7 @@ package mrtjp.projectred.fabrication
 
 import mrtjp.core.item.ItemCore
 import mrtjp.projectred.ProjectRedFabrication
+import mrtjp.projectred.fabrication.lithography.WaferType
 
 /**
   * Shell-only ports of the high-version Fabrication production chain items.
@@ -16,6 +17,9 @@ import mrtjp.projectred.ProjectRedFabrication
 class ItemRoughSiliconWafer extends ItemCore
 :
     setCreativeTab(ProjectRedFabrication.tabFabrication)
+
+    /** Grade of silicon this item carries. Mirrors `BaseSiliconWaferItem`. */
+    def getWaferType:WaferType = WaferType.ROUGH_WAFER
 
 class ItemBlankPhotomask extends ItemCore
 :

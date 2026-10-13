@@ -1,0 +1,37 @@
+{
+	"type": "forge:ore_shaped",
+	"result": {
+		"item": "projectred-fabrication:fabrication_machine",
+		"data": 2,
+		"count": 1
+	},
+	"pattern": [
+		"gtg",
+		"ppp",
+		"wbw"
+	],
+	"key": {
+		"g": {
+			"type": "minecraft:item",
+			"item": "minecraft:glass",
+			"data": 0
+		},
+		"t": {
+			"type": "forge:ore_dict",
+			"ore": "dustRedstone"
+		},
+		"p": {
+			"type": "minecraft:item",
+			"item": "projectred-core:resource_item",
+			"data": 0
+		},
+		"w": {
+			"type": "forge:ore_dict",
+			"ore": "plankWood"
+		},
+		"b": {
+			"type": "forge:ore_dict",
+			"ore": "ingotElectrotineAlloy"
+		}
+	}
+}
