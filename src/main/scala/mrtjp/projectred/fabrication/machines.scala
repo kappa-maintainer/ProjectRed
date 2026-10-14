@@ -5,7 +5,7 @@
  */
 package mrtjp.projectred.fabrication
 
-import codechicken.lib.block.property.unlisted.UnlistedIntegerProperty
+import codechicken.lib.block.property.unlisted.{UnlistedBooleanProperty, UnlistedIntegerProperty}
 import codechicken.lib.data.{MCDataInput, MCDataOutput}
 import codechicken.lib.model.bakery.generation.IBakery
 import codechicken.lib.model.bakery.{IBakeryProvider, ModelBakery, SimpleBlockRenderer}
@@ -44,6 +44,11 @@ import java.util.{List as JList}
   * `TileLithographyTable`, `TilePackagingTable`). See MIGRATION.md for the
   * implemented chain and the scope deliberately left out.
   *
+  * The front face shows one of three sprites: unpowered, charged but idle, or
+  * charged and working. Both flags come from the tile and travel through the
+  * extended block state like the rotation, since they are per-instance data
+  * rather than block metadata.
+  *
   * These are "domed machines": a 10/16-tall box, not a full cube. The side
   * textures carry 6 rows of transparent padding at the top, so they must be
   * UV-cropped to v in [6,16] -- exactly what the high version does with
@@ -56,6 +61,8 @@ class BlockFabricationMachine(bakery:IBakery) extends MultiTileBlock(Material.RO
 
     override def createBlockState(): BlockStateContainer = new Builder(this).add(MultiTileBlock.TILE_INDEX)
             .add(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
+            .add(BlockFabricationMachine.UNLISTED_CHARGED_PROPERTY)
+            .add(BlockFabricationMachine.UNLISTED_WORKING_PROPERTY)
             .build()
 
     override def getExtendedState(state: IBlockState, world: IBlockAccess, pos: BlockPos) = ModelBakery.handleExtendedState(state.asInstanceOf[IExtendedBlockState], world, pos)
@@ -73,6 +80,14 @@ class BlockFabricationMachine(bakery:IBakery) extends MultiTileBlock(Material.RO
 object BlockFabricationMachine
 :
     val UNLISTED_ROTATION_PROPERTY = new UnlistedIntegerProperty("rotation")
+
+    /**
+      * Appearance state, both read back in the renderer's `handleState`.
+      * `charged` is whether the machine has power, `working` whether it is
+      * running. Together they pick the front sprite.
+      */
+    val UNLISTED_CHARGED_PROPERTY = new UnlistedBooleanProperty("charged")
+    val UNLISTED_WORKING_PROPERTY = new UnlistedBooleanProperty("working")
 
     /**
       * These are 10/16-tall domed machines, so the selection and collision box
@@ -112,7 +127,7 @@ abstract class TileFabricationMachine extends MTBlockTile with TTileOrient
 
 class RenderFabricationTable(spriteFolder:String) extends SimpleBlockRenderer
 :
-    import java.lang.{Integer as JInt}
+    import java.lang.{Boolean as JBool, Integer as JInt}
 
     import org.apache.commons.lang3.tuple.Triple
 
@@ -136,20 +151,38 @@ class RenderFabricationTable(spriteFolder:String) extends SimpleBlockRenderer
     var bottom:TextureAtlasSprite = scala.compiletime.uninitialized
     var top:TextureAtlasSprite = scala.compiletime.uninitialized
     var side:TextureAtlasSprite = scala.compiletime.uninitialized
-    var front:TextureAtlasSprite = scala.compiletime.uninitialized
 
-    var iconT:UVTransformation = scala.compiletime.uninitialized
+    /** Front-face sprite per appearance state, indexed by [[stateIndex]]. */
+    var fronts:Array[TextureAtlasSprite] = scala.compiletime.uninitialized
+
+    /** One icon transform per appearance state; only the front sprite differs. */
+    var iconTs:Array[UVTransformation] = scala.compiletime.uninitialized
 
     override def handleState(state:IExtendedBlockState, world:IBlockAccess, pos:BlockPos):IExtendedBlockState = world.getTileEntity(pos) match
         case t:TileFabricationMachine =>
+            //Every table is powered, so this reads as idle rather than failing
+            //if a plain machine is ever introduced.
+            val (charged, working) = t match
+                case p:TFabricationPowered => (p.isCharged, p.isWorking)
+                case _                     => (false, false)
             state.withProperty(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY, t.rotation.asInstanceOf[JInt])
+                .withProperty(BlockFabricationMachine.UNLISTED_CHARGED_PROPERTY, charged.asInstanceOf[JBool])
+                .withProperty(BlockFabricationMachine.UNLISTED_WORKING_PROPERTY, working.asInstanceOf[JBool])
         case _ => state
 
     override def getWorldTransforms(state:IExtendedBlockState) =
         val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
-        Triple.of(0, rot, iconT)
+        Triple.of(0, rot, iconTs(stateIndex(state)))
 
-    override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconT)
+    override def getItemTransforms(stack:ItemStack) = Triple.of(0, 0, iconTs(0))
+
+    /** 0 = no power, 1 = charged and idle, 2 = charged and working. */
+    private def stateIndex(state:IExtendedBlockState):Int =
+        val charged = state.getValue(BlockFabricationMachine.UNLISTED_CHARGED_PROPERTY)
+        val working = state.getValue(BlockFabricationMachine.UNLISTED_WORKING_PROPERTY)
+        if !charged then 0
+        else if working then 2
+        else 1
 
     override def shouldCull() = false
 
@@ -181,11 +214,11 @@ class RenderFabricationTable(spriteFolder:String) extends SimpleBlockRenderer
         bottom = register("bottom")
         top = register("top")
         side = register("side")
-        front = register("front")
+        fronts = Array(register("front_0"), register("front_1"), register("front_2"))
 
         //tex order is (bottom, top, north, south, west, east). The front goes on
         //south so that it ends up facing the placing player, matching high version.
-        iconT = new MultiIconTransformation(bottom, top, side, front, side, side)
+        iconTs = fronts.map(f => new MultiIconTransformation(bottom, top, side, f, side, side))
 
 object RenderPlottingTable extends RenderFabricationTable("plottingtable")
 

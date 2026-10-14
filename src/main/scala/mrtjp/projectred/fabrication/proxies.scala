@@ -174,10 +174,11 @@ class FabricationProxy_client extends FabricationProxy_server
         RenderGate.hotswap(new RenderICGate, GateDefinition.ICGate.ordinal)
 
     /**
-      * Cache key for the three table variants. Must include the tile index:
-      * the state mapper ignores `TILE_INDEX`, so all three share a single
-      * ModelResourceLocation and would otherwise collapse onto one baked
-      * model -- whichever was baked first.
+      * Cache key for the table variants and their appearance states. Must include
+      * the tile index: the state mapper ignores `TILE_INDEX`, so all three share a
+      * single ModelResourceLocation and would otherwise collapse onto one baked
+      * model -- whichever was baked first. The two appearance flags need to be in
+      * here for the same reason.
       */
     @SideOnly(Side.CLIENT)
     val rotStateKeyGen = new IBlockStateKeyGenerator
@@ -185,7 +186,9 @@ class FabricationProxy_client extends FabricationProxy_server
         override def generateKey(state: IExtendedBlockState): String =
             val meta = state.getBlock.getMetaFromState(state)
             val rot = state.getValue(BlockFabricationMachine.UNLISTED_ROTATION_PROPERTY)
-            state.getBlock.getRegistryName.toString + s",meta=$meta,rot=$rot"
+            val charged = state.getValue(BlockFabricationMachine.UNLISTED_CHARGED_PROPERTY)
+            val working = state.getValue(BlockFabricationMachine.UNLISTED_WORKING_PROPERTY)
+            state.getBlock.getRegistryName.toString + s",meta=$meta,rot=$rot,charged=$charged,working=$working"
 
     @SideOnly(Side.CLIENT)
     def registerBlockToBakery(block: net.minecraft.block.Block, iconRegister: TextureUtils.IIconRegister, stateMap: net.minecraft.client.renderer.block.statemap.IStateMapper): Unit =

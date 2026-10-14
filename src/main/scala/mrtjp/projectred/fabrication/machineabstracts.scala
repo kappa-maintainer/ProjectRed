@@ -33,8 +33,9 @@ import scala.jdk.CollectionConverters.*
   * not visible from here. This is a fabrication-local version built directly
   * on the core power API.
   *
-  * Only the logic lives here; turning `isCharged`/`isWorking` into block
-  * appearance is a rendering concern handled separately.
+  * Only the logic lives here; the flags are also what the renderer reads to
+  * pick the front-face sprite, so changes are pushed to the client and trigger
+  * a rebake.
   */
 trait TFabricationPowered extends TileFabricationMachine with TPowerTile with ILowLoadMachine:
 
@@ -127,6 +128,8 @@ trait TFabricationPowered extends TileFabricationMachine with TPowerTile with IL
         case KEY_WORK_STATE =>
             isCharged = in.readBoolean()
             isWorking = in.readBoolean()
+            //Both flags pick the front-face sprite, so the client has to rebake.
+            markRender()
         case _ => super.read(in, key)
 
     abstract override def writeDesc(out:MCDataOutput):Unit =
