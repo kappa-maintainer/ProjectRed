@@ -144,9 +144,21 @@ Completed — see the Smart Lamp entry under [Completed migrations](#completed-m
 
 ### New Fabrication production chain (Plotting/Lithography/Packaging Tables)
 
-Implemented (`c577fc26`, `b55ecfbd`, `9022369f`, calibrated in `fabab71c`). This replaces the old
-single-step IC crafting with a three-machine chain. The old single-step `ICGateRecipe` is still
-registered alongside it -- retiring it is an open question, see `TODO.md`.
+Implemented (`c577fc26`, `b55ecfbd`, `9022369f`, calibrated in `fabab71c`). This adds a
+three-machine chain alongside the pre-existing single-step IC crafting.
+
+**The single-step route is deliberately kept.** The high version removed it outright, together
+with the IC chip item and the IC Printer block: it registers no recipe producing the fabricated
+gate at all, so the packaging table is its only source. That removal does not carry over. Deleting
+an item in 1.12 leaves existing stacks unresolved -- there is no `MissingMappings` handling -- and
+the chip and printer are pre-existing working features rather than part of this migration. Both
+routes also converge on the same output item (`GateDefinition.ICGate`, filled by
+`ItemICBlueprint.copyToGate`), so keeping both carries no interoperability risk.
+
+The two routes differ in cost, which is what makes coexistence reasonable. Per IC gate, the
+single-step route spends 10 circuit plates, 7 gold nuggets and one silicon, while the chain spends
+8 plates and 1/N silicon, where one 16x16 wafer yields roughly 139 valid dies. The chain is the
+bulk route; the single-step recipe stays the low-infrastructure one.
 
 - **Plotting Table** (`fabrication_machine:0`) prints a blueprint design onto a blank photomask,
   producing a photomask set. 10s at 100W.
