@@ -608,3 +608,11 @@ gui.projectred.transportation.chip.firewallPush=Push routing
 gui.projectred.transportation.chip.firewallPull=Pulling
 gui.projectred.transportation.chip.firewallCraft=Crafting
 gui.projectred.transportation.chip.notConfigured=not configured
+
+#Messages the server sends to players, translated client-side
+message.projectred.request.success=Successfully requested %s of %s.
+message.projectred.request.failed=Could not request %s of %s. Missing:
+message.projectred.request.missing=%s of %s
+message.projectred.signal.side.client=Client
+message.projectred.signal.side.server=Server
+message.projectred.signal.strength=%s signal strength: %s

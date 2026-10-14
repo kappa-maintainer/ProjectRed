@@ -9,7 +9,7 @@ import codechicken.microblock.{BlockMicroMaterial, ItemMicroPart}
 import codechicken.multipart.{IMaskedRedstonePart, RedstoneInteractions, TMultiPart}
 import mrtjp.core.inventory.InvWrapper
 import mrtjp.core.world.Messenger
-import mrtjp.projectred.ProjectRedCore
+import mrtjp.projectred.{MsgLang, ProjectRedCore}
 import mrtjp.projectred.api.{IConnectable, IScrewdriver}
 import mrtjp.projectred.core.IWirePart.*
 import mrtjp.projectred.core.*
@@ -19,7 +19,7 @@ import net.minecraft.init.Blocks
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.*
-import net.minecraft.util.text.TextComponentString
+import net.minecraft.util.text.TextComponentTranslation
 import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 
 import scala.jdk.CollectionConverters.*
@@ -190,8 +190,8 @@ trait TRedstonePipe extends SubcorePipePart with TCenterRSAcquisitions with TCen
         false
 
     def debug(player:EntityPlayer) =
-        player.sendMessage(new TextComponentString(
-            (if world.isRemote then "Client" else "Server")+" signal strength: "+getSignal))
+        val side = new TextComponentTranslation(MsgLang+(if world.isRemote then "signal.side.client" else "signal.side.server"))
+        player.sendMessage(new TextComponentTranslation(MsgLang+"signal.strength", side, getSignal))
         true
 
     def test(player:EntityPlayer) =

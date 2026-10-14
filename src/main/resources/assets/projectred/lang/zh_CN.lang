@@ -608,3 +608,11 @@ gui.projectred.transportation.chip.firewallPush=推送路由
 gui.projectred.transportation.chip.firewallPull=拉取
 gui.projectred.transportation.chip.firewallCraft=合成
 gui.projectred.transportation.chip.notConfigured=未配置
+
+#Messages the server sends to players, translated client-side
+message.projectred.request.success=已成功请求 %s 个 %s。
+message.projectred.request.failed=无法请求 %s 个 %s。缺少：
+message.projectred.request.missing=%s 个 %s
+message.projectred.signal.side.client=客户端
+message.projectred.signal.side.server=服务端
+message.projectred.signal.strength=%s信号强度：%s

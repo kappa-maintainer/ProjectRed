@@ -7,6 +7,17 @@ import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.common.event.{FMLInitializationEvent, FMLPostInitializationEvent, FMLPreInitializationEvent, FMLServerStartingEvent}
 import org.apache.logging.log4j.{LogManager, Logger}
 
+/**
+  * Lang key prefix for text the server sends to players.
+  *
+  * A dedicated server cannot resolve ProjectRed's own keys: Forge only injects
+  * `assets/<modid>/lang/en_us.lang` into its language map, and ProjectRed's files
+  * live under the shared `assets/projectred/lang/` domain, which matches no mod id.
+  * Such text must therefore be sent as a `TextComponentTranslation`, which the
+  * client resolves against its own language files.
+  */
+private[projectred] val MsgLang = "message.projectred."
+
 @Mod(modid = "projectred-core", useMetadata = true, modLanguage = "scala", guiFactory = "mrtjp.projectred.core.GuiConfigFactory")
 object ProjectRedCore
 :

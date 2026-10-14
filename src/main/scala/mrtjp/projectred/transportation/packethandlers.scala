@@ -4,11 +4,12 @@ import codechicken.lib.packet.PacketCustom
 import codechicken.lib.packet.ICustomPacketHandler.{IClientPacketHandler, IServerPacketHandler}
 import codechicken.multipart.BlockMultipart
 import mrtjp.core.item.{ItemKey, ItemKeyStack}
-import mrtjp.projectred.ProjectRedTransportation
+import mrtjp.projectred.{MsgLang, ProjectRedTransportation}
 import net.minecraft.client.Minecraft
 import net.minecraft.entity.player.EntityPlayerMP
+import net.minecraft.item.ItemStack
 import net.minecraft.network.play.{INetHandlerPlayClient, INetHandlerPlayServer}
-import net.minecraft.util.text.TextComponentString
+import net.minecraft.util.text.{ITextComponent, TextComponentString, TextComponentTranslation}
 
 class TransportationPH
 :
@@ -112,6 +113,21 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
 
         packet2.compress().sendToPlayer(player)
 
+    /**
+      * Item name as a component for the receiving client to resolve.
+      *
+      * `ItemKey.getName` goes through `ItemStack.getDisplayName`, which resolves with
+      * `net.minecraft.util.text.translation.I18n`. On a dedicated server that map holds
+      * only vanilla's `en_us`, so a ProjectRed item would arrive as a raw translation
+      * key. Sending the key instead defers the lookup to the client.
+      */
+    private def nameOf(key:ItemKey):ITextComponent =
+        val stack = key.makeStack(1)
+        val display = stack.getSubCompound("display")
+        if display != null && display.hasKey("Name", 8) then new TextComponentString(display.getString("Name"))
+        else if display != null && display.hasKey("LocName", 8) then new TextComponentTranslation(display.getString("LocName"))
+        else new TextComponentTranslation(stack.getTranslationKey + ".name")
+
     private def handleRequestSubmit(packet:PacketCustom, sender:EntityPlayerMP): Unit =
         val t = BlockMultipart.getPart(sender.world, packet.readPos(), 6)
         if t.isInstanceOf[IRouterContainer] then
@@ -132,11 +148,12 @@ object TransportationSPH extends TransportationPH with IServerPacketHandler
             r.startRequest()
 
             if r.requested > 0 then
-                sender.sendMessage(new TextComponentString("Successfully requested "+r.requested+" of "+s.key.getName+"."))
+                sender.sendMessage(new TextComponentTranslation(MsgLang+"request.success", r.requested, nameOf(s.key)))
                 RouteFX2.spawnType1(RouteFX2.color_request, t.asInstanceOf[IRouterContainer].getPipe)
             else
-                sender.sendMessage(new TextComponentString("Could not request "+s.stackSize+" of "+s.key.getName+". Missing:"))
-                for (k,v) <- r.getMissing do sender.sendMessage(new TextComponentString(s"$v of ${k.getName}"))
+                sender.sendMessage(new TextComponentTranslation(MsgLang+"request.failed", s.stackSize, nameOf(s.key)))
+                for (k,v) <- r.getMissing do
+                    sender.sendMessage(new TextComponentTranslation(MsgLang+"request.missing", v, nameOf(k)))
 
             sendRequestList(t.asInstanceOf[IRouterContainer], sender, pull, craft)
 
