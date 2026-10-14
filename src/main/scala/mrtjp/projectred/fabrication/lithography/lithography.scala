@@ -26,7 +26,7 @@ import mrtjp.core.vec.Size
   *    is `selectedBoardSize * 16`, so 1.12 designs actually span 16x16 ..
   *    64x64 tiles, not the 1x1..4x4 the sizer grid suggests. Calibrating
   *    against the largest board keeps the defect rate meaningful over the
-  *    whole range: 3.1% at 16x16 rising to 50% at 64x64. The high version
+  *    whole range: 3.125% at 16x16 rising to 50% at 64x64. The high version
   *    calibrates against a 16x16 die and hard-codes that size in production,
   *    which for 1.12 would put every design but the smallest at a saturated
   *    100% defect rate. See [[Lithography.STANDARD_DIE_TILES]].
@@ -45,7 +45,7 @@ object Lithography:
       * is `NewICNode.selectedBoardSize * 16`, with `maxBoardSize` of 4 sizer
       * units, so designs range over 16x16 .. 64x64 tiles. Calibrating against
       * the largest end is what makes the defect rates span a useful range:
-      * 3.1% for a 16x16 design up to 50% for a full 64x64 one.
+      * 3.125% for a 16x16 design up to 50% for a full 64x64 one.
       *
       * The high version uses 16 here. Its `finishWork` hard-codes
       * `processNode.getTileWidth() * 16` with a TODO to read the real size,

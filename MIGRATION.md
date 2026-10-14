@@ -8,8 +8,6 @@ JSON, registry code, or renderer code. Old namespace `projectred_*` -> target na
 Old texture dirs are singular (`textures/block`, `textures/item`) -> target dirs are plural
 (`textures/blocks`, `textures/items`).
 
-The substantive ProjectRed changes are now committed by the user. This file remains a migration
-record and may be committed separately after manual review. Do not push from the working tree.
 Never combine `rm -rf` with any other command in the same tool call — issue it alone. Do not delete
 `/tmp` extraction dirs from here; leave cleanup to the user.
 
@@ -146,14 +144,49 @@ Completed — see the Smart Lamp entry under [Completed migrations](#completed-m
 
 ### New Fabrication production chain (Plotting/Lithography/Packaging Tables)
 
-A replacement for the old single-step IC crafting: Plotting Table prints a photomask design onto
-a blank photomask, Lithography Table etches a silicon wafer using photomasks through a multi-stage
-pipeline (`LithographyPipeline`/`ProcessNode`/`YieldCalculator`, wafer types, yield/defect
-modelling), Packaging Table turns an etched wafer + housing into a finished die/IC. Adds several
-new items (`base_silicon_wafer`, `rough_silicon_wafer`, `etched_silicon_wafer`,
-`blank_photomask`/`photomask_set`, `valid_die`/`invalid_die`/`valid_die_template`). 1.12's IC
-Workbench crafting flow is single-step and has none of these intermediate items or machines.
-Porting means designing and implementing the whole pipeline, not just adding blocks. Not started.
+Implemented (`c577fc26`, `b55ecfbd`, `9022369f`, calibrated in `fabab71c`). This replaces the old
+single-step IC crafting with a three-machine chain. The old single-step `ICGateRecipe` is still
+registered alongside it -- retiring it is an open question, see `TODO.md`.
+
+- **Plotting Table** (`fabrication_machine:0`) prints a blueprint design onto a blank photomask,
+  producing a photomask set. 10s at 100W.
+- **Lithography Table** (`fabrication_machine:1`) etches a rough silicon wafer through the photomask
+  set and cuts it into dies, yielding valid and invalid dies separately. 60s at 100W.
+- **Packaging Table** (`fabrication_machine:2`) combines a valid die with a ring of core plates into
+  a finished IC gate. 20s at 100W.
+
+Design data travels as item NBT (`ICData`) using exactly the keys the existing IC Workbench and IC
+gate already read and write, so a design is usable by every stage and by the pre-existing
+single-step flow. Rough silicon wafer is produced by smelting ProjectRed silicon, matching the high
+version's `minecraft:smelting` recipe.
+
+**Item scope.** The high version registers six fabrication items; the port covers all five that
+were new here -- `rough_silicon_wafer`, `blank_photomask`, `photomask_set`, `valid_die` and
+`invalid_die`, the sixth being the pre-existing `ic_blueprint`. Three further names that an earlier
+draft of this document listed are not items in the high version either and were deliberately not
+created: `etched_silicon_wafer` (its item class is commented out at `FabricationItems:24,35`),
+`base_silicon_wafer` (a base class that is never registered, `BaseSiliconWaferItem`) and
+`valid_die_template` (does not exist anywhere in the high-version tree).
+
+**Pipeline scope.** Only `PROCESS_64NM`, `ROUGH_WAFER` and single-layer designs are reachable -- in
+this port and in the high version alike. `LithographyPipeline.ADVANCED` is referenced nowhere
+outside its own declaration, its diagram is an empty stub (`PipelineDiagramNode:37`), the
+production path never consults layer count, and `Lithographer` is three empty methods. The
+pipeline's compatibility matrix is therefore omitted: with one node and one wafer it could never
+reject anything. The remaining wafer types (`PURIFIED_WAFER`, `POLISHED_WAFER`) and the 32/16/8nm
+nodes stay unimplemented.
+
+**Yield calibration.** The defect model is calibrated against the largest board, not an average
+one. 1.12's board size is `selectedBoardSize * 16`, so designs actually span 16x16 .. 64x64 tiles
+-- not the 1x1..4x4 the IC Workbench sizer grid suggests. Calibrating against a 64x64 die keeps the
+defect rate meaningful across the whole range: 3.125% at 16x16 rising to 50% at 64x64. The high
+version instead hard-codes 16x16 (it carries an unresolved `TODO Source from photomask itemstack
+instead of assuming 16x16`); this port reads the real design size, so a small board is not
+evaluated as if it were a large die.
+
+**Remaining gap: working-state appearance.** The three tables show no visual change while charging
+or working; the high version swaps to `front_1`/`front_2` via `CHARGED`/`WORKING` block states.
+Progress and power are visible in the GUI, so this is cosmetic and not a functional gap.
 
 #### IC simulation engine options considered
 
@@ -224,8 +257,6 @@ own code; not revisited until/unless the project itself targets a newer Minecraf
 6. For the pneumatic slice, test tube-to-tube transfer, graph route selection, device insertion/export,
    blocked outputs, part removal drops, client payload rendering, link smoke/sounds, world re-entry,
    and multiple payloads in one segment.
-7. The user commits substantive changes manually; this document may be committed separately after
-review. Do not push from the working tree.
 
 ## Migration log
 
@@ -236,9 +267,33 @@ review. Do not push from the working tree.
   plus the CCL `3.3.8` dependency bump.
 - `d8a6e06d` Port smart lamp from high version — Smart Lamp block/tile/renderer, recipe,
   textures, localization, multi-colour halo, and CCL particle hooks.
-- Current pneumatic migration — native PneumaticQueue devices, cached graph routing, complete
-  link-path smoke particles, pressurize/depressurize sounds, blocked-output bounce fixes, and
-  world re-entry graph/client synchronization. The user validated the current scope in game.
+- `ecea812b` Backport new pneumatic pipe logic — native PneumaticQueue devices, cached graph
+  routing, complete link-path smoke particles, pressurize/depressurize sounds, blocked-output
+  bounce fixes, and world re-entry graph/client synchronization. The user validated this scope in
+  game.
+- `c2f8081e` Update migration info — documentation pass by the user.
+- `5e2cfff9` Bump build toolchain and dependencies — Cleanroom/Forge and dependency updates, kept
+  separate from the fabrication framework that follows.
+- `c577fc26` Port high-version fabrication production framework — production chain scaffolding.
+- `b55ecfbd` Add fabrication production chain foundations — the `ICData` contract and the
+  lithography data model.
+- `9022369f` Implement fabrication production chain machines — Plotting/Lithography/Packaging
+  tables with slots, work timers, recipes, containers and GUIs.
+- `fabab71c` Fix fabrication table calibration, bounds and models — yield calibration moved to the
+  largest board, 10/16 collision and selection bounds, and per-variant baked-model cache keys.
+- `ec3787ec` Localize fabrication machine GUI labels — first `I18n` use in the project; titles
+  reuse the existing block name keys so a title and its item name cannot drift apart.
+- `4a72d4da` Localize GUI labels across all modules — 26 panel titles and 12 button labels. Machine
+  and pipe titles reuse the existing block/item name keys; the 24 new keys are the button labels and
+  the router requester/extraction strings.
+- `b2ec6626` Align scala_version with the compiler version — the tasty inspector was older than the
+  compiler producing the tasty it had to read.
+- `6f1456eb` Jappaify copper — copper ore and ingot texture replacement.
+- `e1d93c4c` Localize routing chip tooltips — ~70 strings, one key per conditional branch, with the
+  `Matching:` label list rebuilt rather than concatenated.
+- `59943b8d` Localize the messages the server sends to players — `TextComponentTranslation`, plus a
+  fix for embedded item names that resolved against a server-side language map holding only
+  vanilla's `en_us`.
 
 ## Operational hazard log
 

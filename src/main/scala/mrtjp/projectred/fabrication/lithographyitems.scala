@@ -10,9 +10,11 @@ import mrtjp.projectred.ProjectRedFabrication
 import mrtjp.projectred.fabrication.lithography.WaferType
 
 /**
-  * Shell-only ports of the high-version Fabrication production chain items.
-  * No crafting logic, GUI hooks, or tooltip data yet -- registration, model,
-  * and localization only. See MIGRATION.md.
+  * The Fabrication production chain items: rough silicon wafer, blank photomask,
+  * photomask set, and the valid/invalid die pair.
+  *
+  * These are produced and consumed by the three tables rather than by crafting
+  * recipes. See MIGRATION.md for the chain.
   */
 class ItemRoughSiliconWafer extends ItemCore
 :

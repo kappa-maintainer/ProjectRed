@@ -27,9 +27,10 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
   * One deliberate improvement on the high version: it hard-codes the design
   * size to 16x16 tiles with a `TODO Source from photomask itemstack instead of
   * assuming 16x16`. The design size is available here (see
-  * [[ICData.getDesignSize]]), so the real size is used instead -- otherwise
-  * every 1.12 board, which maxes out at 4x4, would be evaluated as if it were
-  * a far larger die. See MIGRATION.md.
+  * [[ICData.getDesignSize]]), so the real size is used instead. Boards span
+  * 16x16 .. 64x64 tiles (`selectedBoardSize * 16`, not the 1x1..4x4 the sizer
+  * grid suggests), so assuming 16x16 would misjudge every board but the
+  * smallest. See MIGRATION.md.
   */
 class TileLithographyTable extends TGuiFabricationMachine with TInventory with TInventoryCapablilityTile:
 

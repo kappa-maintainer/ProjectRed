@@ -37,9 +37,12 @@ import net.minecraftforge.fml.relauncher.{Side, SideOnly}
 import java.util.{List as JList}
 
 /**
-  * Shell-only ports of the high-version Plotting/Lithography/Packaging Tables.
-  * Registration, tile entity, rotation, and rendering only -- no crafting,
-  * power, or GUI logic yet. See MIGRATION.md.
+  * The Plotting/Lithography/Packaging Tables: one block, three tile entities.
+  *
+  * This file holds the block, the shared tile base and the renderer. Each
+  * machine's work logic lives in its own tile class (`TilePlottingTable`,
+  * `TileLithographyTable`, `TilePackagingTable`). See MIGRATION.md for the
+  * implemented chain and the scope deliberately left out.
   *
   * These are "domed machines": a 10/16-tall box, not a full cube. The side
   * textures carry 6 rows of transparent padding at the top, so they must be
