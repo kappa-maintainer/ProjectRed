@@ -14,6 +14,7 @@ import mrtjp.projectred.exploration.ArmorDefs.ArmorDef
 import mrtjp.projectred.exploration.ToolDefs.ToolDef
 import net.minecraft.block.*
 import net.minecraft.block.state.IBlockState
+import net.minecraft.client.resources.I18n
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
@@ -56,9 +57,9 @@ class ItemBackpack extends ItemCore
 
     override def addInformation(stack:ItemStack, world:World, list:JList[String], flag:ITooltipFlag): Unit =
         if Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT) then
+            val count = if ItemBackpack.hasBagInv(stack) then ItemBackpack.getNumberOfItems(stack) else 0
             list.asInstanceOf[JList[String]].add(
-                TextFormatting.GRAY.toString+(if ItemBackpack.hasBagInv(stack) then
-                    ItemBackpack.getNumberOfItems(stack) else 0)+"/27 slots used")
+                TextFormatting.GRAY.toString+I18n.format("gui.projectred.exploration.backpack.slotsUsed", count))
 
 object ItemBackpack
 :

@@ -609,6 +609,18 @@ gui.projectred.transportation.chip.firewallPull=Pulling
 gui.projectred.transportation.chip.firewallCraft=Crafting
 gui.projectred.transportation.chip.notConfigured=not configured
 
+#Item tooltips
+gui.projectred.fabrication.blueprint.containsWarning=contains %d warning
+gui.projectred.fabrication.blueprint.containsWarnings=contains %d warnings
+gui.projectred.fabrication.blueprint.containsError=contains %d error
+gui.projectred.fabrication.blueprint.containsErrors=contains %d errors
+gui.projectred.fabrication.blueprint.empty=empty blueprint
+gui.projectred.fabrication.chip.creativeOnly=Creative-mode only chip.
+gui.projectred.fabrication.chip.instantPrints=Instant and free prints.
+gui.projectred.fabrication.chip.rightclickGate=Rightclick to add IC Gate to inventory.
+gui.projectred.expansion.infusedEnderPearl.tiedTo=Tied to [%d, %d, %d]
+gui.projectred.exploration.backpack.slotsUsed=%d/27 slots used
+
 #Messages the server sends to players, translated client-side
 message.projectred.request.success=Successfully requested %s of %s.
 message.projectred.request.failed=Could not request %s of %s. Missing:

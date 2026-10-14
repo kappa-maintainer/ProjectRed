@@ -609,6 +609,18 @@ gui.projectred.transportation.chip.firewallPull=拉取
 gui.projectred.transportation.chip.firewallCraft=合成
 gui.projectred.transportation.chip.notConfigured=未配置
 
+#Item tooltips
+gui.projectred.fabrication.blueprint.containsWarning=含有 %d 个警告
+gui.projectred.fabrication.blueprint.containsWarnings=含有 %d 个警告
+gui.projectred.fabrication.blueprint.containsError=含有 %d 个错误
+gui.projectred.fabrication.blueprint.containsErrors=含有 %d 个错误
+gui.projectred.fabrication.blueprint.empty=空蓝图
+gui.projectred.fabrication.chip.creativeOnly=仅创造模式可用的芯片
+gui.projectred.fabrication.chip.instantPrints=即时且免费地打印
+gui.projectred.fabrication.chip.rightclickGate=右键可将 IC 门加入物品栏
+gui.projectred.expansion.infusedEnderPearl.tiedTo=已绑定至 [%d, %d, %d]
+gui.projectred.exploration.backpack.slotsUsed=已使用 %d/27 个槽位
+
 #Messages the server sends to players, translated client-side
 message.projectred.request.success=已成功请求 %s 个 %s。
 message.projectred.request.failed=无法请求 %s 个 %s。缺少：
