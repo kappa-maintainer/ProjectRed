@@ -54,6 +54,7 @@
 - [ ] Optimize `LampRenderer` by evaluating the 1.12 CCL model-wrapping approach — `src/main/scala/mrtjp/projectred/illumination/blocks.scala:123` ~1d #perf #illumination
 - [ ] Add Illumar light block/entity registration or remove the obsolete registration placeholder — `src/main/scala/mrtjp/projectred/illumination/proxies.scala:41` ~1d #feat #illumination
 - [ ] Review the commented-out `isEmpty` TODO in the Barrel and either remove the obsolete marker or provide an explicit implementation — `src/main/scala/mrtjp/projectred/exploration/TileBarrel.scala:130` ~2h #cleanup #exploration
+- [ ] Fix the inverted-lamp name keys in the non-`en_US` locales. The `falloutLampInverted` block is keyed as `cageLampInverted` in `de_DE`/`it_IT`/`ja_JP`/`nl_NL`/`pt_BR`/`ru_RU`/`uk_UA` (its values are the fallout names), `zh_TW` stores the fallout names under `cageLampInverted` while its own `falloutLampInverted` block is correct, and `fr_FR` has no `falloutLampInverted` block at all. Each file needs a per-language decision on which block is which — `src/main/resources/assets/projectred/lang/*.lang` ~3h #bug #illumination #i18n
 
 ### In Progress
 
