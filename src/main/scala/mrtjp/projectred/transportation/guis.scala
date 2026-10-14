@@ -274,8 +274,7 @@ class GuiFirewallPipe(pipe:RoutedFirewallPipe, c:Container) extends NodeGui(c, 1
             GuiDraw.drawTexturedModalRect(position.x, position.y, if pipe.filtExclude then 1 else 17, 102, 14, 14)
         excl.position = Point(113, 45)
         excl.size = Size(14, 14)
-        excl.tooltipBuilder = {_ += ("Items are "+
-                (if pipe.filtExclude then "blacklisted" else "whitelisted"))}
+        excl.tooltipBuilder = {_ += I18n.format(ChipLang+(if pipe.filtExclude then "itemsBlacklisted" else "itemsWhitelisted"))}
         excl.clickDelegate = {() => sendMessage(0)}
         addChild(excl)
 
@@ -291,9 +290,9 @@ class GuiFirewallPipe(pipe:RoutedFirewallPipe, c:Container) extends NodeGui(c, 1
             b.clickDelegate = {() => sendMessage(id)}
             addChild(b)
 
-        makeButton(150, 28, pipe.allowRoute, "Push routing", 1)
-        makeButton(150, 45, pipe.allowBroadcast, "Pulling", 2)
-        makeButton(150, 62, pipe.allowCrafting, "Crafting", 3)
+        makeButton(150, 28, pipe.allowRoute, I18n.format(ChipLang+"firewallPush"), 1)
+        makeButton(150, 45, pipe.allowBroadcast, I18n.format(ChipLang+"firewallPull"), 2)
+        makeButton(150, 62, pipe.allowCrafting, I18n.format(ChipLang+"firewallCraft"), 3)
 
     def sendMessage(id:Int): Unit =
         new PacketCustom(TransportationCPH.channel, TransportationCPH.gui_FirewallPipe_action)

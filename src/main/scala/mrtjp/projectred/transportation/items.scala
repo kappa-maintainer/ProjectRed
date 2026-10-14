@@ -17,6 +17,7 @@ import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.creativetab.CreativeTabs
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.{Item, ItemStack}
+import net.minecraft.client.resources.I18n
 import net.minecraft.nbt.NBTTagCompound
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.*
@@ -95,7 +96,7 @@ class ItemRoutingChip extends ItemCore
             val s = new ListBuffer[String]
             r.infoCollection(s)
             list.addAll(s.asJava)
-        else list.add(ChatFormatting.GRAY.toString+"not configured")
+        else list.add(ChatFormatting.GRAY.toString+I18n.format(ChipLang+"notConfigured"))
 
     override def onItemRightClick(world:World, player:EntityPlayer, hand:EnumHand) =
         val stack = player.getHeldItem(hand)

@@ -1,6 +1,6 @@
 # TODO
 
-> Compiled from `TODO` and `FIXME` comments in the project source (scan scope: `src/`; duplicate comments for the same feature have been consolidated).
+> Compiled from `TODO` and `FIXME` comments in the project source (scan scope: `src/`; duplicate comments for the same feature have been consolidated), plus explicitly requested follow-up work.
 > Line numbers refer to the current source. Priority: `P0` = functional/correctness risk, `P1` = should be addressed soon, `P2` = optimization or cleanup.
 
 ### Todo
@@ -61,4 +61,5 @@
 
 ### Done ✓
 
-- [ ] No items can be confirmed as completed based on the current source TODO markers
+- [x] Localized the routing chip tooltips (chip config panels, chip info lists, firewall GUI). 69 strings became complete-sentence keys, one key per conditional branch, with `%s`/`%d` placeholders for interpolated values; sentence splicing such as the `Matching:` label list was rebuilt instead of concatenated — `transportation/chipconfigpanels.scala`, `chipabstracts.scala`, `guis.scala`, `items.scala` #i18n #transportation
+- [ ] No source `TODO`/`FIXME` markers can be confirmed as completed yet
