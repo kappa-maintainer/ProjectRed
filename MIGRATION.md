@@ -196,9 +196,15 @@ version instead hard-codes 16x16 (it carries an unresolved `TODO Source from pho
 instead of assuming 16x16`); this port reads the real design size, so a small board is not
 evaluated as if it were a large die.
 
-**Remaining gap: working-state appearance.** The three tables show no visual change while charging
-or working; the high version swaps to `front_1`/`front_2` via `CHARGED`/`WORKING` block states.
-Progress and power are visible in the GUI, so this is cosmetic and not a functional gap.
+**Working-state appearance.** Ported, like the high version's `CHARGED`/`WORKING` block states.
+Each table carries `UNLISTED_CHARGED` and `UNLISTED_WORKING` next to the existing rotation property
+and the renderer picks `front_0` (unpowered), `front_1` (charged, idle) or `front_2` (charged,
+working) for the front face only -- the three sprites differ in nothing else. `front_0` is
+byte-identical to the previous `front.png`, so the unpowered look is unchanged, and the item icon
+stays on `front_0` by design. The bakery cache key includes both flags for the same reason it
+already includes `TILE_INDEX`: without them the three states collapse into a single model. The
+flags reach the client through the `writeStream`/`markRender` pair the IC Workbench already uses for
+`hasBP`. Verified in game.
 
 #### IC simulation engine options considered
 
